@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aptos-labs/ts-sdk": "^5.2.1",
+    "@aptos-labs/wallet-standard": "^0.5.2",
+    "@vercel/kv": "^3.0.0",
     "next": "16.1.3",
     "react": "19.2.3",
     "react-dom": "19.2.3"
