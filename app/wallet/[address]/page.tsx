@@ -1,34 +1,55 @@
 "use client";
 
-import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { WalletSelector } from "@aptos-labs/wallet-adapter-ant-design";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
 import UploadPanel from "@/app/components/UploadPanel";
 
+type FileMeta = {
+  filename: string;
+  originalName: string;
+  size: number;
+  mime: string;
+  hash: string;
+  uploadedAt: string;
+  path: string;
+};
+
 export default function WalletPage() {
   const params = useParams();
-  const router = useRouter();
   const address = params.address as string;
 
   const { connected, account } = useWallet();
-
-  useEffect(() => {
-    if (!address || !address.startsWith("0x")) {
-      router.replace("/");
-    }
-  }, [address, router]);
+  const [files, setFiles] = useState<FileMeta[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const connectedAddress =
     account?.address?.toString?.() ?? "";
+
+  useEffect(() => {
+    async function loadFiles() {
+      setLoading(true);
+      const res = await fetch(
+        `/api/shelby/list?wallet=${address}`
+      );
+      const data = await res.json();
+      setFiles(data.files || []);
+      setLoading(false);
+    }
+
+    if (address?.startsWith("0x")) {
+      loadFiles();
+    }
+  }, [address]);
 
   return (
     <div className="space-y-10">
       {/* HEADER */}
       <section className="card p-6 space-y-2">
         <h1 className="text-lg font-semibold">
-          Wallet Upload
+          Wallet Files
         </h1>
 
         <p className="text-sm text-gray-400 break-all">
@@ -48,8 +69,8 @@ export default function WalletPage() {
       {/* UPLOAD */}
       <section className="card p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium flex items-center gap-2">
-            ⬆️ Upload Files
+          <h2 className="text-sm font-medium">
+            ⬆️ Upload
           </h2>
 
           {!connected ? (
@@ -61,21 +82,61 @@ export default function WalletPage() {
           )}
         </div>
 
-        {!connected && (
-          <p className="text-xs text-gray-500">
-            Connect your wallet to upload files.
-            Browsing is public.
-          </p>
-        )}
-
-        {connected && connectedAddress && (
+        {connected && connectedAddress === address && (
           <UploadPanel
             address={connectedAddress}
             onUploaded={() =>
-              router.push(`/wallet/${connectedAddress}`)
+              location.reload()
             }
           />
         )}
+      </section>
+
+      {/* FILE LIST */}
+      <section className="card p-6 space-y-4">
+        <h2 className="text-sm font-medium">
+          📂 Files
+        </h2>
+
+        {loading && (
+          <p className="text-sm text-gray-500">
+            Loading files...
+          </p>
+        )}
+
+        {!loading && files.length === 0 && (
+          <p className="text-sm text-gray-500">
+            No files uploaded yet.
+          </p>
+        )}
+
+        <ul className="space-y-3">
+          {files.map((file) => (
+            <li
+              key={file.hash}
+              className="flex items-center justify-between border border-white/10 rounded-md px-4 py-2"
+            >
+              <div>
+                <p className="text-sm">
+                  {file.originalName}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(
+                    file.uploadedAt
+                  ).toLocaleString()}
+                </p>
+              </div>
+
+              <a
+                href={file.path}
+                download
+                className="text-sm text-blue-400 hover:underline"
+              >
+                Download
+              </a>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );

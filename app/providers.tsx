@@ -1,9 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import {
-  AptosWalletAdapterProvider,
-} from "@aptos-labs/wallet-adapter-react";
+import { AptosWalletAdapterProvider } from "@aptos-labs/wallet-adapter-react";
 
 export default function Providers({
   children,
