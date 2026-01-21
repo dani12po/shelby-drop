@@ -1,41 +1,44 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet } from "@aptos-labs/wallet-standard";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
-type Props = {
-  wallet: Wallet | null;
-  address: string | null;
+interface UploadPanelProps {
+  address: string;
   onUploaded: () => void;
-};
+}
 
 export default function UploadPanel({
-  wallet,
   address,
   onUploaded,
-}: Props) {
+}: UploadPanelProps) {
+  const { signMessage } = useWallet();
+
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState("");
 
   async function upload() {
-    if (!wallet || !address || !file) {
-      alert("Wallet & file required");
+    if (!file) {
+      alert("Please select a file");
       return;
     }
 
-    const sign =
-      wallet.features["aptos:signMessage"] as any;
-
-    if (!sign) {
-      alert("Wallet does not support signMessage");
+    if (!signMessage) {
+      alert("Wallet does not support message signing");
       return;
     }
 
     try {
       setStatus("Signing message...");
 
-      const message = `Shelby upload\nWallet:${address}\nFile:${file.name}`;
-      const signed = await sign.signMessage({ message });
+      const message = `Shelby upload
+Wallet: ${address}
+File: ${file.name}`;
+
+      const signed = await signMessage({
+        message,
+        nonce: Date.now().toString(),
+      });
 
       setStatus("Uploading file...");
 
@@ -43,20 +46,27 @@ export default function UploadPanel({
       fd.append("file", file);
       fd.append("wallet", address);
       fd.append("message", message);
-      fd.append("signature", signed.signature);
+
+      // 🔥 FIX UTAMA: signature HARUS string
+      fd.append(
+        "signature",
+        JSON.stringify(signed)
+      );
 
       const res = await fetch("/api/shelby/upload", {
         method: "POST",
         body: fd,
       });
 
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
 
       setStatus("Upload success");
       setFile(null);
       onUploaded();
-    } catch (e: any) {
-      alert(e.message || "Upload error");
+    } catch (err: any) {
+      alert(err?.message || "Upload error");
       setStatus("");
     }
   }
@@ -68,12 +78,13 @@ export default function UploadPanel({
       <input
         type="file"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
+        className="text-sm"
       />
 
       <button
         onClick={upload}
         disabled={!file}
-        className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-40"
+        className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-sm"
       >
         Upload
       </button>

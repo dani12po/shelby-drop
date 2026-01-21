@@ -1,66 +1,108 @@
 import { NextResponse } from "next/server";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const apiKey = process.env.SHELBY_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "API key not configured" },
-        { status: 500 }
-      );
-    }
-
     const formData = await req.formData();
+
     const file = formData.get("file") as File | null;
     const wallet = formData.get("wallet") as string | null;
     const message = formData.get("message") as string | null;
-    const signature = formData.get("signature") as string | null;
+    const signatureRaw = formData.get("signature") as string | null;
 
-    if (!file || !wallet || !message || !signature) {
+    /* ===============================
+       BASIC VALIDATION
+    ================================ */
+    if (!file || !wallet || !message || !signatureRaw) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // ✅ BASIC VALIDATION (APTOS-APPROVED PATTERN)
-    if (!message.includes(wallet) || !message.includes("Shelby Drop")) {
+    if (!wallet.startsWith("0x")) {
       return NextResponse.json(
-        { error: "Invalid signed message" },
-        { status: 401 }
+        { error: "Invalid wallet address" },
+        { status: 400 }
       );
     }
 
-    // ⬆️ Forward upload to Shelby
-    const upstream = new FormData();
-    upstream.append("file", file);
-    upstream.append("wallet", wallet);
-
-    const res = await fetch(
-      "https://api.shelbynet.shelby.xyz/shelby/v1/blobs",
-      {
-        method: "POST",
-        headers: {
-          "x-api-key": apiKey,
-        },
-        body: upstream,
-      }
-    );
-
-    if (!res.ok) {
-      const text = await res.text();
-      return NextResponse.json({ error: text }, { status: res.status });
+    /* ===============================
+       PARSE SIGNATURE
+    ================================ */
+    let signature: any;
+    try {
+      signature = JSON.parse(signatureRaw);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid signature format" },
+        { status: 400 }
+      );
     }
 
-    const data = await res.json();
+    /* ===============================
+       FILE STORAGE
+    ================================ */
+    const uploadDir = path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      wallet
+    );
 
+    await mkdir(uploadDir, { recursive: true });
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const hash = crypto
+      .createHash("sha256")
+      .update(buffer)
+      .digest("hex");
+
+    const filename = `${Date.now()}-${file.name}`;
+    const filepath = path.join(uploadDir, filename);
+
+    await writeFile(filepath, buffer);
+
+    /* ===============================
+       METADATA (TEMP STORAGE)
+    ================================ */
+    const metadata = {
+      wallet,
+      filename,
+      originalName: file.name,
+      size: file.size,
+      mime: file.type,
+      hash,
+      message,
+      signature,
+      uploadedAt: new Date().toISOString(),
+      path: `/uploads/${wallet}/${filename}`,
+    };
+
+    const metaPath = path.join(
+      uploadDir,
+      `${filename}.json`
+    );
+
+    await writeFile(
+      metaPath,
+      JSON.stringify(metadata, null, 2)
+    );
+
+    /* ===============================
+       RESPONSE
+    ================================ */
     return NextResponse.json({
-      blob_id: data.blob_id,
-      filename: file.name,
+      success: true,
+      file: metadata,
     });
-  } catch (e: any) {
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
     return NextResponse.json(
-      { error: e.message || "Upload failed" },
+      { error: "Server error" },
       { status: 500 }
     );
   }
