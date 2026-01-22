@@ -1,16 +1,24 @@
-import { motion } from "framer-motion";
-import { spring } from "@/app/lib/motion";
+"use client";
 
-export default function LockCounter({ days }: { days: number }) {
+import { motion } from "framer-motion";
+
+export default function LockCounter({
+  days,
+}: {
+  days: number;
+}) {
   return (
-    <motion.span
-      key={days}
-      initial={{ y: -6, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={spring}
-      className="inline-block font-mono text-xs text-white/70"
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 120,
+        damping: 18,
+      }}
+      className="text-sm text-white/70"
     >
-      🔒 {days} days
-    </motion.span>
+      Locked for {days} days
+    </motion.div>
   );
 }
