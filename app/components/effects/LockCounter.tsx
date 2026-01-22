@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { spring } from "@/lib/motion";
+import { spring } from "@/app/lib/motion";
 
 export default function LockCounter({ days }: { days: number }) {
   return (

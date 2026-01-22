@@ -31,10 +31,18 @@ export default function FileRow({
         onClick={() => onOpenFolder(item)}
         className="grid grid-cols-5 px-4 py-2 hover:bg-white/5 cursor-pointer"
       >
-        <div className="col-span-2">📁 {item.name}</div>
-        <div className="text-gray-400">Folder</div>
-        <div className="text-gray-400">—</div>
-        <div className="text-right text-gray-500">›</div>
+        <div className="col-span-2">
+          📁 {item.name}
+        </div>
+        <div className="text-gray-400">
+          Folder
+        </div>
+        <div className="text-gray-400">
+          —
+        </div>
+        <div className="text-right text-gray-500">
+          ›
+        </div>
       </div>
     );
   }
@@ -42,6 +50,7 @@ export default function FileRow({
   /* ===============================
      FILE ROW
   ================================ */
+
   const downloadUrl = buildShelbyDownloadUrl(
     wallet,
     item
@@ -62,11 +71,15 @@ export default function FileRow({
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create share link");
+        throw new Error(
+          "Failed to create share link"
+        );
       }
 
       const data = await res.json();
-      await navigator.clipboard.writeText(data.url);
+      await navigator.clipboard.writeText(
+        data.url
+      );
       alert("Share link copied!");
     } catch {
       alert("Unable to share file");

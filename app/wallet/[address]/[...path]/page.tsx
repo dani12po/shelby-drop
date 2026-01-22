@@ -7,11 +7,11 @@ import Explorer from "@/app/components/Explorer";
 import PreviewModal from "@/app/components/PreviewModal";
 import MetadataPanel from "@/app/components/MetadataPanel";
 
-import { mapShelbyBlobsToFolder } from "@/lib/shelbyMapper";
+import { mapShelbyBlobsToFolder } from "@/app/lib/shelbyMapper";
 import type {
   FolderItem,
   FileItemData,
-} from "@/lib/data";
+} from "@/app/lib/data";
 
 export default function WalletFolderPage() {
   const params = useParams();

@@ -2,11 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import WalletPill from "@/app/components/WalletPill";
-import WalletModal from "@/app/components/WalletModal";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
-const COLORS = [
+/* ===============================
+   COMPONENT IMPORTS
+================================ */
+
+import WalletPill from "@/components/wallet/WalletPill";
+import WalletModal from "@/components/wallet/WalletModal";
+import ExplorerPage from "@/components/explorer/ExplorerPage";
+import Header from "@/components/layout/Header";
+
+/* ===============================
+   BACKGROUND COLORS
+================================ */
+
+const COLORS: [string, string][] = [
   ["#0b1020", "#12203a"],
   ["#0b1a14", "#123b2d"],
   ["#120b1f", "#2a1240"],
@@ -16,36 +27,66 @@ const COLORS = [
   ["#120f0b", "#2a1f12"],
 ];
 
+/* ===============================
+   PAGE
+================================ */
+
 export default function HomePage() {
   const [index, setIndex] = useState(0);
-  const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [walletModalOpen, setWalletModalOpen] =
+    useState(false);
 
-  const { connected, account, connect, disconnect, wallets } = useWallet();
+  const {
+    connected,
+    account,
+    connect,
+    disconnect,
+    wallets,
+  } = useWallet();
+
+  /* ===============================
+     BACKGROUND ROTATION
+  ================================ */
 
   useEffect(() => {
-    const i = setInterval(() => {
-      setIndex((p) => (p + 1) % COLORS.length);
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % COLORS.length);
     }, 4200);
-    return () => clearInterval(i);
+
+    return () => clearInterval(timer);
   }, []);
+
+  /* ===============================
+     WALLET LABEL
+  ================================ */
 
   const walletLabel = account
     ? (() => {
         const addr = account.address.toString();
-        return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+        return `${addr.slice(0, 6)}...${addr.slice(
+          -4
+        )}`;
       })()
     : "";
 
-  const availableWallets = wallets.map((w) => w.name);
+  const availableWallets = wallets.map(
+    (w) => w.name
+  );
 
   const handleSelectWallet = (name: string) => {
     connect(name);
     setWalletModalOpen(false);
   };
 
+  /* ===============================
+     RENDER
+  ================================ */
+
   return (
     <main className="relative min-h-screen overflow-hidden text-white">
-      {/* WALLET PILL (FIXED) */}
+      {/* ============================
+          WALLET PILL
+      ============================ */}
       <div
         style={{
           position: "fixed",
@@ -57,30 +98,44 @@ export default function HomePage() {
         <WalletPill
           connected={connected}
           label={walletLabel}
-          onOpenModal={() => setWalletModalOpen(true)}
+          onOpenModal={() =>
+            setWalletModalOpen(true)
+          }
           onDisconnect={disconnect}
         />
       </div>
 
-      {/* WALLET MODAL */}
+      {/* ============================
+          WALLET MODAL
+      ============================ */}
       <WalletModal
         open={walletModalOpen}
         wallets={availableWallets}
         onSelectWallet={handleSelectWallet}
-        onClose={() => setWalletModalOpen(false)}
+        onClose={() =>
+          setWalletModalOpen(false)
+        }
       />
 
-      {/* BACKGROUND */}
+      {/* ============================
+          BACKGROUND
+      ============================ */}
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
           className="absolute inset-0 z-0"
           initial={{ opacity: 0 }}
-          animate={{ opacity: walletModalOpen ? 0.4 : 1 }}
+          animate={{
+            opacity: walletModalOpen
+              ? 0.4
+              : 1,
+          }}
           exit={{ opacity: 0 }}
           transition={{ duration: 2 }}
           style={{
-            filter: walletModalOpen ? "blur(6px)" : "none",
+            filter: walletModalOpen
+              ? "blur(6px)"
+              : "none",
             background: `
               radial-gradient(
                 900px 600px at 50% -20%,
@@ -97,22 +152,24 @@ export default function HomePage() {
         />
       </AnimatePresence>
 
-      {/* CONTENT */}
+      {/* ============================
+          APP CONTENT
+      ============================ */}
       <div
-        className="relative z-10 min-h-screen flex items-center justify-center"
+        className="relative z-10 min-h-screen flex flex-col"
         style={{
-          filter: walletModalOpen ? "blur(6px)" : "none",
+          filter: walletModalOpen
+            ? "blur(6px)"
+            : "none",
           transition: "filter 0.2s ease",
         }}
       >
-        <div className="flex flex-col items-center text-center gap-4">
-          <h1 className="text-4xl md:text-5xl font-semibold">
-            Shelby Drop
-          </h1>
+        {/* HEADER (BRANDING ONLY) */}
+        <Header />
 
-          <p className="text-sm text-white/70 max-w-sm">
-            Upload and share files using only your wallet.
-          </p>
+        {/* MAIN CONTENT */}
+        <div className="flex-1 p-6">
+          <ExplorerPage connected={connected} />
         </div>
       </div>
     </main>

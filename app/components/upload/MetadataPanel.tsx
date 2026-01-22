@@ -1,7 +1,7 @@
 "use client";
 
-import type { FileItemData } from "@/lib/data";
-import { buildShelbyDownloadUrl } from "@/lib/shelbyDownload";
+import type { FileItemData } from "@/app/lib/data";
+import { buildShelbyDownloadUrl } from "@/app/lib/shelbyDownload";
 
 type Props = {
   file: FileItemData;
