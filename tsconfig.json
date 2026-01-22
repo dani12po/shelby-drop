@@ -1,39 +1,53 @@
 {
   "compilerOptions": {
-    /* ===== TARGET & RUNTIME ===== */
+    /* ================================
+       TARGET & RUNTIME
+    ================================= */
     "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "esnext"],
-
-    /* ===== JS / TS BEHAVIOR ===== */
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    /* ================================
+       JS / TS BEHAVIOR
+    ================================= */
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-
-    /* ===== MODULE SYSTEM ===== */
+    "forceConsistentCasingInFileNames": true,
+    /* ================================
+       MODULE SYSTEM
+    ================================= */
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-
-    /* ===== NEXT.JS ===== */
+    /* ================================
+       NEXT.JS
+    ================================= */
     "incremental": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
-
-    /* ===== PATH ALIAS (FIX ERROR) ===== */
+    /* ================================
+       PATH ALIAS (IMPORTANT)
+    ================================= */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
-
-  /* ===== INCLUDE ===== */
+  /* ================================
+     INCLUDE
+  ================================= */
   "include": [
     "next-env.d.ts",
     "**/*.ts",
@@ -42,7 +56,10 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-
-  /* ===== EXCLUDE ===== */
-  "exclude": ["node_modules"]
+  /* ================================
+     EXCLUDE
+  ================================= */
+  "exclude": [
+    "node_modules"
+  ]
 }

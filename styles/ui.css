@@ -1,0 +1,5 @@
+* {
+  transition-property: transform, background-color, color, opacity;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}

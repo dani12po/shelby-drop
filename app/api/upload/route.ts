@@ -1,108 +1,98 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
+import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 
+export const runtime = "nodejs";
+
+const UPLOAD_DIR = path.join(process.cwd(), "public/uploads");
+
+/* ===============================
+   ON-CHAIN PLACEHOLDER
+   (STEP 7.5 akan diganti TX Aptos)
+================================ */
+async function submitOnChainRecord(
+  wallet: string,
+  fileName: string,
+  hash: string
+) {
+  console.log("ONCHAIN_RECORD", {
+    wallet,
+    fileName,
+    hash,
+    timestamp: Date.now(),
+  });
+}
+
+/* ===============================
+   POST /api/shelby/upload
+================================ */
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
+    const form = await req.formData();
 
-    const file = formData.get("file") as File | null;
-    const wallet = formData.get("wallet") as string | null;
-    const message = formData.get("message") as string | null;
-    const signatureRaw = formData.get("signature") as string | null;
+    const file = form.get("file") as File | null;
+    const wallet = form.get("wallet") as string | null;
+    const message = form.get("message") as string | null;
+    const signature = form.get("signature") as string | null;
 
-    /* ===============================
-       BASIC VALIDATION
-    ================================ */
-    if (!file || !wallet || !message || !signatureRaw) {
+    if (!file || !wallet || !message || !signature) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    if (!wallet.startsWith("0x")) {
-      return NextResponse.json(
-        { error: "Invalid wallet address" },
+        { error: "Invalid payload" },
         { status: 400 }
       );
     }
 
     /* ===============================
-       PARSE SIGNATURE
+       PREPARE STORAGE
     ================================ */
-    let signature: any;
-    try {
-      signature = JSON.parse(signatureRaw);
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid signature format" },
-        { status: 400 }
-      );
-    }
+    const userDir = path.join(UPLOAD_DIR, wallet);
+    await fs.mkdir(userDir, { recursive: true });
+
+    const bytes = Buffer.from(await file.arrayBuffer());
 
     /* ===============================
-       FILE STORAGE
+       FILE HASH (SHA-256)
     ================================ */
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      wallet
-    );
-
-    await mkdir(uploadDir, { recursive: true });
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-
     const hash = crypto
       .createHash("sha256")
-      .update(buffer)
+      .update(bytes)
       .digest("hex");
 
-    const filename = `${Date.now()}-${file.name}`;
-    const filepath = path.join(uploadDir, filename);
-
-    await writeFile(filepath, buffer);
+    const filePath = path.join(userDir, file.name);
+    await fs.writeFile(filePath, bytes);
 
     /* ===============================
-       METADATA (TEMP STORAGE)
+       METADATA
     ================================ */
     const metadata = {
       wallet,
-      filename,
       originalName: file.name,
       size: file.size,
       mime: file.type,
       hash,
-      message,
-      signature,
       uploadedAt: new Date().toISOString(),
-      path: `/uploads/${wallet}/${filename}`,
+      path: `/uploads/${wallet}/${file.name}`,
     };
 
-    const metaPath = path.join(
-      uploadDir,
-      `${filename}.json`
-    );
-
-    await writeFile(
-      metaPath,
+    await fs.writeFile(
+      `${filePath}.json`,
       JSON.stringify(metadata, null, 2)
     );
 
     /* ===============================
-       RESPONSE
+       ON-CHAIN (LOGIC STUB)
     ================================ */
+    await submitOnChainRecord(wallet, file.name, hash);
+
     return NextResponse.json({
       success: true,
-      file: metadata,
+      metadata,
     });
-  } catch (err) {
-    console.error("UPLOAD ERROR:", err);
+  } catch (err: any) {
+    console.error(err);
     return NextResponse.json(
-      { error: "Server error" },
+      { error: "Upload failed" },
       { status: 500 }
     );
   }

@@ -2,34 +2,265 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== BASE ===== */
-* {
+/* =========================================================
+   ROOT VARIABLES – CINEMATIC DROP PALETTE (7 COLOR)
+========================================================= */
+:root {
+  --c1: #0b0f14; /* deep midnight */
+  --c2: #0f1220; /* dark blue */
+  --c3: #101a2e; /* indigo */
+  --c4: #0d1f2d; /* teal navy */
+  --c5: #1a0f2e; /* purple */
+  --c6: #0b1a20; /* ocean dark */
+  --c7: #1a120b; /* warm dusk */
+
+  --glow-blue: rgba(120, 180, 255, 0.16);
+  --glow-purple: rgba(180, 120, 255, 0.16);
+  --glow-green: rgba(120, 255, 200, 0.12);
+  --glow-amber: rgba(255, 180, 120, 0.10);
+
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.6);
+
+  --radius-pill: 999px;
+}
+
+/* =========================================================
+   BASE RESET
+========================================================= */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+html,
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  height: 100%;
 }
 
-/* ===== SCROLLBAR ===== */
+/* =========================================================
+   BODY — CINEMATIC BACKGROUND (7 COLOR SMOOTH DROP)
+========================================================= */
+body {
+  margin: 0;
+  color: var(--text-main);
+  font-family: ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  background:
+    radial-gradient(
+      1200px 650px at 20% 10%,
+      var(--glow-blue),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 520px at 85% 15%,
+      var(--glow-purple),
+      transparent 60%
+    ),
+    radial-gradient(
+      750px 520px at 50% 85%,
+      var(--glow-green),
+      transparent 60%
+    ),
+    radial-gradient(
+      650px 450px at 10% 80%,
+      var(--glow-amber),
+      transparent 65%
+    ),
+    linear-gradient(
+      135deg,
+      var(--c1),
+      var(--c2),
+      var(--c3),
+      var(--c4),
+      var(--c5),
+      var(--c6),
+      var(--c7)
+    );
+
+  background-size: 240% 240%;
+  animation: cinematicDrop 28s ease-in-out infinite;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================================
+   CINEMATIC COLOR CYCLE — 7 PHASE WALK
+========================================================= */
+@keyframes cinematicDrop {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  14% {
+    background-position: 20% 45%;
+    filter: hue-rotate(20deg);
+  }
+  28% {
+    background-position: 40% 55%;
+    filter: hue-rotate(40deg);
+  }
+  42% {
+    background-position: 60% 50%;
+    filter: hue-rotate(60deg);
+  }
+  56% {
+    background-position: 80% 45%;
+    filter: hue-rotate(80deg);
+  }
+  70% {
+    background-position: 60% 55%;
+    filter: hue-rotate(100deg);
+  }
+  84% {
+    background-position: 30% 50%;
+    filter: hue-rotate(120deg);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(140deg);
+  }
+}
+
+/* =========================================================
+   WALLET MODAL — ANIMATED BORDER LINE (7 COLOR)
+   (Used by WalletModal wrapper)
+========================================================= */
+@keyframes walletBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 400% 50%;
+  }
+}
+
+/* =========================================================
+   GLOBAL MICRO INTERACTION (SOFT & PREMIUM)
+========================================================= */
+* {
+  transition:
+    background-color 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    filter 0.4s ease;
+}
+
+/* =========================================================
+   INPUT & BUTTON RESET
+========================================================= */
+button,
+input {
+  outline: none;
+  border: none;
+  color: var(--text-main);
+  font-family: inherit;
+}
+
+/* =========================================================
+   HOVER GLOW (SUBTLE)
+========================================================= */
+button:hover,
+input:focus {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 0 22px rgba(255, 255, 255, 0.10);
+}
+
+/* =========================================================
+   SCALE MICRO
+========================================================= */
+button:hover,
+input:hover {
+  transform: scale(1.015);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* =========================================================
+   GLASS INPUT
+========================================================= */
+input[type="search"],
+input[type="text"],
+input[type="number"] {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-pill);
+  padding: 0.5rem 0.9rem;
+}
+
+/* =========================================================
+   BUTTON BASE
+========================================================= */
+button {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-pill);
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+
+/* =========================================================
+   DROPDOWN ANIMATION (WalletPill)
+========================================================= */
+@keyframes dropdown {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-dropdown {
+  animation: dropdown 180ms ease-out;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+footer {
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   SCROLLBAR (SUBTLE)
+========================================================= */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+/* =========================================================
+   MOBILE SAFETY — SLOWER MOTION
+========================================================= */
+@media (max-width: 640px) {
+  body {
+    animation-duration: 34s;
+  }
 }
 
-/* ===== CARD (TAILWIND v4 SAFE) ===== */
-.card {
-  background-color: rgb(17 24 39); /* gray-900 */
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 0.75rem;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.4);
+/* =========================================================
+   REDUCE MOTION — ACCESSIBILITY
+========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+
+  * {
+    transition: none !important;
+  }
 }

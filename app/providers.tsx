@@ -9,7 +9,7 @@ export default function Providers({
   children: ReactNode;
 }) {
   return (
-    <AptosWalletAdapterProvider autoConnect={false}>
+    <AptosWalletAdapterProvider autoConnect>
       {children}
     </AptosWalletAdapterProvider>
   );

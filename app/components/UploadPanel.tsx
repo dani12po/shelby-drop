@@ -3,94 +3,100 @@
 import { useState } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
-interface UploadPanelProps {
-  address: string;
-  onUploaded: () => void;
-}
+type Props = {
+  onUploaded: (blobId: string) => void;
+};
 
-export default function UploadPanel({
-  address,
-  onUploaded,
-}: UploadPanelProps) {
-  const { signMessage } = useWallet();
+export default function UploadPanel({ onUploaded }: Props) {
+  const { account, signMessage } = useWallet();
 
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState("");
 
   async function upload() {
-    if (!file) {
-      alert("Please select a file");
-      return;
-    }
-
-    if (!signMessage) {
-      alert("Wallet does not support message signing");
+    if (!file || !account || !signMessage) {
+      alert("Wallet & file required");
       return;
     }
 
     try {
-      setStatus("Signing message...");
+      setStatus("Signing message…");
 
-      const message = `Shelby upload
-Wallet: ${address}
-File: ${file.name}`;
+      const message = `Shelby upload\nFile:${file.name}`;
+      const nonce = crypto.randomUUID();
 
       const signed = await signMessage({
         message,
-        nonce: Date.now().toString(),
+        nonce,
       });
 
-      setStatus("Uploading file...");
+      /**
+       * ✅ FIX UTAMA DI SINI
+       * Signature adalah opaque type → cast via unknown
+       */
+      const sigBytes =
+        signed.signature as unknown as Uint8Array;
 
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("wallet", address);
-      fd.append("message", message);
+      const signatureBase64 =
+        Buffer.from(sigBytes).toString("base64");
 
-      // 🔥 FIX UTAMA: signature HARUS string
-      fd.append(
-        "signature",
-        JSON.stringify(signed)
+      setStatus("Uploading to Shelby…");
+
+      const form = new FormData();
+      form.append("file", file);
+      form.append(
+        "address",
+        account.address.toString()
       );
+      form.append("message", message);
+      form.append("nonce", nonce);
+      form.append("signature", signatureBase64);
 
-      const res = await fetch("/api/shelby/upload", {
-        method: "POST",
-        body: fd,
-      });
+      const res = await fetch(
+        "https://api.shelby.xyz/v1/blobs",
+        {
+          method: "POST",
+          body: form,
+        }
+      );
 
       if (!res.ok) {
         throw new Error("Upload failed");
       }
 
-      setStatus("Upload success");
+      const json = await res.json();
+      onUploaded(json.blob_id);
+
       setFile(null);
-      onUploaded();
+      setStatus("Upload success");
     } catch (err: any) {
-      alert(err?.message || "Upload error");
+      console.error(err);
+      alert(err.message || "Upload error");
       setStatus("");
     }
   }
 
   return (
-    <div className="border border-white/10 rounded-lg p-4 space-y-3 bg-black/30">
-      <h3 className="text-sm font-medium">⬆️ Upload File</h3>
-
+    <div className="border border-white/10 rounded-lg p-4 space-y-3">
       <input
         type="file"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
-        className="text-sm"
+        onChange={(e) =>
+          setFile(e.target.files?.[0] || null)
+        }
       />
 
       <button
         onClick={upload}
         disabled={!file}
-        className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-sm"
+        className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-40"
       >
         Upload
       </button>
 
       {status && (
-        <p className="text-xs text-gray-400">{status}</p>
+        <p className="text-xs text-gray-400">
+          {status}
+        </p>
       )}
     </div>
   );

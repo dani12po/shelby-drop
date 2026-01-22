@@ -1,0 +1,9 @@
+[package]
+name = "shelby_drop"
+version = "0.0.1"
+
+[addresses]
+shelby = "_"
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework", rev = "main" }

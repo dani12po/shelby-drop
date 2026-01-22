@@ -1,84 +1,118 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { WalletSelector } from "@aptos-labs/wallet-adapter-ant-design";
+import { motion, AnimatePresence } from "framer-motion";
+import WalletPill from "@/app/components/WalletPill";
+import WalletModal from "@/app/components/WalletModal";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
+
+const COLORS = [
+  ["#0b1020", "#12203a"],
+  ["#0b1a14", "#123b2d"],
+  ["#120b1f", "#2a1240"],
+  ["#0a1623", "#12304a"],
+  ["#1a120b", "#3a2a12"],
+  ["#0b1a20", "#1a2a3a"],
+  ["#120f0b", "#2a1f12"],
+];
 
 export default function HomePage() {
-  const router = useRouter();
-  const [wallet, setWallet] = useState("");
-  const [error, setError] = useState("");
+  const [index, setIndex] = useState(0);
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
 
-  /* ===============================
-     AUTO REDIRECT (?wallet=0x...)
-  ================================ */
+  const { connected, account, connect, disconnect, wallets } = useWallet();
+
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const w = params.get("wallet");
+    const i = setInterval(() => {
+      setIndex((p) => (p + 1) % COLORS.length);
+    }, 4200);
+    return () => clearInterval(i);
+  }, []);
 
-    if (w && w.startsWith("0x")) {
-      router.replace(`/wallet/${w}`);
-    }
-  }, [router]);
+  const walletLabel = account
+    ? (() => {
+        const addr = account.address.toString();
+        return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+      })()
+    : "";
 
-  /* ===============================
-     SEARCH HANDLER
-  ================================ */
-  function searchByWallet() {
-    setError("");
-    const addr = wallet.trim();
+  const availableWallets = wallets.map((w) => w.name);
 
-    if (!addr.startsWith("0x") || addr.length < 20) {
-      setError("Invalid wallet address");
-      return;
-    }
-
-    router.push(`/wallet/${addr}`);
-  }
+  const handleSelectWallet = (name: string) => {
+    connect(name);
+    setWalletModalOpen(false);
+  };
 
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-xl px-6">
-        <div className="bg-gray-900 border border-white/10 rounded-xl p-6 shadow-xl space-y-6">
-          {/* HEADER */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold">Shelby Drop</h1>
-              <p className="text-sm text-gray-400">
-                Public Web3 file explorer on Aptos
-              </p>
-            </div>
+    <main className="relative min-h-screen overflow-hidden text-white">
+      {/* WALLET PILL (FIXED) */}
+      <div
+        style={{
+          position: "fixed",
+          top: "16px",
+          right: "24px",
+          zIndex: 60,
+        }}
+      >
+        <WalletPill
+          connected={connected}
+          label={walletLabel}
+          onOpenModal={() => setWalletModalOpen(true)}
+          onDisconnect={disconnect}
+        />
+      </div>
 
-            <WalletSelector />
-          </div>
+      {/* WALLET MODAL */}
+      <WalletModal
+        open={walletModalOpen}
+        wallets={availableWallets}
+        onSelectWallet={handleSelectWallet}
+        onClose={() => setWalletModalOpen(false)}
+      />
 
-          {/* SEARCH */}
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">
-              🔍 Find files by wallet address
-            </label>
+      {/* BACKGROUND */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={index}
+          className="absolute inset-0 z-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: walletModalOpen ? 0.4 : 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 2 }}
+          style={{
+            filter: walletModalOpen ? "blur(6px)" : "none",
+            background: `
+              radial-gradient(
+                900px 600px at 50% -20%,
+                rgba(255,255,255,0.06),
+                transparent 60%
+              ),
+              linear-gradient(
+                135deg,
+                ${COLORS[index][0]},
+                ${COLORS[index][1]}
+              )
+            `,
+          }}
+        />
+      </AnimatePresence>
 
-            <div className="flex gap-2">
-              <input
-                value={wallet}
-                onChange={(e) => setWallet(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") searchByWallet();
-                }}
-                placeholder="0xabc..."
-                className="flex-1 bg-black/40 border border-white/10 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500"
-              />
+      {/* CONTENT */}
+      <div
+        className="relative z-10 min-h-screen flex items-center justify-center"
+        style={{
+          filter: walletModalOpen ? "blur(6px)" : "none",
+          transition: "filter 0.2s ease",
+        }}
+      >
+        <div className="flex flex-col items-center text-center gap-4">
+          <h1 className="text-4xl md:text-5xl font-semibold">
+            Shelby Drop
+          </h1>
 
-              <button
-                onClick={searchByWallet}
-                className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-sm"
-              >
-                Search
-              </button>
-            </div>
-
-            {error && <p className="text-sm text-red-400">{error}</p>}
-          </div>
+          <p className="text-sm text-white/70 max-w-sm">
+            Upload and share files using only your wallet.
+          </p>
         </div>
       </div>
     </main>
