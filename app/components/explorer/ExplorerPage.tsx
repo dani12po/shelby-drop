@@ -6,17 +6,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import Explorer from "./Explorer";
 import SearchBox from "./SearchBox";
 import PreviewModal from "@/components/modals/PreviewModal";
-import ShareModal from "@/components/modals/ShareModal";
+import UploadButton from "@/components/upload/UploadButton";
+import UploadPanel from "@/components/upload/UploadPanel";
 
-import type {
-  FolderItem,
-  FileItemData,
-} from "@/lib/data";
+import type { FolderItem, FileItemData } from "@/lib/data";
 
 /* ===============================
    DUMMY ROOT
 ================================ */
-
 const EMPTY_ROOT: FolderItem = {
   id: "root",
   type: "folder",
@@ -26,9 +23,8 @@ const EMPTY_ROOT: FolderItem = {
 };
 
 /* ===============================
-   ANIMATION PRESETS
+   ANIMATIONS
 ================================ */
-
 const searchMotion = {
   initial: { opacity: 0, scale: 0.96 },
   animate: { opacity: 1, scale: 1 },
@@ -42,26 +38,118 @@ const explorerMotion = {
 };
 
 /* ===============================
+   HELPERS (PURE, DOMAIN-SAFE)
+================================ */
+function injectFileIntoTree(
+  root: FolderItem,
+  path: string[],
+  file: FileItemData
+): FolderItem {
+  if (path.length === 0) {
+    return {
+      ...root,
+      children: [...root.children, file],
+    };
+  }
+
+  const [head, ...rest] = path;
+
+  return {
+    ...root,
+    children: root.children.map((child) =>
+      child.type === "folder" && child.name === head
+        ? injectFileIntoTree(child, rest, file)
+        : child
+    ),
+  };
+}
+
+function inferFileType(
+  filename: string
+): "PDF" | "IMG" | "OTHER" {
+  const ext = filename
+    .split(".")
+    .pop()
+    ?.toLowerCase();
+
+  if (ext === "pdf") return "PDF";
+  if (
+    ext === "png" ||
+    ext === "jpg" ||
+    ext === "jpeg" ||
+    ext === "webp" ||
+    ext === "gif"
+  ) {
+    return "IMG";
+  }
+
+  return "OTHER";
+}
+
+/* ===============================
    COMPONENT
 ================================ */
-
 export default function ExplorerPage({
   connected,
 }: {
   connected: boolean;
 }) {
-  const [wallet, setWallet] = useState<
-    string | null
-  >(null);
-
-  const [root] =
+  const [wallet, setWallet] = useState<string | null>(null);
+  const [root, setRoot] =
     useState<FolderItem>(EMPTY_ROOT);
 
   const [previewFile, setPreviewFile] =
     useState<FileItemData | null>(null);
 
+  /* ===============================
+     Upload (UI only, SAFE)
+  ================================ */
   const [uploadOpen, setUploadOpen] =
     useState(false);
+  const [currentPath, setCurrentPath] =
+    useState<string[]>([]);
+
+  /* ===============================
+     Explorer → Path adapters
+  ================================ */
+  const handleOpenFolder = (folder: FolderItem) => {
+    setCurrentPath(folder.path);
+  };
+
+  const handleBreadcrumbClick = (index: number) => {
+    setCurrentPath((prev) =>
+      prev.slice(0, index + 1)
+    );
+  };
+
+  /* ===============================
+     AUTO-REFRESH AFTER UPLOAD
+  ================================ */
+  const handleUploaded = (metadata: any) => {
+    if (!wallet) return;
+
+    const newFile: FileItemData = {
+      id: metadata.hash,
+      type: "file",
+      name: metadata.originalName,
+      size: metadata.size,
+      path: currentPath,
+
+      blobId: metadata.hash,
+      fileType: inferFileType(
+        metadata.originalName
+      ),
+      uploader: wallet,
+    };
+
+    setRoot((prev) =>
+      injectFileIntoTree(
+        prev,
+        currentPath,
+        newFile
+      )
+    );
+  };
 
   const mode: "search" | "explorer" =
     wallet ? "explorer" : "search";
@@ -69,9 +157,6 @@ export default function ExplorerPage({
   return (
     <>
       <AnimatePresence mode="wait">
-        {/* ============================
-            SEARCH LANDING
-        ============================ */}
         {mode === "search" && (
           <motion.div
             key="search"
@@ -87,52 +172,29 @@ export default function ExplorerPage({
               text-center
             "
           >
-            {/* TITLE */}
             <h1 className="text-4xl md:text-5xl font-semibold">
               Shelby Drop
             </h1>
 
-            {/* SUBTITLE */}
             <p className="mt-2 text-sm text-white/60 max-w-md">
-              Download, upload, and share files
-              using only your wallet.
+              Download, upload, and share files using only your wallet.
             </p>
 
-            {/* SEARCH BOX */}
             <div className="mt-8">
-              <SearchBox
-                onSearch={(w) =>
-                  setWallet(w)
+              <SearchBox onSearch={setWallet} />
+            </div>
+
+            <div className="mt-6 h-[40px] flex items-center">
+              <UploadButton
+                connected={connected}
+                onUpload={() =>
+                  setUploadOpen(true)
                 }
               />
             </div>
-
-            {/* UPLOAD BUTTON */}
-            {connected ? (
-              <button
-                onClick={() =>
-                  setUploadOpen(true)
-                }
-                className="
-                  mt-[20px]
-                  px-4 py-2 rounded-lg
-                  bg-blue-600 hover:bg-blue-500
-                  text-sm font-medium
-                "
-              >
-                Upload
-              </button>
-            ) : (
-              <p className="mt-[20px] text-xs text-gray-400">
-                Connect wallet to upload files
-              </p>
-            )}
           </motion.div>
         )}
 
-        {/* ============================
-            EXPLORER
-        ============================ */}
         {mode === "explorer" && (
           <motion.div
             key="explorer"
@@ -146,8 +208,10 @@ export default function ExplorerPage({
             <Explorer
               root={root}
               wallet={wallet!}
-              onOpenFolder={() => {}}
-              onBreadcrumbClick={() => {}}
+              onOpenFolder={handleOpenFolder}
+              onBreadcrumbClick={
+                handleBreadcrumbClick
+              }
               onPreview={setPreviewFile}
               onMeta={() => {}}
             />
@@ -155,23 +219,18 @@ export default function ExplorerPage({
         )}
       </AnimatePresence>
 
-      {/* PREVIEW MODAL */}
+      <UploadPanel
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUploaded={handleUploaded}
+      />
+
       {previewFile && wallet && (
         <PreviewModal
           file={previewFile}
           wallet={wallet}
           onClose={() =>
             setPreviewFile(null)
-          }
-        />
-      )}
-
-      {/* UPLOAD MODAL */}
-      {uploadOpen && (
-        <ShareModal
-          url="https://example.com"
-          onClose={() =>
-            setUploadOpen(false)
           }
         />
       )}

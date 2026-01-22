@@ -1,5 +1,9 @@
 import "../styles/globals.css";
 import Providers from "./providers";
+import {
+  NotificationProvider,
+} from "@/components/notifications/useNotifications";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 export default function RootLayout({
   children,
@@ -10,7 +14,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          {children}
+          <NotificationProvider>
+            {children}
+            <NotificationCenter />
+          </NotificationProvider>
         </Providers>
       </body>
     </html>

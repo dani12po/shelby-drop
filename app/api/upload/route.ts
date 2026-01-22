@@ -1,65 +1,84 @@
+// app/api/upload/route.ts
+
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public/uploads");
-
-/* ===============================
-   ON-CHAIN PLACEHOLDER
-   (STEP 7.5 akan diganti TX Aptos)
-================================ */
-async function submitOnChainRecord(
-  wallet: string,
-  fileName: string,
-  hash: string
-) {
-  console.log("ONCHAIN_RECORD", {
-    wallet,
-    fileName,
-    hash,
-    timestamp: Date.now(),
-  });
-}
+const UPLOAD_DIR = path.join(
+  process.cwd(),
+  "public/uploads"
+);
 
 /* ===============================
-   POST /api/shelby/upload
+   POST /api/upload
+   NO SIGNATURE REQUIRED
 ================================ */
 export async function POST(req: Request) {
   try {
     const form = await req.formData();
 
-    const file = form.get("file") as File | null;
-    const wallet = form.get("wallet") as string | null;
-    const message = form.get("message") as string | null;
-    const signature = form.get("signature") as string | null;
+    const file = form.get("file");
+    const wallet = form.get("wallet");
+    const uploadPath = (form.get("path") as string) ?? "";
 
-    if (!file || !wallet || !message || !signature) {
+    /* ===============================
+       VALIDATION (UPDATED)
+    ================================ */
+    if (!(file instanceof File)) {
       return NextResponse.json(
-        { error: "Invalid payload" },
+        { error: "Invalid file" },
+        { status: 400 }
+      );
+    }
+
+    if (typeof wallet !== "string" || !wallet) {
+      return NextResponse.json(
+        { error: "Invalid wallet" },
         { status: 400 }
       );
     }
 
     /* ===============================
-       PREPARE STORAGE
+       PREPARE STORAGE PATH
+       public/uploads/<wallet>/<path?>
     ================================ */
-    const userDir = path.join(UPLOAD_DIR, wallet);
+    const safePath = uploadPath
+      .split("/")
+      .filter(Boolean);
+
+    const userDir = path.join(
+      UPLOAD_DIR,
+      wallet,
+      ...safePath
+    );
+
     await fs.mkdir(userDir, { recursive: true });
 
-    const bytes = Buffer.from(await file.arrayBuffer());
+    /* ===============================
+       READ FILE
+    ================================ */
+    const bytes = Buffer.from(
+      await file.arrayBuffer()
+    );
 
     /* ===============================
-       FILE HASH (SHA-256)
+       HASH (PREVENT COLLISION)
     ================================ */
     const hash = crypto
       .createHash("sha256")
       .update(bytes)
       .digest("hex");
 
-    const filePath = path.join(userDir, file.name);
+    const safeName = `${hash}_${file.name}`;
+    const filePath = path.join(
+      userDir,
+      safeName
+    );
+
     await fs.writeFile(filePath, bytes);
 
     /* ===============================
@@ -68,11 +87,14 @@ export async function POST(req: Request) {
     const metadata = {
       wallet,
       originalName: file.name,
+      storedName: safeName,
       size: file.size,
       mime: file.type,
       hash,
       uploadedAt: new Date().toISOString(),
-      path: `/uploads/${wallet}/${file.name}`,
+      path: `/uploads/${wallet}/${safePath.join(
+        "/"
+      )}/${safeName}`,
     };
 
     await fs.writeFile(
@@ -80,17 +102,12 @@ export async function POST(req: Request) {
       JSON.stringify(metadata, null, 2)
     );
 
-    /* ===============================
-       ON-CHAIN (LOGIC STUB)
-    ================================ */
-    await submitOnChainRecord(wallet, file.name, hash);
-
     return NextResponse.json({
       success: true,
       metadata,
     });
-  } catch (err: any) {
-    console.error(err);
+  } catch (err) {
+    console.error("UPLOAD_ERROR", err);
     return NextResponse.json(
       { error: "Upload failed" },
       { status: 500 }

@@ -33,8 +33,7 @@ const COLORS: [string, string][] = [
 
 export default function HomePage() {
   const [index, setIndex] = useState(0);
-  const [walletModalOpen, setWalletModalOpen] =
-    useState(false);
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
 
   const {
     connected,
@@ -63,15 +62,11 @@ export default function HomePage() {
   const walletLabel = account
     ? (() => {
         const addr = account.address.toString();
-        return `${addr.slice(0, 6)}...${addr.slice(
-          -4
-        )}`;
+        return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
       })()
     : "";
 
-  const availableWallets = wallets.map(
-    (w) => w.name
-  );
+  const availableWallets = wallets.map((w) => w.name);
 
   const handleSelectWallet = (name: string) => {
     connect(name);
@@ -85,7 +80,7 @@ export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden text-white">
       {/* ============================
-          WALLET PILL
+          WALLET PILL (TOP RIGHT)
       ============================ */}
       <div
         style={{
@@ -98,9 +93,7 @@ export default function HomePage() {
         <WalletPill
           connected={connected}
           label={walletLabel}
-          onOpenModal={() =>
-            setWalletModalOpen(true)
-          }
+          onOpenModal={() => setWalletModalOpen(true)}
           onDisconnect={disconnect}
         />
       </div>
@@ -112,9 +105,7 @@ export default function HomePage() {
         open={walletModalOpen}
         wallets={availableWallets}
         onSelectWallet={handleSelectWallet}
-        onClose={() =>
-          setWalletModalOpen(false)
-        }
+        onClose={() => setWalletModalOpen(false)}
       />
 
       {/* ============================
@@ -126,16 +117,12 @@ export default function HomePage() {
           className="absolute inset-0 z-0"
           initial={{ opacity: 0 }}
           animate={{
-            opacity: walletModalOpen
-              ? 0.4
-              : 1,
+            opacity: walletModalOpen ? 0.4 : 1,
           }}
           exit={{ opacity: 0 }}
           transition={{ duration: 2 }}
           style={{
-            filter: walletModalOpen
-              ? "blur(6px)"
-              : "none",
+            filter: walletModalOpen ? "blur(6px)" : "none",
             background: `
               radial-gradient(
                 900px 600px at 50% -20%,
@@ -158,16 +145,14 @@ export default function HomePage() {
       <div
         className="relative z-10 min-h-screen flex flex-col"
         style={{
-          filter: walletModalOpen
-            ? "blur(6px)"
-            : "none",
+          filter: walletModalOpen ? "blur(6px)" : "none",
           transition: "filter 0.2s ease",
         }}
       >
-        {/* HEADER (BRANDING ONLY) */}
+        {/* HEADER — BRANDING ONLY */}
         <Header />
 
-        {/* MAIN CONTENT */}
+        {/* MAIN CONTENT (ALL LOGIC LIVES HERE) */}
         <div className="flex-1 p-6">
           <ExplorerPage connected={connected} />
         </div>
