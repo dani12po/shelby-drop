@@ -4,83 +4,79 @@ import { useEffect, useState } from "react";
 import { FileItemData } from "@/lib/data";
 import { previewRegistry } from "@/lib/preview/PreviewRegistry";
 import { RenderResult } from "@/lib/preview/renderers/types";
+import { getRetentionStatus } from "@/lib/retention";
+import MediaPreview from "@/lib/preview/MediaPreview";
 
 /* ===============================
    PROPS
 ================================ */
-
 type Props = {
   file: FileItemData;
   wallet: string;
   onClose: () => void;
-
-  /** Optional filesystem navigation */
-  onNavigate?: (path: string[]) => void;
 };
 
 /* ===============================
    HELPERS
 ================================ */
-
-function buildBlobUrl(wallet: string, path: string[]) {
-  return `https://api.shelbynet.shelby.xyz/shelby/v1/blobs/${wallet}/${path.join(
-    "/"
-  )}`;
-}
-
 function getExt(name: string): string {
   return "." + (name.split(".").pop()?.toLowerCase() ?? "");
+}
+
+function isBinary(ext: string) {
+  return [".mp3", ".wav", ".ogg", ".mp4", ".webm"].includes(ext);
 }
 
 /* ===============================
    COMPONENT
 ================================ */
-
 export default function PreviewModal({
   file,
   wallet,
   onClose,
 }: Props) {
   const filePath = [...file.path, file.name];
-  const fileUrl = buildBlobUrl(wallet, filePath);
   const ext = getExt(file.name);
+
+  /* ===============================
+     RETENTION (ONLY HERE)
+  ================================ */
+  const retention = getRetentionStatus(file.expiresAt);
+  const isExpired = retention.state === "expired";
 
   /* ===============================
      STATE
   ================================ */
-
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [content, setContent] = useState<string | null>(null);
   const [result, setResult] = useState<RenderResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const [viewMode, setViewMode] = useState<
-    "preview" | "raw" | "tree"
-  >("preview");
+  const [viewMode, setViewMode] =
+    useState<"preview" | "raw" | "tree">("preview");
 
   /* ===============================
-     FETCH FILE
+     FETCH SIGNED URL
   ================================ */
-
   useEffect(() => {
     let active = true;
 
     (async () => {
       try {
-        const res = await fetch(fileUrl);
-        const text = await res.text();
-        if (!active) return;
+        const key = `${wallet}/${filePath.join("/")}`;
+        const res = await fetch(
+          `/api/files/signed?wallet=${wallet}&key=${encodeURIComponent(
+            key
+          )}`
+        );
 
-        setContent(text);
+        if (!res.ok) {
+          throw new Error("Failed to get signed URL");
+        }
 
-        const rendered = await previewRegistry.render(text, {
-          path: filePath.join("/"),
-          ext,
-          meta: {
-            wallet,
-          },
-        });
-
-        setResult(rendered);
+        const data = await res.json();
+        if (active) {
+          setSignedUrl(data.url);
+        }
       } catch (e) {
         if (active) {
           setError(
@@ -95,157 +91,143 @@ export default function PreviewModal({
     return () => {
       active = false;
     };
-  }, [fileUrl, ext, wallet]);
+  }, [wallet, filePath.join("/")]);
 
   /* ===============================
-     PREVIEW BODY
+     FETCH TEXT CONTENT (NON-BINARY)
   ================================ */
+  useEffect(() => {
+    if (!signedUrl || isBinary(ext)) return;
 
-  function renderPreviewBody() {
-    if (error) {
-      return (
-        <p className="text-sm text-red-400">
-          {error}
-        </p>
-      );
-    }
+    let active = true;
 
-    if (!content || !result) {
-      return (
-        <p className="text-sm text-gray-400">
-          Loading preview…
-        </p>
-      );
-    }
+    (async () => {
+      try {
+        const res = await fetch(signedUrl);
+        const text = await res.text();
+        if (!active) return;
 
-    /* ===== HTML (Markdown) ===== */
-    if (result.type === "html") {
-      return (
-        <div className="space-y-2">
-          <div className="flex justify-end gap-2 text-xs">
-            {["preview", "raw"].map((m) => (
-              <button
-                key={m}
-                onClick={() =>
-                  setViewMode(m as any)
-                }
-                className={`px-2 py-1 rounded ${
-                  viewMode === m
-                    ? "bg-blue-600"
-                    : "bg-white/10 hover:bg-white/20"
-                }`}
-              >
-                {m.toUpperCase()}
-              </button>
-            ))}
-          </div>
+        setContent(text);
 
-          {viewMode === "preview" ? (
-            <div
-              className="max-h-[65vh] bg-black/40 p-4 rounded overflow-auto prose prose-invert"
-              dangerouslySetInnerHTML={{
-                __html: result.content,
-              }}
-            />
-          ) : (
-            <pre className="max-h-[65vh] bg-black/40 p-3 rounded text-xs overflow-auto">
-              {content}
-            </pre>
-          )}
-        </div>
-      );
-    }
+        const rendered = await previewRegistry.render(text, {
+          path: filePath.join("/"),
+          ext,
+          meta: { wallet },
+        });
 
-    /* ===== REACT (JSON Tree, etc) ===== */
-    if (result.type === "react") {
-      return (
-        <div className="space-y-2">
-          {result.meta?.raw && (
-            <div className="flex justify-end gap-2 text-xs">
-              {["tree", "raw"].map((m) => (
-                <button
-                  key={m}
-                  onClick={() =>
-                    setViewMode(m as any)
-                  }
-                  className={`px-2 py-1 rounded ${
-                    viewMode === m
-                      ? "bg-blue-600"
-                      : "bg-white/10 hover:bg-white/20"
-                  }`}
-                >
-                  {m.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          )}
+        setResult(rendered);
+      } catch (e) {
+        if (active) {
+          setError(
+            e instanceof Error
+              ? e.message
+              : "Failed to load preview"
+          );
+        }
+      }
+    })();
 
-          {viewMode === "raw" &&
-          result.meta?.raw ? (
-            <pre className="max-h-[65vh] bg-black/40 p-3 rounded text-xs overflow-auto">
-              {result.meta.raw}
-            </pre>
-          ) : (
-            result.content
-          )}
-        </div>
-      );
-    }
+    return () => {
+      active = false;
+    };
+  }, [signedUrl, ext, wallet]);
 
-    /* ===== TEXT ===== */
-    return (
-      <pre className="max-h-[65vh] bg-black/40 p-3 rounded text-xs overflow-auto">
-        {result.content}
-      </pre>
-    );
+  /* ===============================
+     DOWNLOAD
+  ================================ */
+  function handleDownload() {
+    if (!signedUrl || isExpired) return;
+    window.open(signedUrl, "_blank");
   }
 
   /* ===============================
      RENDER
   ================================ */
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 border border-white/10 rounded-xl p-4 w-full max-w-4xl space-y-3"
+        className="bg-[#0b0f14] border border-white/10 rounded-3xl p-6 w-full max-w-4xl space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
+        {/* ================= HEADER ================= */}
+        <div className="flex justify-between">
+          <div>
             <h3 className="text-sm font-medium">
               {file.name}
             </h3>
-
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
-            >
-              ✕
-            </button>
+            <div className="text-xs text-white/50 truncate">
+              {wallet}
+              {file.path.map((p) => (
+                <span key={p}> / {p}</span>
+              ))}
+            </div>
           </div>
 
-          {/* BREADCRUMB */}
-          <div className="text-xs text-gray-400">
-            {wallet}
-            {file.path.map((p) => (
-              <span key={p}> / {p}</span>
-            ))}
-          </div>
+          <button
+            onClick={onClose}
+            className="text-white/40 hover:text-white"
+          >
+            ✕
+          </button>
         </div>
 
-        {/* META */}
-        <div className="flex gap-4 text-xs text-gray-400">
+        {/* ================= META ================= */}
+        <div className="flex gap-6 text-xs text-white/50">
           <span>Size: {file.size}</span>
           <span>Uploader: {file.uploader}</span>
+
+          {retention.state === "active" && (
+            <span className="text-yellow-400">
+              ⏳ {retention.label}
+            </span>
+          )}
+
+          {retention.state === "expired" && (
+            <span className="text-red-500">
+              EXPIRED
+            </span>
+          )}
         </div>
 
-        {/* PREVIEW */}
-        <div className="bg-black/40 rounded p-3">
-          {renderPreviewBody()}
+        {/* ================= PREVIEW ================= */}
+        <div className="bg-black/40 rounded-2xl p-4">
+          {error ? (
+            <p className="text-sm text-red-400">
+              {error}
+            </p>
+          ) : signedUrl ? (
+            <MediaPreview
+              src={signedUrl}
+              ext={ext}
+              filename={file.name}
+              content={content ?? undefined}
+              result={result ?? undefined}
+              viewMode={viewMode}
+              onChangeViewMode={setViewMode}
+            />
+          ) : (
+            <p className="text-sm text-white/50">
+              Loading preview…
+            </p>
+          )}
+        </div>
+
+        {/* ================= FOOTER ================= */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleDownload}
+            disabled={!signedUrl || isExpired}
+            className={`px-6 py-2.5 rounded-full text-sm font-medium transition ${
+              isExpired || !signedUrl
+                ? "bg-white/10 text-white/40 cursor-not-allowed"
+                : "bg-white text-black hover:opacity-90"
+            }`}
+          >
+            {isExpired ? "Expired" : "Download"}
+          </button>
         </div>
       </div>
     </div>

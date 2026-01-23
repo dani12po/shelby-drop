@@ -3,15 +3,25 @@
 import { useState } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useNotifications } from "@/components/notifications/useNotifications";
-import { uploadToShelby } from "@/lib/uploadService";
+import {
+  uploadToShelby,
+  type UploadMetadata,
+} from "@/lib/uploadService";
 
 type Props = {
-  onDone: () => void;
+  /** Called after successful upload */
+  onDone: (metadata: UploadMetadata) => void;
+
+  /** Active folder path */
+  path?: string[];
 };
 
-export default function UploadForm({ onDone }: Props) {
+export default function UploadForm({
+  onDone,
+  path = [],
+}: Props) {
   const { notify } = useNotifications();
-  const { account } = useWallet(); // ⬅️ signMessage DIHAPUS
+  const { account } = useWallet();
 
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -19,9 +29,6 @@ export default function UploadForm({ onDone }: Props) {
     useState<string>("");
 
   const handleUpload = async () => {
-    /* ===============================
-       GUARDS (LOGIC ONLY)
-    ================================ */
     if (loading) return;
 
     if (!account) {
@@ -42,17 +49,15 @@ export default function UploadForm({ onDone }: Props) {
     setLoading(true);
 
     try {
-      /* ===============================
-         UPLOAD (NO SIGNATURE)
-      ================================ */
-      await uploadToShelby({
-        file, // REAL File object
+      const metadata = await uploadToShelby({
+        file,
         wallet: account.address.toString(),
-        path: [], // nanti bisa currentPath
+        path,
+        retentionDays: Number(retentionDays),
       });
 
       notify("success", "Upload successful");
-      onDone();
+      onDone(metadata);
     } catch (err) {
       notify(
         "error",
@@ -67,7 +72,6 @@ export default function UploadForm({ onDone }: Props) {
 
   return (
     <div className="flex flex-col items-center text-center space-y-[12px] px-[10px]">
-      {/* SELECT FILE BUTTON */}
       <button
         type="button"
         className="
@@ -86,7 +90,6 @@ export default function UploadForm({ onDone }: Props) {
         Select File
       </button>
 
-      {/* HIDDEN FILE INPUT */}
       <input
         id="shelby-upload-input"
         type="file"
@@ -96,12 +99,10 @@ export default function UploadForm({ onDone }: Props) {
         }
       />
 
-      {/* FILE NAME */}
       <div className="text-[12px] text-white/60">
         {file ? file.name : "No file selected"}
       </div>
 
-      {/* RETENTION */}
       <div className="w-full space-y-[6px]">
         <div className="text-[12px] text-white/60">
           Retention Period (days)
@@ -126,7 +127,6 @@ export default function UploadForm({ onDone }: Props) {
         />
       </div>
 
-      {/* UPLOAD BUTTON */}
       <button
         onClick={handleUpload}
         disabled={loading}

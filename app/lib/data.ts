@@ -10,7 +10,7 @@ export type FolderItem = {
   /**
    * ID unik
    * - root folder: wallet address
-   * - sub folder: bebas (nama folder / hash)
+   * - sub folder: derived path
    */
   id: string;
 
@@ -31,10 +31,6 @@ export type FolderItem = {
 
   /**
    * Path folder dari root wallet
-   * contoh:
-   *  []                       → root
-   *  ["docs"]                 → /wallet/0xABC/docs
-   *  ["docs", "images"]       → /wallet/0xABC/docs/images
    */
   path: string[];
 };
@@ -44,12 +40,13 @@ export type FolderItem = {
  */
 export type FileItemData = {
   /**
-   * Internal ID (bebas)
+   * Internal explorer ID
+   * (biasanya hash / blobId)
    */
   id: string;
 
   /**
-   * Blob ID dari Shelby
+   * Blob ID (Shelby / storage reference)
    */
   blobId: string;
 
@@ -69,17 +66,13 @@ export type FileItemData = {
   fileType: "PDF" | "IMG" | "OTHER";
 
   /**
-   * Ukuran file (formatted)
-   * contoh: "2.3 MB"
+   * Ukuran file (RAW bytes)
+   * Formatting dilakukan di UI
    */
-  size: string;
+  size: number;
 
   /**
    * Path folder tempat file berada
-   * contoh:
-   *  []                       → root
-   *  ["docs"]                 → /docs
-   *  ["docs", "images"]       → /docs/images
    */
   path: string[];
 
@@ -87,6 +80,17 @@ export type FileItemData = {
    * Wallet uploader
    */
   uploader: string;
+
+  /**
+   * Retention policy (hari)
+   */
+  retentionDays?: number;
+
+  /**
+   * Expiry timestamp (ISO)
+   * File dianggap invalid jika now > expiresAt
+   */
+  expiresAt?: string;
 };
 
 /**
@@ -96,24 +100,16 @@ export type FileItem = FolderItem | FileItemData;
 
 
 
-
-
 /* ===============================
    TYPE GUARDS
 ================================ */
 
-/**
- * Cek apakah item adalah file
- */
 export function isFile(
   item: FileItem
 ): item is FileItemData {
   return item.type === "file";
 }
 
-/**
- * Cek apakah item adalah folder
- */
 export function isFolder(
   item: FileItem
 ): item is FolderItem {
@@ -122,11 +118,8 @@ export function isFolder(
 
 
 
-
-
 /* ===============================
    FACTORY HELPERS
-   (Dipakai oleh upload & mapping blob)
 ================================ */
 
 /**
@@ -152,7 +145,7 @@ export function createFolder(
   path: string[]
 ): FolderItem {
   return {
-    id: `${path.join("/")}/${name}`,
+    id: [...path, name].join("/"),
     name,
     type: "folder",
     children: [],
@@ -161,24 +154,25 @@ export function createFolder(
 }
 
 /**
- * Buat file item dari blob
+ * Buat file item dari backend metadata
+ * (Explorer-safe)
  */
 export function createFileItem(params: {
   id: string;
   blobId: string;
   name: string;
   fileType: FileItemData["fileType"];
-  size: string;
+  size: number;
   path: string[];
   uploader: string;
+  retentionDays?: number;
+  expiresAt?: string;
 }): FileItemData {
   return {
     type: "file",
     ...params,
   };
 }
-
-
 
 
 
@@ -212,6 +206,8 @@ export function findFolderByPath(
 
 /**
  * Tambahkan item ke folder tertentu
+ * (NOTE: mutates target; React state
+ * sebaiknya gunakan versi immutable)
  */
 export function addItemToFolder(
   root: FolderItem,
@@ -252,15 +248,10 @@ export function flattenTree(
 
 
 
-
-
 /* ===============================
    FILE TYPE HELPERS
 ================================ */
 
-/**
- * Tentukan tipe file dari nama
- */
 export function inferFileType(
   fileName: string
 ): FileItemData["fileType"] {
@@ -278,4 +269,23 @@ export function inferFileType(
   }
 
   return "OTHER";
+}
+
+/**
+ * Human-readable size helper (UI only)
+ */
+export function formatFileSize(
+  bytes: number
+): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024)
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / 1024 / 1024).toFixed(
+      1
+    )} MB`;
+
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(
+    1
+  )} GB`;
 }

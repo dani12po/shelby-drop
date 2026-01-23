@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import Explorer from "./Explorer";
 import SearchBox from "./SearchBox";
+import WalletSearchController from "./WalletSearchController";
+
 import PreviewModal from "@/components/modals/PreviewModal";
 import UploadButton from "@/components/upload/UploadButton";
 import UploadPanel from "@/components/upload/UploadPanel";
@@ -38,55 +40,6 @@ const explorerMotion = {
 };
 
 /* ===============================
-   HELPERS (PURE, DOMAIN-SAFE)
-================================ */
-function injectFileIntoTree(
-  root: FolderItem,
-  path: string[],
-  file: FileItemData
-): FolderItem {
-  if (path.length === 0) {
-    return {
-      ...root,
-      children: [...root.children, file],
-    };
-  }
-
-  const [head, ...rest] = path;
-
-  return {
-    ...root,
-    children: root.children.map((child) =>
-      child.type === "folder" && child.name === head
-        ? injectFileIntoTree(child, rest, file)
-        : child
-    ),
-  };
-}
-
-function inferFileType(
-  filename: string
-): "PDF" | "IMG" | "OTHER" {
-  const ext = filename
-    .split(".")
-    .pop()
-    ?.toLowerCase();
-
-  if (ext === "pdf") return "PDF";
-  if (
-    ext === "png" ||
-    ext === "jpg" ||
-    ext === "jpeg" ||
-    ext === "webp" ||
-    ext === "gif"
-  ) {
-    return "IMG";
-  }
-
-  return "OTHER";
-}
-
-/* ===============================
    COMPONENT
 ================================ */
 export default function ExplorerPage({
@@ -94,23 +47,30 @@ export default function ExplorerPage({
 }: {
   connected: boolean;
 }) {
+  /* ===============================
+     CORE STATE
+  ================================ */
   const [wallet, setWallet] = useState<string | null>(null);
-  const [root, setRoot] =
-    useState<FolderItem>(EMPTY_ROOT);
+  const [root, setRoot] = useState<FolderItem>(EMPTY_ROOT);
 
   const [previewFile, setPreviewFile] =
     useState<FileItemData | null>(null);
 
   /* ===============================
-     Upload (UI only, SAFE)
+     Upload (UI only)
   ================================ */
-  const [uploadOpen, setUploadOpen] =
-    useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [currentPath, setCurrentPath] =
     useState<string[]>([]);
 
   /* ===============================
-     Explorer → Path adapters
+     Wallet Search (controller trigger only)
+  ================================ */
+  const [searchWallet, setSearchWallet] =
+    useState<string | null>(null);
+
+  /* ===============================
+     Explorer navigation
   ================================ */
   const handleOpenFolder = (folder: FolderItem) => {
     setCurrentPath(folder.path);
@@ -123,32 +83,39 @@ export default function ExplorerPage({
   };
 
   /* ===============================
-     AUTO-REFRESH AFTER UPLOAD
+     FETCH EXPLORER TREE
+     (single source of truth)
   ================================ */
-  const handleUploaded = (metadata: any) => {
+  const fetchExplorerTree = async (
+    activeWallet: string
+  ) => {
+    try {
+      const res = await fetch(
+        `/api/explorer?wallet=${activeWallet}`
+      );
+      if (!res.ok) return;
+
+      const tree: FolderItem = await res.json();
+      setRoot(tree);
+    } catch (err) {
+      console.error(
+        "Failed to fetch explorer tree",
+        err
+      );
+    }
+  };
+
+  useEffect(() => {
     if (!wallet) return;
+    fetchExplorerTree(wallet);
+  }, [wallet]);
 
-    const newFile: FileItemData = {
-      id: metadata.hash,
-      type: "file",
-      name: metadata.originalName,
-      size: metadata.size,
-      path: currentPath,
-
-      blobId: metadata.hash,
-      fileType: inferFileType(
-        metadata.originalName
-      ),
-      uploader: wallet,
-    };
-
-    setRoot((prev) =>
-      injectFileIntoTree(
-        prev,
-        currentPath,
-        newFile
-      )
-    );
+  /* ===============================
+     AFTER UPLOAD
+  ================================ */
+  const handleUploaded = () => {
+    if (!wallet) return;
+    fetchExplorerTree(wallet);
   };
 
   const mode: "search" | "explorer" =
@@ -181,7 +148,14 @@ export default function ExplorerPage({
             </p>
 
             <div className="mt-8">
-              <SearchBox onSearch={setWallet} />
+              <SearchBox
+               onSearch={(wallet) => {
+               setSearchWallet(null);
+                requestAnimationFrame(() => {
+                 setSearchWallet(wallet);
+               });
+              }}
+             />
             </div>
 
             <div className="mt-6 h-[40px] flex items-center">
@@ -206,15 +180,13 @@ export default function ExplorerPage({
             className="space-y-4"
           >
             <Explorer
-              root={root}
+               root={root}
               wallet={wallet!}
-              onOpenFolder={handleOpenFolder}
-              onBreadcrumbClick={
-                handleBreadcrumbClick
-              }
-              onPreview={setPreviewFile}
-              onMeta={() => {}}
-            />
+                 onOpenFolder={handleOpenFolder}
+                   onBreadcrumbClick={handleBreadcrumbClick}
+                onPreview={setPreviewFile}   // 🔥 INI PENTING
+                onMeta={() => {}}
+             />
           </motion.div>
         )}
       </AnimatePresence>
@@ -223,6 +195,7 @@ export default function ExplorerPage({
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
         onUploaded={handleUploaded}
+        path={currentPath}
       />
 
       {previewFile && wallet && (
@@ -234,6 +207,19 @@ export default function ExplorerPage({
           }
         />
       )}
+
+      {/* ===============================
+         WALLET SEARCH CONTROLLER
+         (isolated popup logic)
+      ================================ */}
+      <WalletSearchController
+         wallet={searchWallet}
+           onClose={() => setSearchWallet(null)}
+           onEnterExplorer={(wallet: string) => {
+          setWallet(wallet);
+           setSearchWallet(null);
+         }}
+       />
     </>
   );
 }

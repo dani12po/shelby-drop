@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useNotifications } from "@/components/notifications/useNotifications";
 
 /* ===============================
    PROPS
@@ -29,11 +30,17 @@ const GRADIENT = `
 `;
 
 /* ===============================
-   WALLET VALIDATION
+   WALLET VALIDATION (MULTI-CHAIN)
 ================================ */
 
 function isValidWallet(input: string) {
-  return /^0x[a-fA-F0-9]{40}$/.test(input.trim());
+  const v = input.trim();
+
+  if (!v.startsWith("0x")) return false;
+  if (!/^[0-9a-fA-Fx]+$/.test(v)) return false;
+
+  // ETH (42), Aptos (66), future-safe
+  return v.length >= 42;
 }
 
 /* ===============================
@@ -43,19 +50,18 @@ function isValidWallet(input: string) {
 export default function SearchBox({ onSearch }: Props) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
-  const [error, setError] = useState<string | null>(
-    null
-  );
+
+  // 🔔 notification system (unchanged)
+  const { notify } = useNotifications();
 
   function submit() {
     const wallet = value.trim();
 
     if (!isValidWallet(wallet)) {
-      setError("Invalid wallet address");
+      notify("error", "Invalid wallet address.");
       return;
     }
 
-    setError(null);
     onSearch(wallet);
   }
 
@@ -77,7 +83,6 @@ export default function SearchBox({ onSearch }: Props) {
       >
         {/* ============================
             CAPSULE MASK + INNER GAP
-            ⬇️ 4px SAFE SPACE FROM LINE
         ============================ */}
         <div
           className="
@@ -146,17 +151,6 @@ export default function SearchBox({ onSearch }: Props) {
           </div>
         </div>
       </motion.div>
-
-      {/* ============================
-          ERROR MESSAGE
-      ============================ */}
-      {error && (
-        <div className="mt-2 w-[500px] text-center">
-          <p className="text-xs text-red-400">
-            {error}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

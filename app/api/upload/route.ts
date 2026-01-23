@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { runRetentionCleanup } from "@/lib/retention/cleanup";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,10 +16,16 @@ const UPLOAD_DIR = path.join(
 
 /* ===============================
    POST /api/upload
-   NO SIGNATURE REQUIRED
+   Retention-enforced (server-side)
 ================================ */
 export async function POST(req: Request) {
   try {
+    /* ===============================
+       🔁 LAZY RETENTION CLEANUP
+       (serverless-safe)
+    ================================ */
+    await runRetentionCleanup();
+
     const form = await req.formData();
 
     const file = form.get("file");
@@ -26,7 +33,39 @@ export async function POST(req: Request) {
     const uploadPath = (form.get("path") as string) ?? "";
 
     /* ===============================
-       VALIDATION (UPDATED)
+       RETENTION (SAFE)
+       0 = unlimited
+    ================================ */
+    const retentionRaw = form.get("retentionDays");
+    const retentionDays =
+      typeof retentionRaw === "string"
+        ? Number(retentionRaw)
+        : 0;
+
+    if (
+      !Number.isFinite(retentionDays) ||
+      retentionDays < 0
+    ) {
+      return NextResponse.json(
+        { error: "Invalid retention period" },
+        { status: 400 }
+      );
+    }
+
+    const expiresAt =
+      retentionDays > 0
+        ? new Date(
+            Date.now() +
+              retentionDays *
+                24 *
+                60 *
+                60 *
+                1000
+          ).toISOString()
+        : null;
+
+    /* ===============================
+       VALIDATION
     ================================ */
     if (!(file instanceof File)) {
       return NextResponse.json(
@@ -82,7 +121,7 @@ export async function POST(req: Request) {
     await fs.writeFile(filePath, bytes);
 
     /* ===============================
-       METADATA
+       METADATA (SOURCE OF TRUTH)
     ================================ */
     const metadata = {
       wallet,
@@ -91,10 +130,18 @@ export async function POST(req: Request) {
       size: file.size,
       mime: file.type,
       hash,
+
+      retentionDays,
+      expiresAt,
+
       uploadedAt: new Date().toISOString(),
-      path: `/uploads/${wallet}/${safePath.join(
-        "/"
-      )}/${safeName}`,
+
+      // logical path (Explorer + Preview)
+      path: [
+        wallet,
+        ...safePath,
+        safeName,
+      ].join("/"),
     };
 
     await fs.writeFile(
@@ -102,6 +149,9 @@ export async function POST(req: Request) {
       JSON.stringify(metadata, null, 2)
     );
 
+    /* ===============================
+       RESPONSE
+    ================================ */
     return NextResponse.json({
       success: true,
       metadata,

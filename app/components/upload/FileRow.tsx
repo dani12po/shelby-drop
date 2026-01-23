@@ -5,7 +5,12 @@ import type {
   FolderItem,
   FileItemData,
 } from "@/lib/data";
-import { buildShelbyDownloadUrl } from "@/lib/shelbyDownload";
+
+import { getRetentionStatus } from "@/lib/retention";
+
+/* ===============================
+   PROPS
+================================ */
 
 type Props = {
   item: FileItem;
@@ -14,6 +19,10 @@ type Props = {
   onPreview: (file: FileItemData) => void;
   onMeta: (file: FileItemData) => void;
 };
+
+/* ===============================
+   COMPONENT
+================================ */
 
 export default function FileRow({
   item,
@@ -29,17 +38,27 @@ export default function FileRow({
     return (
       <div
         onClick={() => onOpenFolder(item)}
-        className="grid grid-cols-5 px-4 py-2 hover:bg-white/5 cursor-pointer"
+        className="
+          grid grid-cols-5
+          px-4 py-2
+          cursor-pointer
+          hover:bg-white/5
+          transition
+          border-b border-white/5
+        "
       >
-        <div className="col-span-2">
+        <div className="col-span-2 truncate">
           📁 {item.name}
         </div>
-        <div className="text-gray-400">
+
+        <div className="text-gray-400 text-xs">
           Folder
         </div>
-        <div className="text-gray-400">
+
+        <div className="text-gray-400 text-xs">
           —
         </div>
+
         <div className="text-right text-gray-500">
           ›
         </div>
@@ -51,12 +70,56 @@ export default function FileRow({
      FILE ROW
   ================================ */
 
-  const downloadUrl = buildShelbyDownloadUrl(
-    wallet,
-    item
+  const retention = getRetentionStatus(
+    item.expiresAt
   );
 
-  async function shareFile() {
+  const isExpired =
+    retention.state === "expired";
+
+  /* ===============================
+     DOWNLOAD (SIGNED URL)
+  ================================ */
+  async function handleDownload(
+    e: React.MouseEvent
+  ) {
+    e.stopPropagation();
+    if (isExpired) return;
+
+    try {
+      const key = `${wallet}/${[
+        ...item.path,
+        item.name,
+      ].join("/")}`;
+
+      const res = await fetch(
+        `/api/files/signed?wallet=${wallet}&key=${encodeURIComponent(
+          key
+        )}`
+      );
+
+      if (!res.ok) {
+        throw new Error(
+          "Failed to get signed download URL"
+        );
+      }
+
+      const data = await res.json();
+      window.open(data.url, "_blank");
+    } catch {
+      alert("Download failed");
+    }
+  }
+
+  /* ===============================
+     SHARE
+  ================================ */
+  async function shareFile(
+    e: React.MouseEvent
+  ) {
+    e.stopPropagation();
+    if (isExpired) return;
+
     const target = `/wallet/${wallet}/${item.path.join(
       "/"
     )}/${item.name}`;
@@ -86,52 +149,129 @@ export default function FileRow({
     }
   }
 
+  /* ===============================
+     RENDER
+  ================================ */
+
   return (
-    <div className="grid grid-cols-5 px-4 py-2 hover:bg-white/5 items-center">
-      {/* NAME / PREVIEW */}
+    <div
+      className="
+        group
+        grid grid-cols-5
+        px-4 py-2
+        items-center
+        hover:bg-white/5
+        transition
+        border-b border-white/5
+      "
+    >
+      {/* ===========================
+          NAME / PREVIEW
+      ============================ */}
       <button
-        onClick={() => onPreview(item)}
-        className="col-span-2 text-left hover:underline"
-        title="Preview"
+        onClick={() =>
+          !isExpired && onPreview(item)
+        }
+        disabled={isExpired}
+        className={`
+          col-span-2
+          text-left
+          truncate
+          ${
+            isExpired
+              ? "opacity-40 cursor-not-allowed"
+              : "hover:underline"
+          }
+        `}
+        title={
+          isExpired
+            ? "File expired"
+            : "Preview"
+        }
       >
         📄 {item.name}
       </button>
 
-      {/* TYPE */}
-      <div className="text-gray-400">
+      {/* ===========================
+          TYPE + RETENTION
+      ============================ */}
+      <div className="text-gray-400 text-xs flex items-center gap-2">
         {item.fileType}
+
+        {retention.state === "active" && (
+          <span className="text-yellow-400">
+            ⏳ {retention.label}
+          </span>
+        )}
+
+        {retention.state === "expired" && (
+          <span className="text-red-500">
+            EXPIRED
+          </span>
+        )}
       </div>
 
-      {/* SIZE */}
-      <div className="text-gray-400">
+      {/* ===========================
+          SIZE
+      ============================ */}
+      <div className="text-gray-400 text-xs">
         {item.size}
       </div>
 
-      {/* ACTIONS */}
-      <div className="flex justify-end gap-3">
+      {/* ===========================
+          ACTIONS
+      ============================ */}
+      <div className="
+        flex justify-end gap-3
+        opacity-0 group-hover:opacity-100
+        transition
+      ">
         {/* DOWNLOAD */}
-        <a
-          href={downloadUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-blue-400"
-          title="Download"
+        <button
+          onClick={handleDownload}
+          disabled={isExpired}
+          className={`
+            ${
+              isExpired
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:text-blue-400"
+            }
+          `}
+          title={
+            isExpired
+              ? "File expired"
+              : "Download"
+          }
         >
           ⬇
-        </a>
+        </button>
 
         {/* SHARE */}
         <button
           onClick={shareFile}
-          className="hover:text-blue-400"
-          title="Share"
+          disabled={isExpired}
+          className={`
+            ${
+              isExpired
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:text-blue-400"
+            }
+          `}
+          title={
+            isExpired
+              ? "File expired"
+              : "Share"
+          }
         >
           🔗
         </button>
 
         {/* METADATA */}
         <button
-          onClick={() => onMeta(item)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onMeta(item);
+          }}
           className="hover:text-blue-400"
           title="Metadata"
         >

@@ -34,12 +34,13 @@ type Props = {
   onBreadcrumbClick: (index: number) => void;
 
   /**
-   * Preview file
+   * Preview file (view)
    */
   onPreview: (file: FileItemData) => void;
 
   /**
-   * Metadata file
+   * Metadata / actions file
+   * (signed download, retention info, dll)
    */
   onMeta: (file: FileItemData) => void;
 };
@@ -69,40 +70,34 @@ export default function Explorer({
           {root.name}
         </button>
 
-        {root.path.map(
-          (seg: string, i: number) => (
-            <span key={i} className="flex gap-2">
-              <span>/</span>
-              <button
-                onClick={() =>
-                  onBreadcrumbClick(i + 1)
-                }
-                className="hover:underline"
-              >
-                {seg}
-              </button>
-            </span>
-          )
-        )}
+        {root.path.map((seg, i) => (
+          <span key={i} className="flex items-center gap-2">
+            <span className="text-white/40">/</span>
+            <button
+              onClick={() => onBreadcrumbClick(i + 1)}
+              className="hover:underline"
+            >
+              {seg}
+            </button>
+          </span>
+        ))}
       </div>
 
       {/* ============================
           HEADER
       ============================ */}
-      <div className="grid grid-cols-5 px-4 py-2 text-xs text-gray-400 border-b border-white/10">
+      <div className="grid grid-cols-5 px-4 py-2 text-xs text-white/50 border-b border-white/10">
         <div className="col-span-2">Name</div>
         <div>Type</div>
         <div>Size</div>
-        <div className="text-right">
-          Actions
-        </div>
+        <div className="text-right">Actions</div>
       </div>
 
       {/* ============================
           EMPTY STATE
       ============================ */}
       {root.children.length === 0 && (
-        <div className="px-4 py-4 text-sm text-gray-500">
+        <div className="px-4 py-6 text-sm text-white/50">
           Empty folder
         </div>
       )}
@@ -110,18 +105,22 @@ export default function Explorer({
       {/* ============================
           CONTENT
       ============================ */}
-      {root.children.map(
-        (item: FileItem) => (
-          <FileRow
-            key={item.id}
-            item={item}
-            wallet={wallet}
-            onOpenFolder={onOpenFolder}
-            onPreview={onPreview}
-            onMeta={onMeta}
-          />
-        )
-      )}
+      {root.children.map((item: FileItem) => (
+        <FileRow
+          key={item.id}
+          item={item}
+          wallet={wallet}
+          onOpenFolder={onOpenFolder}
+          onPreview={onPreview}
+          onMeta={onMeta}
+          /*
+            PR-SAFE DESIGN:
+            - Explorer tidak tahu preview modal
+            - Explorer tidak tahu signed URL
+            - Explorer hanya meneruskan intent user
+          */
+        />
+      ))}
     </div>
   );
 }

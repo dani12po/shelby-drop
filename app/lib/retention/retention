@@ -1,0 +1,46 @@
+export type RetentionStatus =
+  | { state: "none" }
+  | { state: "expired" }
+  | {
+      state: "active";
+      remainingMs: number;
+      label: string;
+      warning: boolean;
+    };
+
+export function getRetentionStatus(
+  expiresAt?: string | null
+): RetentionStatus {
+  if (!expiresAt) return { state: "none" };
+
+  const expires = new Date(expiresAt).getTime();
+  const now = Date.now();
+
+  const diff = expires - now;
+
+  if (diff <= 0) {
+    return { state: "expired" };
+  }
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  let label = "";
+
+  if (days > 0) {
+    label = `${days}d ${hours % 24}h`;
+  } else if (hours > 0) {
+    label = `${hours}h ${minutes % 60}m`;
+  } else {
+    label = `${minutes}m`;
+  }
+
+  return {
+    state: "active",
+    remainingMs: diff,
+    label,
+    warning: diff < 24 * 60 * 60 * 1000, // < 24h
+  };
+}
