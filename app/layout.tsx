@@ -15,8 +15,21 @@ export default function RootLayout({
       <body>
         <Providers>
           <NotificationProvider>
+            {/* =========================
+                MAIN APP CONTENT
+            ========================== */}
             {children}
+
+            {/* =========================
+                GLOBAL NOTIFICATIONS
+            ========================== */}
             <NotificationCenter />
+
+            {/* =========================
+                MODAL ROOT (IMPORTANT)
+                DO NOT REMOVE
+            ========================== */}
+            <div id="modal-root" />
           </NotificationProvider>
         </Providers>
       </body>

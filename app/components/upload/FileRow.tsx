@@ -1,12 +1,13 @@
-"use client";
+'use client';
 
 import type {
   FileItem,
   FolderItem,
   FileItemData,
-} from "@/lib/data";
+} from '@/lib/data';
 
-import { getRetentionStatus } from "@/lib/retention";
+import { getRetentionStatus } from '@/lib/retention';
+import React from 'react';
 
 /* ===============================
    PROPS
@@ -34,20 +35,22 @@ export default function FileRow({
   /* ===============================
      FOLDER ROW
   ================================ */
-  if (item.type === "folder") {
+  if (item.type === 'folder') {
     return (
       <div
         onClick={() => onOpenFolder(item)}
         className="
+          group
           grid grid-cols-5
           px-4 py-2
+          items-center
           cursor-pointer
-          hover:bg-white/5
-          transition
           border-b border-white/5
+          transition-colors
+          hover:bg-white/5
         "
       >
-        <div className="col-span-2 truncate">
+        <div className="col-span-2 truncate font-medium">
           📁 {item.name}
         </div>
 
@@ -59,38 +62,54 @@ export default function FileRow({
           —
         </div>
 
-        <div className="text-right text-gray-500">
+        <div className="text-right text-gray-500 opacity-40 group-hover:opacity-80">
           ›
         </div>
       </div>
     );
   }
 
+  /* ==================================================
+     FILE ROW (TYPE-SAFE NARROWING)
+  =================================================== */
+
+  const file = item as FileItemData;
+
+  const retention = getRetentionStatus(file.expiresAt);
+  const isExpired = retention.state === 'expired';
+
   /* ===============================
-     FILE ROW
+     PREVIEW
   ================================ */
+  function handlePreview() {
+    if (isExpired) return;
+    onPreview(file);
+  }
 
-  const retention = getRetentionStatus(
-    item.expiresAt
-  );
-
-  const isExpired =
-    retention.state === "expired";
+  /* ===============================
+     META
+  ================================ */
+  function handleMeta(
+    e: React.MouseEvent<HTMLButtonElement>
+  ) {
+    e.stopPropagation();
+    onMeta(file);
+  }
 
   /* ===============================
      DOWNLOAD (SIGNED URL)
   ================================ */
   async function handleDownload(
-    e: React.MouseEvent
+    e: React.MouseEvent<HTMLButtonElement>
   ) {
     e.stopPropagation();
     if (isExpired) return;
 
     try {
       const key = `${wallet}/${[
-        ...item.path,
-        item.name,
-      ].join("/")}`;
+        ...file.path,
+        file.name,
+      ].join('/')}`;
 
       const res = await fetch(
         `/api/files/signed?wallet=${wallet}&key=${encodeURIComponent(
@@ -99,53 +118,47 @@ export default function FileRow({
       );
 
       if (!res.ok) {
-        throw new Error(
-          "Failed to get signed download URL"
-        );
+        throw new Error('Failed to get signed download URL');
       }
 
       const data = await res.json();
-      window.open(data.url, "_blank");
+      window.open(data.url, '_blank');
     } catch {
-      alert("Download failed");
+      alert('Download failed');
     }
   }
 
   /* ===============================
      SHARE
   ================================ */
-  async function shareFile(
-    e: React.MouseEvent
+  async function handleShare(
+    e: React.MouseEvent<HTMLButtonElement>
   ) {
     e.stopPropagation();
     if (isExpired) return;
 
-    const target = `/wallet/${wallet}/${item.path.join(
-      "/"
-    )}/${item.name}`;
+    const target = `/wallet/${wallet}/${file.path.join(
+      '/'
+    )}/${file.name}`;
 
     try {
-      const res = await fetch("/api/share", {
-        method: "POST",
+      const res = await fetch('/api/share', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ target }),
       });
 
       if (!res.ok) {
-        throw new Error(
-          "Failed to create share link"
-        );
+        throw new Error('Failed to create share link');
       }
 
       const data = await res.json();
-      await navigator.clipboard.writeText(
-        data.url
-      );
-      alert("Share link copied!");
+      await navigator.clipboard.writeText(data.url);
+      alert('Share link copied!');
     } catch {
-      alert("Unable to share file");
+      alert('Unable to share file');
     }
   }
 
@@ -160,51 +173,46 @@ export default function FileRow({
         grid grid-cols-5
         px-4 py-2
         items-center
-        hover:bg-white/5
-        transition
         border-b border-white/5
+        transition-colors
+        hover:bg-white/5
       "
     >
       {/* ===========================
           NAME / PREVIEW
       ============================ */}
       <button
-        onClick={() =>
-          !isExpired && onPreview(item)
-        }
+        onClick={handlePreview}
         disabled={isExpired}
         className={`
           col-span-2
           text-left
           truncate
+          font-medium
           ${
             isExpired
-              ? "opacity-40 cursor-not-allowed"
-              : "hover:underline"
+              ? 'opacity-40 cursor-not-allowed'
+              : 'hover:underline'
           }
         `}
-        title={
-          isExpired
-            ? "File expired"
-            : "Preview"
-        }
+        title={isExpired ? 'File expired' : 'Preview'}
       >
-        📄 {item.name}
+        📄 {file.name}
       </button>
 
       {/* ===========================
           TYPE + RETENTION
       ============================ */}
-      <div className="text-gray-400 text-xs flex items-center gap-2">
-        {item.fileType}
+      <div className="flex items-center gap-2 text-gray-400 text-xs">
+        <span>{file.fileType}</span>
 
-        {retention.state === "active" && (
+        {retention.state === 'active' && (
           <span className="text-yellow-400">
             ⏳ {retention.label}
           </span>
         )}
 
-        {retention.state === "expired" && (
+        {retention.state === 'expired' && (
           <span className="text-red-500">
             EXPIRED
           </span>
@@ -215,63 +223,51 @@ export default function FileRow({
           SIZE
       ============================ */}
       <div className="text-gray-400 text-xs">
-        {item.size}
+        {file.size}
       </div>
 
       {/* ===========================
           ACTIONS
       ============================ */}
-      <div className="
-        flex justify-end gap-3
-        opacity-0 group-hover:opacity-100
-        transition
-      ">
+      <div
+        className="
+          flex justify-end gap-3
+          opacity-0
+          group-hover:opacity-100
+          transition-opacity
+        "
+      >
         {/* DOWNLOAD */}
         <button
           onClick={handleDownload}
           disabled={isExpired}
-          className={`
-            ${
-              isExpired
-                ? "opacity-40 cursor-not-allowed"
-                : "hover:text-blue-400"
-            }
-          `}
-          title={
+          className={
             isExpired
-              ? "File expired"
-              : "Download"
+              ? 'opacity-40 cursor-not-allowed'
+              : 'hover:text-blue-400'
           }
+          title={isExpired ? 'File expired' : 'Download'}
         >
           ⬇
         </button>
 
         {/* SHARE */}
         <button
-          onClick={shareFile}
+          onClick={handleShare}
           disabled={isExpired}
-          className={`
-            ${
-              isExpired
-                ? "opacity-40 cursor-not-allowed"
-                : "hover:text-blue-400"
-            }
-          `}
-          title={
+          className={
             isExpired
-              ? "File expired"
-              : "Share"
+              ? 'opacity-40 cursor-not-allowed'
+              : 'hover:text-blue-400'
           }
+          title={isExpired ? 'File expired' : 'Share'}
         >
           🔗
         </button>
 
         {/* METADATA */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onMeta(item);
-          }}
+          onClick={handleMeta}
           className="hover:text-blue-400"
           title="Metadata"
         >

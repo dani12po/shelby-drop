@@ -1,31 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import Explorer from "./Explorer";
 import SearchBox from "./SearchBox";
 import WalletSearchController from "./WalletSearchController";
 
 import PreviewModal from "@/components/modals/PreviewModal";
+import ExplorerModal from "@/components/modals/explorermodals/ExplorerModal";
 import UploadButton from "@/components/upload/UploadButton";
 import UploadPanel from "@/components/upload/UploadPanel";
 
-import type { FolderItem, FileItemData } from "@/lib/data";
+import type { FileItemData } from "@/lib/data";
 
 /* ===============================
-   DUMMY ROOT
-================================ */
-const EMPTY_ROOT: FolderItem = {
-  id: "root",
-  type: "folder",
-  name: "root",
-  path: [],
-  children: [],
-};
-
-/* ===============================
-   ANIMATIONS
+   ANIMATION (SEARCH PAGE)
 ================================ */
 const searchMotion = {
   initial: { opacity: 0, scale: 0.96 },
@@ -33,15 +22,6 @@ const searchMotion = {
   exit: { opacity: 0, scale: 0.94 },
 };
 
-const explorerMotion = {
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -12 },
-};
-
-/* ===============================
-   COMPONENT
-================================ */
 export default function ExplorerPage({
   connected,
 }: {
@@ -51,80 +31,42 @@ export default function ExplorerPage({
      CORE STATE
   ================================ */
   const [wallet, setWallet] = useState<string | null>(null);
-  const [root, setRoot] = useState<FolderItem>(EMPTY_ROOT);
 
+  /* ===============================
+     EXPLORER MODAL
+  ================================ */
+  const [explorerOpen, setExplorerOpen] =
+    useState(false);
+
+  /* ===============================
+     PREVIEW MODAL
+  ================================ */
   const [previewFile, setPreviewFile] =
     useState<FileItemData | null>(null);
 
   /* ===============================
-     Upload (UI only)
+     UPLOAD
   ================================ */
-  const [uploadOpen, setUploadOpen] = useState(false);
-  const [currentPath, setCurrentPath] =
-    useState<string[]>([]);
+  const [uploadOpen, setUploadOpen] =
+    useState(false);
+  const [currentPath] = useState<string[]>([]);
 
   /* ===============================
-     Wallet Search (controller trigger only)
+     WALLET SEARCH CONTROLLER
   ================================ */
   const [searchWallet, setSearchWallet] =
     useState<string | null>(null);
 
   /* ===============================
-     Explorer navigation
+     RENDER
   ================================ */
-  const handleOpenFolder = (folder: FolderItem) => {
-    setCurrentPath(folder.path);
-  };
-
-  const handleBreadcrumbClick = (index: number) => {
-    setCurrentPath((prev) =>
-      prev.slice(0, index + 1)
-    );
-  };
-
-  /* ===============================
-     FETCH EXPLORER TREE
-     (single source of truth)
-  ================================ */
-  const fetchExplorerTree = async (
-    activeWallet: string
-  ) => {
-    try {
-      const res = await fetch(
-        `/api/explorer?wallet=${activeWallet}`
-      );
-      if (!res.ok) return;
-
-      const tree: FolderItem = await res.json();
-      setRoot(tree);
-    } catch (err) {
-      console.error(
-        "Failed to fetch explorer tree",
-        err
-      );
-    }
-  };
-
-  useEffect(() => {
-    if (!wallet) return;
-    fetchExplorerTree(wallet);
-  }, [wallet]);
-
-  /* ===============================
-     AFTER UPLOAD
-  ================================ */
-  const handleUploaded = () => {
-    if (!wallet) return;
-    fetchExplorerTree(wallet);
-  };
-
-  const mode: "search" | "explorer" =
-    wallet ? "explorer" : "search";
-
   return (
     <>
+      {/* ===============================
+         SEARCH PAGE (DEFAULT)
+      ================================ */}
       <AnimatePresence mode="wait">
-        {mode === "search" && (
+        {!wallet && (
           <motion.div
             key="search"
             {...searchMotion}
@@ -149,16 +91,17 @@ export default function ExplorerPage({
 
             <div className="mt-8">
               <SearchBox
-               onSearch={(wallet) => {
-               setSearchWallet(null);
-                requestAnimationFrame(() => {
-                 setSearchWallet(wallet);
-               });
-              }}
-             />
+                onSearch={(wallet) => {
+                  // hard reset controller
+                  setSearchWallet(null);
+                  requestAnimationFrame(() => {
+                    setSearchWallet(wallet);
+                  });
+                }}
+              />
             </div>
 
-            <div className="mt-6 h-[40px] flex items-center">
+            <div className="mt-6 flex gap-4">
               <UploadButton
                 connected={connected}
                 onUpload={() =>
@@ -168,36 +111,36 @@ export default function ExplorerPage({
             </div>
           </motion.div>
         )}
-
-        {mode === "explorer" && (
-          <motion.div
-            key="explorer"
-            {...explorerMotion}
-            transition={{
-              duration: 0.35,
-              ease: "easeOut",
-            }}
-            className="space-y-4"
-          >
-            <Explorer
-               root={root}
-              wallet={wallet!}
-                 onOpenFolder={handleOpenFolder}
-                   onBreadcrumbClick={handleBreadcrumbClick}
-                onPreview={setPreviewFile}   // 🔥 INI PENTING
-                onMeta={() => {}}
-             />
-          </motion.div>
-        )}
       </AnimatePresence>
 
+      {/* ===============================
+         UPLOAD PANEL
+      ================================ */}
       <UploadPanel
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
-        onUploaded={handleUploaded}
+        onUploaded={() => {}}
         path={currentPath}
       />
 
+      {/* ===============================
+         EXPLORER MODAL (POPUP BOX)
+      ================================ */}
+      {explorerOpen && wallet && (
+        <ExplorerModal
+          open
+          wallet={wallet}
+          onClose={() => {
+            // 🔥 THIS IS THE FIX
+            setExplorerOpen(false);
+            setWallet(null);          // ⬅️ RETURN TO SEARCH PAGE
+          }}
+        />
+      )}
+
+      {/* ===============================
+         PREVIEW MODAL
+      ================================ */}
       {previewFile && wallet && (
         <PreviewModal
           file={previewFile}
@@ -210,16 +153,22 @@ export default function ExplorerPage({
 
       {/* ===============================
          WALLET SEARCH CONTROLLER
-         (isolated popup logic)
       ================================ */}
       <WalletSearchController
-         wallet={searchWallet}
-           onClose={() => setSearchWallet(null)}
-           onEnterExplorer={(wallet: string) => {
+        wallet={searchWallet}
+        onClose={() =>
+          setSearchWallet(null)
+        }
+        onEnterExplorer={(wallet) => {
+          // ✅ ENTER EXPLORER FLOW
           setWallet(wallet);
-           setSearchWallet(null);
-         }}
-       />
+          setSearchWallet(null);
+
+          requestAnimationFrame(() => {
+            setExplorerOpen(true);
+          });
+        }}
+      />
     </>
   );
 }

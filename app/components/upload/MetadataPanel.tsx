@@ -3,12 +3,18 @@
 import type { FileItemData } from "@/lib/data";
 import { buildShelbyDownloadUrl } from "@/lib/shelbyDownload";
 
+/* ===============================
+   PROPS
+================================ */
 type Props = {
   file: FileItemData;
   wallet: string;
   onClose: () => void;
 };
 
+/* ===============================
+   COMPONENT
+================================ */
 export default function MetadataPanel({
   file,
   wallet,
@@ -22,7 +28,7 @@ export default function MetadataPanel({
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex justify-end">
       <div className="w-full max-w-md h-full bg-gray-900 border-l border-white/10 p-5 space-y-5">
-        {/* HEADER */}
+        {/* ================= HEADER ================= */}
         <div className="flex justify-between items-start">
           <div>
             <h2 className="text-lg font-medium">
@@ -32,35 +38,41 @@ export default function MetadataPanel({
               {file.name}
             </p>
           </div>
+
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white"
+            aria-label="Close metadata panel"
           >
             ✕
           </button>
         </div>
 
-        {/* META */}
+        {/* ================= META ================= */}
         <div className="space-y-3 text-sm">
           <Meta
             label="Uploader"
             value={file.uploader}
           />
+
           <Meta
             label="Blob ID"
             value={file.blobId}
           />
+
           <Meta
             label="Type"
             value={file.fileType}
           />
+
+          {/* ✅ FIX: number → string */}
           <Meta
             label="Size"
-            value={file.size}
+            value={String(file.size)}
           />
         </div>
 
-        {/* ACTIONS */}
+        {/* ================= ACTIONS ================= */}
         <div className="pt-4 border-t border-white/10 space-y-2">
           <a
             href={downloadUrl}
@@ -95,6 +107,9 @@ export default function MetadataPanel({
   );
 }
 
+/* ===============================
+   META ROW (STRING ONLY)
+================================ */
 function Meta({
   label,
   value,
@@ -107,7 +122,9 @@ function Meta({
       <p className="text-xs text-gray-500">
         {label}
       </p>
-      <p className="break-all">{value}</p>
+      <p className="break-all">
+        {value}
+      </p>
     </div>
   );
 }

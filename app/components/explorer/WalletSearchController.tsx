@@ -10,9 +10,9 @@ import type { FolderItem } from "@/lib/data";
    PROPS
 ================================ */
 type Props = {
-  wallet: string | null; // ✅ ALLOW NULL
+  wallet: string | null; // allow null (controller inactive)
   onClose: () => void;
-  onEnterExplorer: (wallet: string) => void; // ✅ CONTROLLER passes wallet
+  onEnterExplorer: (wallet: string) => void;
 };
 
 /* ===============================
@@ -23,16 +23,24 @@ export default function WalletSearchController({
   onClose,
   onEnterExplorer,
 }: Props) {
+  /* ===============================
+     STATE MACHINE
+  ================================ */
   const [state, setState] =
     useState<WalletModalState | null>(null);
 
+  /* ===============================
+     ABORT FLAG (SAFE ASYNC)
+  ================================ */
   const abortRef = useRef(false);
 
   /* ===============================
-     EFFECT
+     EFFECT — RESOLVE WALLET
   ================================ */
   useEffect(() => {
+    // reset when wallet cleared
     if (!wallet) {
+      abortRef.current = true;
       setState(null);
       return;
     }
@@ -78,26 +86,32 @@ export default function WalletSearchController({
   if (!wallet || !state) return null;
 
   /* ===============================
+     HANDLERS
+  ================================ */
+  const handleClose = () => {
+    abortRef.current = true;
+    setState(null);
+    onClose();
+  };
+
+  const handleEnterExplorer =
+    state === "FOUND"
+      ? () => {
+          abortRef.current = true;
+          setState(null);
+          onEnterExplorer(wallet);
+        }
+      : undefined;
+
+  /* ===============================
      RENDER MODAL
   ================================ */
   return (
     <WalletSearchModal
       wallet={wallet}
       state={state}
-      onClose={() => {
-        abortRef.current = true;
-        setState(null);
-        onClose();
-      }}
-      onEnterExplorer={
-        state === "FOUND"
-          ? () => {
-              abortRef.current = true;
-              setState(null);
-              onEnterExplorer(wallet); // ✅ wallet injected here
-            }
-          : undefined
-      }
+      onClose={handleClose}
+      onEnterExplorer={handleEnterExplorer}
     />
   );
 }

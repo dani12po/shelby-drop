@@ -11,7 +11,6 @@ import FileRow from "@/components/upload/FileRow";
 /* ===============================
    PROPS
 ================================ */
-
 type Props = {
   /**
    * Folder yang sedang ditampilkan
@@ -48,7 +47,6 @@ type Props = {
 /* ===============================
    COMPONENT
 ================================ */
-
 export default function Explorer({
   root,
   wallet,
@@ -71,10 +69,17 @@ export default function Explorer({
         </button>
 
         {root.path.map((seg, i) => (
-          <span key={i} className="flex items-center gap-2">
-            <span className="text-white/40">/</span>
+          <span
+            key={i}
+            className="flex items-center gap-2"
+          >
+            <span className="text-white/40">
+              /
+            </span>
             <button
-              onClick={() => onBreadcrumbClick(i + 1)}
+              onClick={() =>
+                onBreadcrumbClick(i + 1)
+              }
               className="hover:underline"
             >
               {seg}
@@ -87,10 +92,14 @@ export default function Explorer({
           HEADER
       ============================ */}
       <div className="grid grid-cols-5 px-4 py-2 text-xs text-white/50 border-b border-white/10">
-        <div className="col-span-2">Name</div>
+        <div className="col-span-2">
+          Name
+        </div>
         <div>Type</div>
         <div>Size</div>
-        <div className="text-right">Actions</div>
+        <div className="text-right">
+          Actions
+        </div>
       </div>
 
       {/* ============================
@@ -105,22 +114,18 @@ export default function Explorer({
       {/* ============================
           CONTENT
       ============================ */}
-      {root.children.map((item: FileItem) => (
-        <FileRow
-          key={item.id}
-          item={item}
-          wallet={wallet}
-          onOpenFolder={onOpenFolder}
-          onPreview={onPreview}
-          onMeta={onMeta}
-          /*
-            PR-SAFE DESIGN:
-            - Explorer tidak tahu preview modal
-            - Explorer tidak tahu signed URL
-            - Explorer hanya meneruskan intent user
-          */
-        />
-      ))}
+      {root.children.map(
+        (item: FileItem) => (
+          <FileRow
+            key={item.id}
+            item={item}
+            wallet={wallet}
+            onOpenFolder={onOpenFolder}
+            onPreview={onPreview}
+            onMeta={onMeta}
+          />
+        )
+      )}
     </div>
   );
 }
