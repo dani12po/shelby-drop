@@ -1,18 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import type {
-  FolderItem,
-  FileItemData,
-} from '@/lib/data';
-import type { ExplorerItem } from './ExplorerFileRowAdapter';
+import { useEffect, useState } from "react";
+import type { ExplorerItem } from "./ExplorerFileRowAdapter";
 
+/* ===============================
+   STATE
+================================ */
 type State = {
   loading: boolean;
   error: string | null;
   items: ExplorerItem[];
 };
 
+/* ===============================
+   HOOK
+================================ */
 export function useExplorerData(
   wallet: string,
   path: string[]
@@ -29,56 +31,54 @@ export function useExplorerData(
     let cancelled = false;
 
     async function load() {
-      setState((s) => ({
-        ...s,
+      setState((prev) => ({
+        ...prev,
         loading: true,
         error: null,
       }));
 
       try {
+        /* ===============================
+           BUILD QUERY
+           - path kosong = root
+        ================================ */
+        const query = new URLSearchParams({
+          wallet,
+        });
+
+        if (path.length > 0) {
+          query.set("path", path.join("/"));
+        }
+
         const res = await fetch(
-          `/api/files?wallet=${wallet}&path=${encodeURIComponent(
-            path.join('/')
-          )}`
+          `/api/shelby/list?${query.toString()}`,
+          { cache: "no-store" }
         );
 
         if (!res.ok) {
-          throw new Error('Failed to load explorer data');
+          throw new Error(
+            `Shelby list failed (${res.status})`
+          );
         }
 
-        const data: {
-          folders: FolderItem[];
-          files: FileItemData[];
-        } = await res.json();
+        const items: ExplorerItem[] = await res.json();
 
         if (cancelled) return;
-
-        const items: ExplorerItem[] = [
-          ...data.folders.map(
-            (f): ExplorerItem => ({
-              ...f,
-              type: 'folder' as const,
-            })
-          ),
-          ...data.files.map(
-            (f): ExplorerItem => ({
-              ...f,
-              type: 'file' as const,
-            })
-          ),
-        ];
 
         setState({
           loading: false,
           error: null,
           items,
         });
-      } catch (e: any) {
+      } catch (err) {
         if (cancelled) return;
 
         setState({
           loading: false,
-          error: e.message ?? 'Unknown error',
+          error:
+            err instanceof Error
+              ? err.message
+              : "Failed to load explorer data",
           items: [],
         });
       }
@@ -89,7 +89,7 @@ export function useExplorerData(
     return () => {
       cancelled = true;
     };
-  }, [wallet, path.join('/')]);
+  }, [wallet, path.join("/")]);
 
   return state;
 }

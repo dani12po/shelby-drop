@@ -7,25 +7,13 @@
  * Digunakan untuk routing & explorer
  */
 export type FolderItem = {
-  /**
-   * ID unik
-   * - root folder: wallet address
-   * - sub folder: derived path
-   */
   id: string;
-
-  /**
-   * Nama folder (ditampilkan & dipakai di URL)
-   */
   name: string;
-
-  /**
-   * Diskriminator
-   */
   type: "folder";
 
   /**
-   * Isi folder
+   * Isi folder (tree mode)
+   * ⚠️ Explorer modal tidak selalu pakai ini
    */
   children: FileItem[];
 
@@ -39,35 +27,15 @@ export type FolderItem = {
  * File item (leaf)
  */
 export type FileItemData = {
-  /**
-   * Internal explorer ID
-   * (biasanya hash / blobId)
-   */
   id: string;
-
-  /**
-   * Blob ID (Shelby / storage reference)
-   */
   blobId: string;
-
-  /**
-   * Nama file + ekstensi
-   */
   name: string;
-
-  /**
-   * Diskriminator
-   */
   type: "file";
 
-  /**
-   * Jenis file (untuk icon & preview)
-   */
   fileType: "PDF" | "IMG" | "OTHER";
 
   /**
    * Ukuran file (RAW bytes)
-   * Formatting dilakukan di UI
    */
   size: number;
 
@@ -88,17 +56,20 @@ export type FileItemData = {
 
   /**
    * Expiry timestamp (ISO)
-   * File dianggap invalid jika now > expiresAt
    */
   expiresAt?: string;
+
+  /**
+   * Upload / modified time (ISO)
+   * ⬅️ DARI filesystem (stat.mtime)
+   */
+  uploadedAt?: string;
 };
 
 /**
  * Union type untuk Explorer
  */
 export type FileItem = FolderItem | FileItemData;
-
-
 
 /* ===============================
    TYPE GUARDS
@@ -116,15 +87,10 @@ export function isFolder(
   return item.type === "folder";
 }
 
-
-
 /* ===============================
    FACTORY HELPERS
 ================================ */
 
-/**
- * Buat root folder untuk wallet
- */
 export function createRootFolder(
   walletAddress: string
 ): FolderItem {
@@ -137,9 +103,6 @@ export function createRootFolder(
   };
 }
 
-/**
- * Buat folder baru
- */
 export function createFolder(
   name: string,
   path: string[]
@@ -153,10 +116,6 @@ export function createFolder(
   };
 }
 
-/**
- * Buat file item dari backend metadata
- * (Explorer-safe)
- */
 export function createFileItem(params: {
   id: string;
   blobId: string;
@@ -165,6 +124,7 @@ export function createFileItem(params: {
   size: number;
   path: string[];
   uploader: string;
+  uploadedAt?: string;
   retentionDays?: number;
   expiresAt?: string;
 }): FileItemData {
@@ -174,15 +134,10 @@ export function createFileItem(params: {
   };
 }
 
-
-
 /* ===============================
    TREE UTILITIES
 ================================ */
 
-/**
- * Cari folder berdasarkan path
- */
 export function findFolderByPath(
   root: FolderItem,
   path: string[]
@@ -204,11 +159,6 @@ export function findFolderByPath(
   return current;
 }
 
-/**
- * Tambahkan item ke folder tertentu
- * (NOTE: mutates target; React state
- * sebaiknya gunakan versi immutable)
- */
 export function addItemToFolder(
   root: FolderItem,
   item: FileItem
@@ -225,9 +175,6 @@ export function addItemToFolder(
   return root;
 }
 
-/**
- * Flatten tree (berguna untuk search)
- */
 export function flattenTree(
   root: FolderItem
 ): FileItem[] {
@@ -246,10 +193,8 @@ export function flattenTree(
   return result;
 }
 
-
-
 /* ===============================
-   FILE TYPE HELPERS
+   FILE HELPERS
 ================================ */
 
 export function inferFileType(
@@ -288,4 +233,16 @@ export function formatFileSize(
   return `${(bytes / 1024 / 1024 / 1024).toFixed(
     1
   )} GB`;
+}
+
+/**
+ * Safe date getter (sorting / UI)
+ */
+export function getFileDate(
+  item: FileItem
+): number {
+  if (isFile(item) && item.uploadedAt) {
+    return new Date(item.uploadedAt).getTime();
+  }
+  return 0;
 }

@@ -5,24 +5,21 @@ import type { Dirent } from "fs";
 
 export const runtime = "nodejs";
 
-const UPLOAD_DIR = path.join(
-  process.cwd(),
-  "public/uploads"
-);
+const UPLOAD_DIR = path.join(process.cwd(), "public/uploads");
 
 /* ===============================
    TYPES (MATCH lib/data.ts)
 ================================ */
-type FileItem = {
+type FileItemData = {
   id: string;
   type: "file";
   name: string;
   size: number;
   path: string[];
-
   blobId: string;
   fileType: "PDF" | "IMG" | "OTHER";
   uploader: string;
+  uploadedAt: string; // ✅ REAL DATE
 };
 
 type FolderItem = {
@@ -30,7 +27,6 @@ type FolderItem = {
   type: "folder";
   name: string;
   path: string[];
-  children: Array<FolderItem | FileItem>;
 };
 
 /* ===============================
@@ -40,7 +36,6 @@ function inferFileType(
   name: string
 ): "PDF" | "IMG" | "OTHER" {
   const ext = name.split(".").pop()?.toLowerCase();
-
   if (ext === "pdf") return "PDF";
   if (
     ["png", "jpg", "jpeg", "gif", "webp"].includes(ext ?? "")
@@ -56,91 +51,80 @@ function inferFileType(
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const wallet = searchParams.get("wallet");
+  const rawPath = searchParams.get("path") || "/";
 
-if (!wallet) {
-  return NextResponse.json(
-    { error: "Missing wallet" },
-    { status: 400 }
+  if (!wallet) {
+    return NextResponse.json(
+      { error: "Missing wallet" },
+      { status: 400 }
+    );
+  }
+
+  const safePath =
+    rawPath === "/"
+      ? []
+      : rawPath.split("/").filter(Boolean);
+
+  const baseDir = path.join(
+    UPLOAD_DIR,
+    wallet,
+    ...safePath
   );
-}
 
-const walletSafe: string = wallet; // 🔑 FIX
-const userDir = path.join(UPLOAD_DIR, walletSafe);
-
-  async function walk(
-    dir: string,
-    relPath: string[] = []
-  ): Promise<Array<FolderItem | FileItem>> {
-    const entries: Dirent[] = await fs.readdir(dir, {
+  try {
+    const entries: Dirent[] = await fs.readdir(baseDir, {
       withFileTypes: true,
     });
 
-    const items: Array<FolderItem | FileItem> = [];
+    const folders: FolderItem[] = [];
+    const files: FileItemData[] = [];
 
     for (const entry of entries) {
-      const name = entry.name.toString(); // 🔑 FORCE STRING
+      const name = entry.name.toString();
 
+      /* ---------- FOLDER ---------- */
       if (entry.isDirectory()) {
-        const children = await walk(
-          path.join(dir, name),
-          [...relPath, name]
-        );
-
-        items.push({
-          id: name,
+        folders.push({
+          id: [...safePath, name].join("/"),
           type: "folder",
           name,
-          path: [...relPath, name],
-          children,
+          path: [...safePath, name],
         });
-      } else if (
-        entry.isFile() &&
-        !name.endsWith(".json")
-      ) {
-        const fullPath = path.join(dir, name);
+        continue;
+      }
+
+      /* ---------- FILE ---------- */
+      if (entry.isFile() && !name.endsWith(".json")) {
+        const fullPath = path.join(baseDir, name);
         const stat = await fs.stat(fullPath);
 
         const [blobId, ...rest] = name.split("_");
         const originalName =
           rest.join("_") || name;
 
-        items.push({
+        files.push({
           id: blobId,
           type: "file",
           name: originalName,
           size: stat.size,
-          path: relPath,
-
+          path: safePath,
           blobId,
           fileType: inferFileType(originalName),
-          uploader: walletSafe,
+          uploader: wallet,
+          uploadedAt: stat.mtime.toISOString(), // ✅ REAL DATE
         });
       }
     }
 
-    return items;
-  }
-
-  try {
-    const children = await walk(userDir);
-
-    const root: FolderItem = {
-      id: "root",
-      type: "folder",
-      name: "root",
-      path: [],
-      children,
-    };
-
-    return NextResponse.json(root);
-  } catch {
-    // wallet belum punya upload
     return NextResponse.json({
-      id: "root",
-      type: "folder",
-      name: "root",
-      path: [],
-      children: [],
+      folders,
+      files,
+    });
+  } catch {
+    // Folder belum ada / kosong
+    return NextResponse.json({
+      folders: [],
+      files: [],
     });
   }
 }

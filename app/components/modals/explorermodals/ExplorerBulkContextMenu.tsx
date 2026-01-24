@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import type { FileItemData } from "@/lib/data";
 import { getRetentionStatus } from "@/lib/retention";
 
@@ -37,9 +38,15 @@ export default function ExplorerBulkContextMenu({
 
   const hasActiveFiles = activeFiles.length > 0;
 
+  function stop(e: React.MouseEvent) {
+    e.stopPropagation();
+  }
+
   function itemClass(disabled?: boolean) {
     return `
-      w-full px-4 py-2 text-left text-sm
+      w-full text-left
+      px-4 py-2
+      text-sm
       transition
       ${
         disabled
@@ -49,78 +56,111 @@ export default function ExplorerBulkContextMenu({
     `;
   }
 
-  function stop(e: React.MouseEvent) {
-    e.stopPropagation();
-  }
-
   return (
-    <div
-      className="
-        fixed z-[10000]
-        min-w-[220px]
-        rounded-xl
-        bg-[#0b0f14]
-        border border-white/10
-        shadow-[0_20px_60px_rgba(0,0,0,0.6)]
-        py-1
-      "
+    <motion.div
+      className="fixed z-[10000]"
       style={{ top: y, left: x }}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96 }}
       onClick={onClose}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {/* HEADER */}
-      <div className="px-4 py-1 text-xs text-white/50">
-        {files.length} items selected
-      </div>
-
-      {/* PREVIEW ALL */}
-      <button
-        disabled={!hasActiveFiles}
-        className={itemClass(!hasActiveFiles)}
-        onClick={(e) => {
-          stop(e);
-          if (!hasActiveFiles) return;
-          onPreviewAll();
-          onClose();
+      {/* GRADIENT BORDER */}
+      <div
+        className="rounded-xl p-[1px]"
+        style={{
+          background: `
+            linear-gradient(
+              90deg,
+              #7dd3fc,
+              #a78bfa,
+              #f472b6,
+              #34d399,
+              #fbbf24,
+              #60a5fa,
+              #a78bfa
+            )
+          `,
+          backgroundSize: "400% 100%",
+          animation: "walletBorder 28s linear infinite",
         }}
       >
-        Preview all
-      </button>
+        {/* MENU */}
+        <div
+          className="
+            min-w-[220px]
+            rounded-xl
+            bg-[#0b0f14]/95
+            backdrop-blur-xl
+            shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+            py-1
+          "
+        >
+          {/* HEADER */}
+          <div className="px-4 py-1 text-xs text-white/50">
+            {files.length} items selected
+          </div>
 
-      {/* DOWNLOAD ALL */}
-      <button
-        disabled={!hasActiveFiles}
-        className={itemClass(!hasActiveFiles)}
-        onClick={(e) => {
-          stop(e);
-          if (!hasActiveFiles) return;
-          onDownloadAll();
-          onClose();
-        }}
-      >
-        Download all
-      </button>
+          {/* PREVIEW ALL */}
+          <button
+            disabled={!hasActiveFiles}
+            className={itemClass(!hasActiveFiles)}
+            onClick={(e) => {
+              stop(e);
+              if (!hasActiveFiles) return;
+              onPreviewAll();
+              onClose();
+            }}
+          >
+            Preview all
+          </button>
 
-      <div className="my-1 border-t border-white/10" />
+          {/* DOWNLOAD ALL */}
+          <button
+            disabled={!hasActiveFiles}
+            className={itemClass(!hasActiveFiles)}
+            onClick={(e) => {
+              stop(e);
+              if (!hasActiveFiles) return;
+              onDownloadAll();
+              onClose();
+            }}
+          >
+            Download all
+          </button>
 
-      {/* CLEAR SELECTION */}
-      <button
-        className={itemClass()}
-        onClick={(e) => {
-          stop(e);
-          onClearSelection();
-          onClose();
-        }}
-      >
-        Clear selection
-      </button>
+          <Divider />
 
-      {/* RETENTION INFO */}
-      {activeFiles.length !== files.length && (
-        <div className="px-4 pt-1 pb-1 text-[11px] text-white/40">
-          Some files are expired and skipped
+          {/* CLEAR SELECTION */}
+          <button
+            className={itemClass()}
+            onClick={(e) => {
+              stop(e);
+              onClearSelection();
+              onClose();
+            }}
+          >
+            Clear selection
+          </button>
+
+          {/* RETENTION INFO */}
+          {activeFiles.length !== files.length && (
+            <div className="px-4 pt-1 pb-1 text-[11px] text-white/40">
+              Some files are expired and skipped
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ===============================
+   SUB
+================================ */
+function Divider() {
+  return (
+    <div className="my-1 h-px bg-white/10" />
   );
 }

@@ -3,11 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Copy, Check } from "lucide-react";
 
 import ExplorerList from "./ExplorerList";
 import ExplorerBreadcrumb from "./ExplorerBreadcrumb";
-import ExplorerEmptyState from "./ExplorerEmptyState";
 import { useExplorerData } from "./useExplorerData";
 
 import ExplorerItemContextMenu, {
@@ -16,14 +15,14 @@ import ExplorerItemContextMenu, {
 import ExplorerBulkContextMenu from "./ExplorerBulkContextMenu";
 import MetadataPanel from "@/components/upload/MetadataPanel";
 
-import { bulkDownload } from "@/lib/download/bulkDownload";
+import {
+  useBulkDownloadController,
+} from "@/lib/download/useBulkDownloadController";
+import DownloadProgressPanel from "@/lib/download/DownloadProgressPanel";
 
 import type { FolderItem, FileItemData } from "@/lib/data";
 import type { ExplorerItem } from "./ExplorerFileRowAdapter";
 
-/* ===============================
-   PROPS
-================================ */
 type Props = {
   open: boolean;
   wallet: string;
@@ -36,12 +35,10 @@ export default function ExplorerModal({
   onClose,
 }: Props) {
   /* ===============================
-     MOUNT GUARD (SAFE)
+     MOUNT GUARD
   ================================ */
   const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
   /* ===============================
      DATA
@@ -70,6 +67,27 @@ export default function ExplorerModal({
   }, []);
 
   /* ===============================
+     COPY WALLET
+  ================================ */
+  const [copied, setCopied] = useState(false);
+
+  function handleCopyWallet() {
+    navigator.clipboard.writeText(wallet);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  }
+
+  /* ===============================
+     DOWNLOAD CONTROLLER
+  ================================ */
+  const {
+    state: downloadState,
+    start: startBulkDownload,
+    cancel: cancelBulkDownload,
+    retryFailed: retryBulkDownload,
+  } = useBulkDownloadController(wallet);
+
+  /* ===============================
      CONTEXT MENUS
   ================================ */
   const [itemMenu, setItemMenu] = useState<{
@@ -84,7 +102,7 @@ export default function ExplorerModal({
   } | null>(null);
 
   /* ===============================
-     ITEM CLICK (MULTI SELECT)
+     ITEM CLICK
   ================================ */
   function handleItemClick(
     item: ExplorerItem,
@@ -122,7 +140,7 @@ export default function ExplorerModal({
   }
 
   /* ===============================
-     CONTEXT MENU HANDLER
+     CONTEXT MENU
   ================================ */
   function handleContextMenu(
     item: ExplorerItem,
@@ -190,22 +208,17 @@ export default function ExplorerModal({
       selectedIds.has(i.id)
   );
 
-  /* ===============================
-     BULK ACTIONS
-  ================================ */
   function handlePreviewAll() {
     if (selectedFiles.length === 0) return;
     setMetaFile(selectedFiles[0]);
   }
 
-  async function handleDownloadAll() {
+  function handleDownloadAll() {
     if (selectedFiles.length === 0) return;
-    await bulkDownload(wallet, selectedFiles);
+    startBulkDownload(selectedFiles);
+    setBulkMenu(null);
   }
 
-  /* ===============================
-     CONTEXT TARGET (TYPE SAFE)
-  ================================ */
   const contextTarget: ContextTarget | null =
     itemMenu?.target
       ? itemMenu.target.type === "file"
@@ -222,7 +235,7 @@ export default function ExplorerModal({
         <>
           {/* BACKDROP */}
           <motion.div
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur"
+            className="fixed inset-0 z-40 bg-black/55"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -233,76 +246,118 @@ export default function ExplorerModal({
           <motion.div
             className="fixed z-50 top-1/2 left-1/2
               -translate-x-1/2 -translate-y-1/2
-              rounded-[28px] p-[2px]"
-            initial={{ opacity: 0, scale: 0.96 }}
+              rounded-[26px] p-[2px]"
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            style={{
+              background: `
+                linear-gradient(
+                  90deg,
+                  #7dd3fc,
+                  #a78bfa,
+                  #f472b6,
+                  #34d399,
+                  #fbbf24,
+                  #60a5fa,
+                  #a78bfa
+                )
+              `,
+              backgroundSize: "400% 100%",
+              animation: "walletBorder 36s linear infinite",
+            }}
           >
+            {/* INNER */}
             <div
               onClick={() => {
                 clearSelection();
                 setItemMenu(null);
                 setBulkMenu(null);
               }}
-              className="w-[92vw] max-w-6xl h-[85vh]
-                rounded-[26px] bg-[#0b0f14]
-                shadow-[0_30px_120px_rgba(0,0,0,0.7)]
-                flex flex-col overflow-hidden"
+              className="
+                w-[92vw] max-w-6xl h-[85vh]
+                rounded-[26px]
+                bg-[#0b0f14]
+                shadow-[0_25px_90px_rgba(0,0,0,0.65)]
+                overflow-hidden
+              "
             >
-              {/* HEADER */}
-              <div className="flex justify-between px-6 py-4
-                border-b border-white/10 bg-black/40">
-                <div>
-                  <h2 className="text-sm font-semibold">
-                    Explorer
-                  </h2>
-                  <p className="text-xs text-white/50 truncate">
-                    {wallet}
-                  </p>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-full hover:bg-white/10"
-                >
-                  <X size={18} />
-                </button>
-              </div>
+              <div className="flex flex-col h-full p-[15px] gap-[15px]">
 
-              <ExplorerBreadcrumb
-                path={path}
-                onNavigate={setPath}
-              />
+                {/* HEADER */}
+                <div className="grid grid-cols-[1fr_auto_1fr] items-start">
+                  <div />
+                  <div className="text-center space-y-[8px]">
+                    <h2 className="text-[30px] font-semibold tracking-tight">
+                      Shelby Drop Explorer
+                    </h2>
 
-              <div className="flex-1 overflow-y-auto">
-                {loading && (
-                  <div className="p-6 text-sm text-white/50">
-                    Loading…
+                    <button
+                      onClick={handleCopyWallet}
+                      className="
+                        inline-flex items-center gap-2
+                        text-[14px] text-white/60
+                        hover:text-white transition
+                        break-all
+                      "
+                    >
+                      <span>{wallet}</span>
+                      {copied ? (
+                        <Check size={16} className="text-green-400" />
+                      ) : (
+                        <Copy size={16} className="opacity-60" />
+                      )}
+                    </button>
                   </div>
-                )}
 
-                {!loading && !error && items.length === 0 && (
-                  <ExplorerEmptyState
-                    isRoot={path.length === 0}
-                  />
-                )}
+                  <div className="flex justify-end">
+                    <button
+                      onClick={onClose}
+                      className="p-2 rounded-full hover:bg-white/10"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
 
-                {!loading && !error && (
-                  <ExplorerList
-                    wallet={wallet}
-                    items={items}
-                    selectedIds={selectedIds}
-                    onItemClick={handleItemClick}
-                    onContextMenu={handleContextMenu}
-                    onOpenFolder={handleOpenFolder}
-                    onPreview={() => {}}
-                    onMeta={(f) => setMetaFile(f)}
-                  />
-                )}
+                {/* BREADCRUMB */}
+                <ExplorerBreadcrumb
+                  path={path}
+                  onNavigate={setPath}
+                />
+
+                {/* BODY */}
+                <div className="flex-1 rounded-[14px] bg-black/25 border border-white/10 overflow-hidden">
+                  {loading && (
+                    <div className="py-10 text-sm text-white/50 text-center">
+                      Loading…
+                    </div>
+                  )}
+
+                  {!loading && error && (
+                    <div className="py-10 text-sm text-red-400 text-center">
+                      {error}
+                    </div>
+                  )}
+
+                  {!loading && !error && (
+                    <ExplorerList
+                      items={items}
+                      selectedIds={selectedIds}
+                      onItemClick={handleItemClick}
+                      onContextMenu={handleContextMenu}
+                      onOpenFolder={handleOpenFolder}
+                      onPreview={() => {}}
+                      onMeta={(f) => setMetaFile(f)}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
 
-          {/* ITEM CONTEXT MENU */}
+          {/* CONTEXT MENUS */}
           {itemMenu && contextTarget && (
             <ExplorerItemContextMenu
               x={itemMenu.x}
@@ -311,12 +366,13 @@ export default function ExplorerModal({
               onClose={() => setItemMenu(null)}
               onOpenFolder={handleOpenFolder}
               onPreview={(f) => setMetaFile(f)}
-              onDownload={() => {}}
+              onDownload={(f) =>
+                startBulkDownload([f])
+              }
               onMeta={(f) => setMetaFile(f)}
             />
           )}
 
-          {/* BULK CONTEXT MENU */}
           {bulkMenu && (
             <ExplorerBulkContextMenu
               x={bulkMenu.x}
@@ -329,7 +385,6 @@ export default function ExplorerModal({
             />
           )}
 
-          {/* METADATA PANEL */}
           {metaFile && (
             <MetadataPanel
               file={metaFile}
@@ -337,6 +392,12 @@ export default function ExplorerModal({
               onClose={() => setMetaFile(null)}
             />
           )}
+
+          <DownloadProgressPanel
+            state={downloadState}
+            onCancel={cancelBulkDownload}
+            onRetry={retryBulkDownload}
+          />
         </>
       )}
     </AnimatePresence>,
