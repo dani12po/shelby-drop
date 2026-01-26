@@ -7,7 +7,6 @@ import SearchBox from "./SearchBox";
 import WalletSearchController from "./WalletSearchController";
 
 import PreviewModal from "@/components/modals/PreviewModal";
-import ExplorerModal from "@/components/modals/explorermodals/ExplorerModal";
 import UploadButton from "@/components/upload/UploadButton";
 import UploadPanel from "@/components/upload/UploadPanel";
 
@@ -31,12 +30,6 @@ export default function ExplorerPage({
      CORE STATE
   ================================ */
   const [wallet, setWallet] = useState<string | null>(null);
-
-  /* ===============================
-     EXPLORER MODAL
-  ================================ */
-  const [explorerOpen, setExplorerOpen] =
-    useState(false);
 
   /* ===============================
      PREVIEW MODAL
@@ -124,27 +117,13 @@ export default function ExplorerPage({
       />
 
       {/* ===============================
-         EXPLORER MODAL (POPUP BOX)
-      ================================ */}
-      {explorerOpen && wallet && (
-        <ExplorerModal
-          open
-          wallet={wallet}
-          onClose={() => {
-            // 🔥 THIS IS THE FIX
-            setExplorerOpen(false);
-            setWallet(null);          // ⬅️ RETURN TO SEARCH PAGE
-          }}
-        />
-      )}
-
-      {/* ===============================
          PREVIEW MODAL
       ================================ */}
       {previewFile && wallet && (
         <PreviewModal
           file={previewFile}
           wallet={wallet}
+          open={!!previewFile}
           onClose={() =>
             setPreviewFile(null)
           }
@@ -159,15 +138,6 @@ export default function ExplorerPage({
         onClose={() =>
           setSearchWallet(null)
         }
-        onEnterExplorer={(wallet) => {
-          // ✅ ENTER EXPLORER FLOW
-          setWallet(wallet);
-          setSearchWallet(null);
-
-          requestAnimationFrame(() => {
-            setExplorerOpen(true);
-          });
-        }}
       />
     </>
   );

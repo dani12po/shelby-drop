@@ -24,7 +24,6 @@ export function isDownloadDone(
 ): boolean {
   return (
     state.status === "completed" ||
-    state.status === "failed" ||
     state.status === "cancelled"
   );
 }

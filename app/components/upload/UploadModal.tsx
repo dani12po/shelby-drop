@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BaseModal from "@/components/ui/BaseModal";
 
 type Props = {
   wallet: string;
@@ -41,13 +42,15 @@ export default function UploadModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-      <div className="w-[380px] rounded-2xl bg-[#0b0f14] p-6 space-y-5">
-
-        <h2 className="text-center text-lg font-semibold">
-          Shelby Drop Upload
-        </h2>
-
+    <BaseModal
+      open={true}
+      onClose={onClose}
+      title="Shelby Drop Upload"
+      subtitle={wallet}
+      size="sm"
+    >
+      {/* CONTENT */}
+      <div className="space-y-5">
         {/* FILE PICKER */}
         <label className="block text-sm">
           <input
@@ -72,23 +75,44 @@ export default function UploadModal({
             className="w-[90px] rounded-md bg-white/10 px-2 py-1 text-center"
           />
         </div>
+      </div>
 
-        {/* ACTIONS */}
+      {/* FOOTER ACTIONS */}
+      <div className="pt-6 flex flex-col items-center gap-[10px] -m-6">
         <button
           disabled={loading}
           onClick={handleUpload}
-          className="w-full rounded-lg bg-white text-black py-2 text-sm"
+          className="
+            w-full
+            rounded-full
+            bg-white
+            hover:bg-white/90
+            transition
+            py-3
+            text-sm font-medium
+            text-black
+            disabled:opacity-50
+            disabled:cursor-not-allowed
+          "
         >
           {loading ? "Uploading..." : "Upload"}
         </button>
 
         <button
           onClick={onClose}
-          className="w-full text-xs text-white/50"
+          className="
+            w-full
+            rounded-full
+            text-xs
+            text-white/50
+            py-2
+            hover:text-white/70
+            transition
+          "
         >
           Cancel
         </button>
       </div>
-    </div>
+    </BaseModal>
   );
 }

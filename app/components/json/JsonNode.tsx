@@ -81,9 +81,12 @@ export default function JsonNode({
   ================================ */
 
   function copyPath() {
-    navigator.clipboard.writeText(path);
-    setCopiedPath(true);
-    setTimeout(() => setCopiedPath(false), 1200);
+    // SSR-safe: only use navigator APIs on client
+    if (typeof window !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(path);
+      setCopiedPath(true);
+      setTimeout(() => setCopiedPath(false), 1200);
+    }
   }
 
   function copyValue(val: unknown) {
@@ -92,9 +95,12 @@ export default function JsonNode({
         ? val
         : JSON.stringify(val, null, 2);
 
-    navigator.clipboard.writeText(text);
-    setCopiedValue(true);
-    setTimeout(() => setCopiedValue(false), 1200);
+    // SSR-safe: only use navigator APIs on client
+    if (typeof window !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedValue(true);
+      setTimeout(() => setCopiedValue(false), 1200);
+    }
   }
 
   /* ===============================

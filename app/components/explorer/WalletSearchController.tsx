@@ -1,117 +1,130 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+
 import WalletSearchModal, {
   WalletModalState,
 } from "@/components/modals/WalletSearchModal";
-import type { FolderItem } from "@/lib/data";
 
-/* ===============================
-   PROPS
-================================ */
-type Props = {
-  wallet: string | null; // allow null (controller inactive)
-  onClose: () => void;
-  onEnterExplorer: (wallet: string) => void;
+import { useExplorerModalController } from "./core/useExplorerModalController";
+
+/* ======================================================
+   TYPES
+====================================================== */
+
+type WalletFileItem = {
+  id: string;
+  name: string;
+  path: string[];
 };
 
-/* ===============================
+/* ======================================================
+   PROPS
+====================================================== */
+
+type Props = {
+  wallet: string | null;
+  onClose: () => void;
+};
+
+/* ======================================================
    COMPONENT
-================================ */
+====================================================== */
+
 export default function WalletSearchController({
   wallet,
   onClose,
-  onEnterExplorer,
 }: Props) {
-  /* ===============================
-     STATE MACHINE
-  ================================ */
   const [state, setState] =
-    useState<WalletModalState | null>(null);
+    useState<WalletModalState>("LOADING");
+
+  const [files, setFiles] = useState<WalletFileItem[]>([]);
+
+  const {
+    openExplorer,
+  } = useExplorerModalController();
 
   /* ===============================
-     ABORT FLAG (SAFE ASYNC)
-  ================================ */
-  const abortRef = useRef(false);
-
-  /* ===============================
-     EFFECT — RESOLVE WALLET
+     FETCH WALLET FILES
   ================================ */
   useEffect(() => {
-    // reset when wallet cleared
-    if (!wallet) {
-      abortRef.current = true;
-      setState(null);
-      return;
-    }
+    if (!wallet) return;
 
-    abortRef.current = false;
-    setState("LOADING");
+    let cancelled = false;
 
-    (async () => {
+    async function load() {
+      setState("LOADING");
+      setFiles([]);
+
       try {
         const res = await fetch(
           `/api/explorer?wallet=${wallet}`
         );
 
-        if (abortRef.current) return;
+        if (!res.ok) throw new Error("Failed");
 
-        if (!res.ok) {
-          setState("EMPTY");
-          return;
-        }
+        const data = await res.json();
 
-        const tree: FolderItem = await res.json();
+        const onlyFiles: WalletFileItem[] =
+          (data.items ?? [])
+            .filter((item: any) => item.type === "file")
+            .map((file: any) => ({
+              id: file.id,
+              name: file.name,
+              path: file.path ?? [],
+            }));
 
-        const hasFiles =
-          Array.isArray(tree.children) &&
-          tree.children.length > 0;
+        if (cancelled) return;
 
-        setState(hasFiles ? "FOUND" : "EMPTY");
+        setFiles(onlyFiles);
+        setState(
+          onlyFiles.length ? "FOUND" : "EMPTY"
+        );
       } catch {
-        if (!abortRef.current) {
+        if (!cancelled) {
+          setFiles([]);
           setState("EMPTY");
         }
       }
-    })();
+    }
+
+    load();
 
     return () => {
-      abortRef.current = true;
+      cancelled = true;
     };
   }, [wallet]);
 
   /* ===============================
-     HARD GUARD
-  ================================ */
-  if (!wallet || !state) return null;
-
-  /* ===============================
      HANDLERS
   ================================ */
-  const handleClose = () => {
-    abortRef.current = true;
-    setState(null);
-    onClose();
-  };
 
-  const handleEnterExplorer =
-    state === "FOUND"
-      ? () => {
-          abortRef.current = true;
-          setState(null);
-          onEnterExplorer(wallet);
-        }
-      : undefined;
+  const handleViewFile = useCallback(
+    (file: WalletFileItem) => {
+      if (!wallet) return;
+
+      openExplorer({
+        wallet,
+        fileId: file.id,
+        path: file.path,
+      });
+    },
+    [wallet, openExplorer]
+  );
 
   /* ===============================
-     RENDER MODAL
+     RENDER
   ================================ */
+
+  if (!wallet) return null;
+
   return (
     <WalletSearchModal
       wallet={wallet}
       state={state}
-      onClose={handleClose}
-      onEnterExplorer={handleEnterExplorer}
+      files={files}
+      onClose={onClose}
+      onViewFile={handleViewFile}
     />
   );
 }

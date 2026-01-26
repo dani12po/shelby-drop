@@ -1,9 +1,15 @@
 import "../styles/globals.css";
 import Providers from "./providers";
+
 import {
   NotificationProvider,
 } from "@/components/notifications/useNotifications";
-import NotificationCenter from "@/components/notifications/NotificationCenter";
+import NotificationCenterWrapper from "@/components/notifications/NotificationCenterWrapper";
+
+import {
+  ExplorerModalProvider,
+} from "@/components/explorer/core/useExplorerModalController";
+import ExplorerModalRoot from "@/components/explorer/ExplorerModalRoot";
 
 export default function RootLayout({
   children,
@@ -15,21 +21,28 @@ export default function RootLayout({
       <body>
         <Providers>
           <NotificationProvider>
-            {/* =========================
-                MAIN APP CONTENT
-            ========================== */}
-            {children}
+            <ExplorerModalProvider>
+              {/* =========================
+                  MAIN APP CONTENT
+              ========================== */}
+              {children}
 
-            {/* =========================
-                GLOBAL NOTIFICATIONS
-            ========================== */}
-            <NotificationCenter />
+              {/* =========================
+                  GLOBAL NOTIFICATIONS
+              ========================== */}
+              <NotificationCenterWrapper />
 
-            {/* =========================
-                MODAL ROOT (IMPORTANT)
-                DO NOT REMOVE
-            ========================== */}
-            <div id="modal-root" />
+              {/* =========================
+                  EXPLORER MODAL ROOT
+              ========================== */}
+              <ExplorerModalRoot />
+
+              {/* =========================
+                  MODAL ROOT (IMPORTANT)
+                  DO NOT REMOVE
+              ========================== */}
+              <div id="modal-root" />
+            </ExplorerModalProvider>
           </NotificationProvider>
         </Providers>
       </body>

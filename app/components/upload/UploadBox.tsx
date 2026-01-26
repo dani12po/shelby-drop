@@ -5,7 +5,7 @@ import { useState } from "react";
 
 type Props = {
   wallet: string;
-  onUploaded: (url: string) => void;
+  onUploaded: (blobPath: string) => void;
 };
 
 export default function UploadBox({
@@ -17,17 +17,18 @@ export default function UploadBox({
   const [loading, setLoading] = useState(false);
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file || loading) return;
 
     try {
       setLoading(true);
 
+      /* ===============================
+         1️⃣ Upload file to server
+      ================================ */
       const form = new FormData();
       form.append("file", file);
       form.append("wallet", wallet);
-      form.append("message", "Upload to Shelby Drop");
-      form.append("signature", "stub"); // nanti diganti real sign
-      form.append("publicKey", "stub");
+      form.append("retentionDays", String(days));
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -37,11 +38,46 @@ export default function UploadBox({
       const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json.error);
+        throw new Error(json?.error ?? "Upload failed");
       }
 
-      // 🔥 INI PENTING
-      onUploaded(json.metadata.path);
+      const metadata = json.metadata;
+
+      /* ===============================
+         2️⃣ Update Explorer index.json
+      ================================ */
+      await fetch("/api/upload/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet,
+          blob_name: metadata.blob_name,
+          size: metadata.size,
+          contentType: metadata.mime ?? file.type,
+          createdAt: metadata.uploadedAt,
+        }),
+      });
+
+      /* ===============================
+         3️⃣ Notify parent component
+      ================================ */
+      onUploaded(metadata.blob_name);
+
+      /* ===============================
+         4️⃣ Auto-refresh Explorer
+         (NO reload, NO polling)
+      ================================ */
+      // SSR-safe: only use window APIs on client
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("explorer:refresh")
+        );
+      }
+
+      // Optional: reset input
+      setFile(null);
     } catch (err) {
       console.error("UPLOAD FAILED", err);
     } finally {
@@ -65,24 +101,31 @@ export default function UploadBox({
         </span>
       </label>
 
-      {/* DAYS */}
+      {/* RETENTION DAYS */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-white/60">
           Lock days:
         </span>
         <input
           type="number"
-          min={3}
+          min={1}
           max={99999}
           value={days}
           onChange={(e) =>
             setDays(Number(e.target.value))
           }
-          className="w-[90px] px-2 py-1 rounded bg-white/10 text-sm outline-none"
+          className="
+            w-[90px]
+            px-2 py-1
+            rounded
+            bg-white/10
+            text-sm
+            outline-none
+          "
         />
       </div>
 
-      {/* UPLOAD */}
+      {/* UPLOAD BUTTON */}
       <motion.button
         whileTap={{ scale: 0.96 }}
         disabled={!file || loading}

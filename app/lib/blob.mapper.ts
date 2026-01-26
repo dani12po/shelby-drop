@@ -52,7 +52,7 @@ export function mapBlobToFileItem(
         : mime.category === "pdf"
         ? "PDF"
         : "OTHER",
-    size: formatSize(decoded.size),
+    size: Number(decoded.size),
     path: [],
     uploader: wallet,
   };

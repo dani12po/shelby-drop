@@ -1,13 +1,16 @@
-import type { FileItem } from "@/lib/data";
+import type { FileItemData } from "@/lib/data";
+import { getObjectUrl } from "./s3/getObjectUrl";
 
 /**
- * Build Shelby download URL from FileItem
+ * Build Shelby download URL from FileItemData
+ * @deprecated Use getObjectUrl with mode: "download" instead
  */
 export function buildShelbyDownloadUrl(
   wallet: string,
-  item: FileItem
+  item: FileItemData
 ): string {
-  const fullPath = [...item.path, item.name].join("/");
-
-  return `https://api.shelbynet.shelby.xyz/shelby/v1/blobs/${wallet}/${fullPath}`;
+  return getObjectUrl(item, {
+    wallet,
+    mode: "download",
+  });
 }

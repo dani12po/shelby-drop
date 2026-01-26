@@ -121,8 +121,13 @@ export async function POST(req: Request) {
     await fs.writeFile(filePath, bytes);
 
     /* ===============================
-       METADATA (SOURCE OF TRUTH)
+       METADATA (PER FILE)
     ================================ */
+    const blobPath = [
+      ...safePath,
+      safeName,
+    ].join("/");
+
     const metadata = {
       wallet,
       originalName: file.name,
@@ -137,17 +142,60 @@ export async function POST(req: Request) {
       uploadedAt: new Date().toISOString(),
 
       // logical path (Explorer + Preview)
-      path: [
-        wallet,
-        ...safePath,
-        safeName,
-      ].join("/"),
+      blob_name: blobPath,
     };
 
     await fs.writeFile(
       `${filePath}.json`,
       JSON.stringify(metadata, null, 2)
     );
+
+    /* ===============================
+       🧠 UPDATE index.json (EXPLORER)
+       public/uploads/<wallet>/index.json
+    ================================ */
+    const walletDir = path.join(
+      UPLOAD_DIR,
+      wallet
+    );
+
+    const indexPath = path.join(
+      walletDir,
+      "index.json"
+    );
+
+    let index: any[] = [];
+
+    try {
+      const existing = await fs.readFile(
+        indexPath,
+        "utf-8"
+      );
+      index = JSON.parse(existing);
+    } catch {
+      index = [];
+    }
+
+    // Avoid duplicates (by blob_name)
+    const exists = index.some(
+      (item) =>
+        item.blob_name === metadata.blob_name
+    );
+
+    if (!exists) {
+      index.push({
+        blob_name: metadata.blob_name,
+        size: metadata.size,
+        contentType: metadata.mime,
+        createdAt: metadata.uploadedAt,
+      });
+
+      await fs.writeFile(
+        indexPath,
+        JSON.stringify(index, null, 2),
+        "utf-8"
+      );
+    }
 
     /* ===============================
        RESPONSE

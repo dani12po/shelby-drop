@@ -32,18 +32,21 @@ export async function bulkDownload(
     try {
       const url = buildShelbyDownloadUrl(wallet, file);
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = file.name;
-      a.rel = "noopener noreferrer";
-      a.target = "_blank";
+      // SSR-safe: only use document APIs on client
+      if (typeof window !== "undefined" && document) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name;
+        a.rel = "noopener noreferrer";
+        a.target = "_blank";
 
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
 
-      // delay kecil → browser safe
-      await new Promise((r) => setTimeout(r, 200));
+        // delay kecil → browser safe
+        await new Promise((r) => setTimeout(r, 200));
+      }
     } catch (err) {
       if (!signal?.aborted) {
         console.error(

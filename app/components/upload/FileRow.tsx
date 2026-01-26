@@ -122,7 +122,10 @@ export default function FileRow({
       }
 
       const data = await res.json();
-      window.open(data.url, '_blank');
+      // SSR-safe: only use window APIs on client
+      if (typeof window !== "undefined") {
+        window.open(data.url, '_blank');
+      }
     } catch {
       alert('Download failed');
     }
@@ -155,8 +158,11 @@ export default function FileRow({
       }
 
       const data = await res.json();
-      await navigator.clipboard.writeText(data.url);
-      alert('Share link copied!');
+      // SSR-safe: only use navigator APIs on client
+      if (typeof window !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(data.url);
+        alert('Share link copied!');
+      }
     } catch {
       alert('Unable to share file');
     }

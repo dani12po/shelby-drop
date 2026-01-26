@@ -49,6 +49,9 @@ export default function UploadForm({
     setLoading(true);
 
     try {
+      /* ===============================
+         1️⃣ Upload file (Shelby / local)
+      ================================ */
       const metadata = await uploadToShelby({
         file,
         wallet: account.address.toString(),
@@ -56,8 +59,35 @@ export default function UploadForm({
         retentionDays: Number(retentionDays),
       });
 
+      /* ===============================
+         2️⃣ Update Explorer index.json
+         (server-side)
+      ================================ */
+      await fetch("/api/upload/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          wallet: account.address.toString(),
+          blob_name: metadata.blob_name,
+          size: metadata.size,
+          contentType:
+            metadata.mime ?? file.type,
+          createdAt: metadata.uploadedAt,
+        }),
+      });
+
       notify("success", "Upload successful");
+
+      /* ===============================
+         3️⃣ Notify parent (UI refresh)
+      ================================ */
       onDone(metadata);
+
+      // Optional: reset form
+      setFile(null);
+      setRetentionDays("");
     } catch (err) {
       notify(
         "error",

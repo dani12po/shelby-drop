@@ -75,13 +75,12 @@ export function mapShelbyBlobsToFolder(
       name: filename,
       type: "file",
       fileType: inferType(filename),
-      size: blob.size
-        ? `${(blob.size / 1024 / 1024).toFixed(2)} MB`
-        : "—",
+      size: blob.size,
       path: [group],
       uploader: wallet,
     };
 
+    if (!folder.children) folder.children = [];
     folder.children.push(file);
   });
 

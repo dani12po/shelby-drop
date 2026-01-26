@@ -1,10 +1,13 @@
-/* ===============================
+/* ======================================================
    CORE DATA TYPES
-================================ */
+   ----------------
+   API / Backend / Infra domain
+   ❗ BUKAN domain UI
+====================================================== */
 
 /**
- * Folder item (node)
- * Digunakan untuk routing & explorer
+ * Folder item (virtual node)
+ * Digunakan oleh API & data layer
  */
 export type FolderItem = {
   id: string;
@@ -12,68 +15,81 @@ export type FolderItem = {
   type: "folder";
 
   /**
-   * Isi folder (tree mode)
-   * ⚠️ Explorer modal tidak selalu pakai ini
-   */
-  children: FileItem[];
-
-  /**
-   * Path folder dari root wallet
+   * Path dari root wallet
+   * Contoh:
+   * ["folderA", "folderB"]
    */
   path: string[];
+
+  /**
+   * Children (tree mode)
+   * ⚠️ Explorer modal TIDAK selalu pakai ini
+   */
+  children?: FileItem[];
+
+  /**
+   * Number of children (optional hint)
+   */
+  childrenCount?: number;
 };
 
 /**
- * File item (leaf)
+ * File item (leaf node)
  */
 export type FileItemData = {
   id: string;
-  blobId: string;
   name: string;
   type: "file";
 
-  fileType: "PDF" | "IMG" | "OTHER";
+  /**
+   * Path file relatif ke root wallet
+   * Contoh:
+   * ["folder", "file.pdf"]
+   */
+  path: string[];
 
   /**
-   * Ukuran file (RAW bytes)
+   * Ukuran file (bytes)
    */
   size: number;
 
   /**
-   * Path folder tempat file berada
+   * MIME type
+   * Optional di backend, WAJIB di ExplorerItem
    */
-  path: string[];
+  mimeType?: string;
 
   /**
-   * Wallet uploader
+   * Optional metadata
    */
-  uploader: string;
+  blobId?: string;
+  uploader?: string;
 
   /**
-   * Retention policy (hari)
+   * File category hint
+   */
+  fileType?: "PDF" | "IMG" | "OTHER";
+
+  /**
+   * Retention info
    */
   retentionDays?: number;
-
-  /**
-   * Expiry timestamp (ISO)
-   */
   expiresAt?: string;
 
   /**
-   * Upload / modified time (ISO)
-   * ⬅️ DARI filesystem (stat.mtime)
+   * Upload / modified time (ISO string)
    */
   uploadedAt?: string;
 };
 
 /**
- * Union type untuk Explorer
+ * Union type (API domain)
  */
 export type FileItem = FolderItem | FileItemData;
 
-/* ===============================
+/* ======================================================
    TYPE GUARDS
-================================ */
+====================================================== */
 
 export function isFile(
   item: FileItem
@@ -87,10 +103,14 @@ export function isFolder(
   return item.type === "folder";
 }
 
-/* ===============================
+/* ======================================================
    FACTORY HELPERS
-================================ */
+   (Data creation only, no UI logic)
+====================================================== */
 
+/**
+ * Create root folder node
+ */
 export function createRootFolder(
   walletAddress: string
 ): FolderItem {
@@ -98,11 +118,14 @@ export function createRootFolder(
     id: walletAddress,
     name: walletAddress,
     type: "folder",
-    children: [],
     path: [],
+    children: [],
   };
 }
 
+/**
+ * Create folder node
+ */
 export function createFolder(
   name: string,
   path: string[]
@@ -111,20 +134,23 @@ export function createFolder(
     id: [...path, name].join("/"),
     name,
     type: "folder",
+    path: [...path, name],
     children: [],
-    path,
   };
 }
 
+/**
+ * Create file node
+ */
 export function createFileItem(params: {
   id: string;
-  blobId: string;
   name: string;
-  fileType: FileItemData["fileType"];
-  size: number;
   path: string[];
-  uploader: string;
+  size: number;
+  mimeType?: string;
   uploadedAt?: string;
+  blobId?: string;
+  uploader?: string;
   retentionDays?: number;
   expiresAt?: string;
 }): FileItemData {
@@ -134,9 +160,25 @@ export function createFileItem(params: {
   };
 }
 
-/* ===============================
-   TREE UTILITIES
-================================ */
+/* ======================================================
+   PATH & URL HELPERS (INFRA)
+====================================================== */
+
+/**
+ * Build public URL for preview / download
+ * ⚠️ Bukan permission-aware
+ * (Signed URL system akan dibangun terpisah)
+ */
+export function getFilePublicUrl(
+  file: FileItemData
+): string {
+  return `/uploads/${file.path.join("/")}`;
+}
+
+/* ======================================================
+   TREE UTILITIES (OPTIONAL)
+   Digunakan hanya jika mode tree aktif
+====================================================== */
 
 export function findFolderByPath(
   root: FolderItem,
@@ -147,7 +189,7 @@ export function findFolderByPath(
   let current: FolderItem = root;
 
   for (const segment of path) {
-    const next = current.children.find(
+    const next = current.children?.find(
       (item): item is FolderItem =>
         isFolder(item) && item.name === segment
     );
@@ -171,72 +213,17 @@ export function addItemToFolder(
     );
   }
 
+  target.children ??= [];
   target.children.push(item);
   return root;
 }
 
-export function flattenTree(
-  root: FolderItem
-): FileItem[] {
-  const result: FileItem[] = [];
-
-  function walk(folder: FolderItem) {
-    for (const child of folder.children) {
-      result.push(child);
-      if (isFolder(child)) {
-        walk(child);
-      }
-    }
-  }
-
-  walk(root);
-  return result;
-}
-
-/* ===============================
-   FILE HELPERS
-================================ */
-
-export function inferFileType(
-  fileName: string
-): FileItemData["fileType"] {
-  const lower = fileName.toLowerCase();
-
-  if (lower.endsWith(".pdf")) return "PDF";
-  if (
-    lower.endsWith(".png") ||
-    lower.endsWith(".jpg") ||
-    lower.endsWith(".jpeg") ||
-    lower.endsWith(".gif") ||
-    lower.endsWith(".webp")
-  ) {
-    return "IMG";
-  }
-
-  return "OTHER";
-}
+/* ======================================================
+   FILE HELPERS (NON-UI)
+====================================================== */
 
 /**
- * Human-readable size helper (UI only)
- */
-export function formatFileSize(
-  bytes: number
-): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024)
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / 1024 / 1024).toFixed(
-      1
-    )} MB`;
-
-  return `${(bytes / 1024 / 1024 / 1024).toFixed(
-    1
-  )} GB`;
-}
-
-/**
- * Safe date getter (sorting / UI)
+ * Get numeric timestamp for sorting
  */
 export function getFileDate(
   item: FileItem

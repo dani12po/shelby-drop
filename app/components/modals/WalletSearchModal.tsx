@@ -3,14 +3,24 @@
 import { motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
+import { useExplorerModalController } from "@/components/explorer/core/useExplorerModalController";
 
 export type WalletModalState = "LOADING" | "FOUND" | "EMPTY";
+
+type WalletFileItem = {
+  id: string;
+  name: string;
+  path: string[];
+};
 
 type Props = {
   wallet: string;
   state: WalletModalState;
   onClose: () => void;
-  onEnterExplorer?: () => void;
+
+  /* NEW */
+  files?: WalletFileItem[];
+  onViewFile?: (file: WalletFileItem) => void;
 };
 
 const GRADIENT = `
@@ -30,9 +40,12 @@ export default function WalletSearchModal({
   wallet,
   state,
   onClose,
-  onEnterExplorer,
+  files = [],
+  onViewFile,
 }: Props) {
   const [mounted, setMounted] = useState(false);
+
+  const { openExplorer } = useExplorerModalController();
 
   useEffect(() => {
     setMounted(true);
@@ -82,7 +95,7 @@ export default function WalletSearchModal({
             overflow-hidden
           "
         >
-          {/* SAFE INNER PADDING (15px from border) */}
+          {/* SAFE INNER PADDING */}
           <div className="flex flex-col h-full p-[15px]">
             {/* HEADER */}
             <div className="text-center pt-2 pb-6">
@@ -116,8 +129,8 @@ export default function WalletSearchModal({
 
               {state === "FOUND" && (
                 <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="group relative">
+                  {files.map((file) => (
+                    <div key={file.id} className="group relative">
                       {/* HOVER GRADIENT */}
                       <div
                         className="
@@ -145,8 +158,18 @@ export default function WalletSearchModal({
                           text-sm
                         "
                       >
-                        <span className="truncate">filename.ext</span>
-                        <span className="text-white/60">view</span>
+                        <span className="truncate">
+                          {file.name}
+                        </span>
+
+                        {onViewFile && (
+                          <button
+                            onClick={() => onViewFile(file)}
+                            className="text-white/60 hover:text-white text-xs"
+                          >
+                            View
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -156,27 +179,29 @@ export default function WalletSearchModal({
 
             {/* FOOTER ACTIONS */}
             <div className="pt-6 pb-4 flex flex-col items-center gap-[10px]">
-              {state === "FOUND" && onEnterExplorer && (
-                <button
-                  onClick={onEnterExplorer}
-                  className="
-                    w-[50%]           /* ⬅️ dipendekkan 1/5 */
-                    rounded-full
-                    bg-white/10
-                    hover:bg-white/20
-                    transition
-                    py-3
-                    text-sm font-medium
-                  "
-                >
-                  Open Explorer
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  openExplorer({ wallet });
+                  onClose(); // Close WalletSearch when opening Explorer
+                }}
+                className="
+                  w-[50%]
+                  rounded-full
+                  bg-white
+                  hover:bg-white/90
+                  transition
+                  py-3
+                  text-sm font-medium
+                  text-black
+                "
+              >
+                Open Explorer
+              </button>
 
               <button
                 onClick={onClose}
                 className="
-                  w-[50%]           /* ⬅️ konsisten */
+                  w-[50%]
                   rounded-full
                   text-xs
                   text-white/50

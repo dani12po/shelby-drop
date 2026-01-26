@@ -1,0 +1,38 @@
+[
+  {
+    "blob_name": "videos/demo.mp4",
+    "size": 10485760,
+    "contentType": "video/mp4",
+    "createdAt": "2026-01-20T10:00:00Z"
+  },
+  {
+    "blob_name": "images/cover.png",
+    "size": 34567,
+    "contentType": "image/png",
+    "createdAt": "2026-01-18T09:12:00Z"
+  },
+  {
+    "blob_name": "4da950cc7a91ed9fd7a9febd73412b78e38ed881c8842c32c812ba82b012f0c6_OBIE MESAKH LAGU PALING ENAK (1).mp3",
+    "size": 28647612,
+    "contentType": "audio/mpeg",
+    "createdAt": "2026-01-25T08:01:31.788Z"
+  },
+  {
+    "blob_name": "0b9cd357eacf65b198bf1a4501a3be46269acb9036b8a5e69f47a55ac5c4ac6e_Perekaman Layar 2026-01-22 164035.mp4",
+    "size": 2026618,
+    "contentType": "video/mp4",
+    "createdAt": "2026-01-25T08:08:01.061Z"
+  },
+  {
+    "blob_name": "ec8f47fe0661e7151429889db9bfdec07a9b7eb1bca0a95198d9f5ba136445ce_Perekaman Layar 2026-01-24 194334.mp4",
+    "size": 3987415,
+    "contentType": "video/mp4",
+    "createdAt": "2026-01-26T13:42:04.179Z"
+  },
+  {
+    "blob_name": "c1a9b66193d198bd3a0705963789e03c2d6ae0f0656767b14c032f5fbd994afb_Perekaman Layar 2026-01-25 030902.mp4",
+    "size": 402543,
+    "contentType": "video/mp4",
+    "createdAt": "2026-01-26T16:32:58.043Z"
+  }
+]

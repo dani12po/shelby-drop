@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 import { FileItemData } from "@/lib/data";
-import { previewRegistry } from "@/lib/preview/PreviewRegistry";
-import { RenderResult } from "@/lib/preview/renderers/types";
+import { previewRegistry } from "@/components/explorer/preview/PreviewRegistry";
+import { RenderResult } from "@/components/explorer/context-menu/types";
 import { getRetentionStatus } from "@/lib/retention";
-import MediaPreview from "@/lib/preview/MediaPreview";
+import MediaPreview from "@/components/explorer/preview/MediaPreview";
 
 /* ===============================
    PROPS
@@ -14,6 +17,7 @@ type Props = {
   file: FileItemData;
   wallet: string;
   onClose: () => void;
+  open: boolean;
 };
 
 /* ===============================
@@ -34,7 +38,19 @@ export default function PreviewModal({
   file,
   wallet,
   onClose,
+  open,
 }: Props) {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // SSR-safe: don't render anything on server
+  if (!mounted) {
+    return null;
+  }
+
   const filePath = [...file.path, file.name];
   const ext = getExt(file.name);
 
@@ -143,15 +159,54 @@ export default function PreviewModal({
   /* ===============================
      RENDER
   ================================ */
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[#0b0f14] border border-white/10 rounded-3xl p-6 w-full max-w-4xl space-y-5"
-        onClick={(e) => e.stopPropagation()}
-      >
+  if (!open) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {file && (
+        <>
+          {/* BACKDROP */}
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+
+          {/* GRADIENT BORDER */}
+          <motion.div
+            className="
+              fixed z-60
+              top-1/2 left-1/2
+              -translate-x-1/2 -translate-y-1/2
+              rounded-[28px]
+              p-[2px]
+            "
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            style={{
+              background: `
+                linear-gradient(
+                  90deg,
+                  #7dd3fc,
+                  #a78bfa,
+                  #f472b6,
+                  #34d399,
+                  #fbbf24,
+                  #60a5fa,
+                  #a78bfa
+                )
+              `,
+              backgroundSize: "400% 100%",
+              animation: "walletBorder 36s linear infinite",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* MODAL BODY */}
+            <div className="bg-[#0b0f14] border border-white/10 rounded-[26px] p-6 w-full max-w-4xl space-y-5 text-white shadow-[0_30px_120px_rgba(0,0,0,0.7)]">
         {/* ================= HEADER ================= */}
         <div className="flex justify-between">
           <div>
@@ -229,7 +284,11 @@ export default function PreviewModal({
             {isExpired ? "Expired" : "Download"}
           </button>
         </div>
-      </div>
-    </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body
   );
 }

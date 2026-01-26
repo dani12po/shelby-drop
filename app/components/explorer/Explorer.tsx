@@ -105,7 +105,7 @@ export default function Explorer({
       {/* ============================
           EMPTY STATE
       ============================ */}
-      {root.children.length === 0 && (
+      {root.children?.length === 0 && (
         <div className="px-4 py-6 text-sm text-white/50">
           Empty folder
         </div>
@@ -114,7 +114,7 @@ export default function Explorer({
       {/* ============================
           CONTENT
       ============================ */}
-      {root.children.map(
+      {root.children?.map(
         (item: FileItem) => (
           <FileRow
             key={item.id}

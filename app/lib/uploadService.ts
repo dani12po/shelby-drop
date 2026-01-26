@@ -5,18 +5,33 @@
 ================================ */
 
 export type UploadMetadata = {
+  /** Wallet owner */
   wallet: string;
+
+  /** Original filename */
   originalName: string;
+
+  /** Stored filename on disk */
   storedName: string;
+
+  /** Logical blob path used by Explorer & Preview */
+  blob_name: string;
+
+  /** File size in bytes */
   size: number;
+
+  /** MIME type */
   mime: string;
+
+  /** Content hash */
   hash: string;
 
+  /** Retention policy */
   retentionDays: number;
-  expiresAt: string;
+  expiresAt: string | null;
 
+  /** Upload timestamp */
   uploadedAt: string;
-  path: string;
 };
 
 export type ShelbyUploadArgs = {
@@ -81,5 +96,22 @@ export async function uploadToShelby({
     );
   }
 
-  return data.metadata as UploadMetadata;
+  /**
+   * Normalize backend metadata
+   * (single source of truth)
+   */
+  const metadata = data.metadata;
+
+  return {
+    wallet: metadata.wallet,
+    originalName: metadata.originalName,
+    storedName: metadata.storedName,
+    blob_name: metadata.blob_name, // 🔑 IMPORTANT
+    size: metadata.size,
+    mime: metadata.mime,
+    hash: metadata.hash,
+    retentionDays: metadata.retentionDays,
+    expiresAt: metadata.expiresAt ?? null,
+    uploadedAt: metadata.uploadedAt,
+  };
 }

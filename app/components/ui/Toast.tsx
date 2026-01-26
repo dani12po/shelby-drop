@@ -16,14 +16,15 @@ export default function Toast({ message, onClose }: Props) {
   return (
     <div
       className="
-        fixed bottom-6 right-6 z-[100]
+        fixed bottom-6 right-6 z-[60]
         w-[240px] h-[50px]
-        bg-black/80 backdrop-blur
+        bg-[#0b0f14]/95
+        backdrop-blur-xl
         border border-white/10
-        rounded-md
+        rounded-[20px]
         flex items-center px-4
         text-sm text-white
-        shadow-lg
+        shadow-[0_20px_60px_rgba(0,0,0,0.6)]
       "
     >
       <span className="flex-1 truncate">

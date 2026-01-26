@@ -65,7 +65,7 @@ export default function DownloadProgressPanel({
 
       {/* ACTIONS */}
       <div className="flex justify-end gap-2">
-        {state.status === "failed" && canRetry && (
+        {state.status === "completed" && canRetry && (
           <button
             onClick={onRetry}
             className="px-3 py-1 rounded
