@@ -19,13 +19,6 @@ const SHELBY_BLOB_ENDPOINT =
 const SIGNING_SECRET_RAW =
   process.env.SHELBY_SIGNING_SECRET;
 
-if (!SIGNING_SECRET_RAW) {
-  throw new Error(
-    "SHELBY_SIGNING_SECRET is missing"
-  );
-}
-const SIGNING_SECRET: string = SIGNING_SECRET_RAW;
-
 /* ===============================
    CONFIG
 ================================ */
@@ -43,7 +36,7 @@ function signUrl(params: {
   const payload = `${params.wallet}/${params.objectKey}:${params.expires}`;
 
   const signature = crypto
-    .createHmac("sha256", SIGNING_SECRET)
+    .createHmac("sha256", SIGNING_SECRET_RAW!)
     .update(payload)
     .digest("hex");
 
@@ -54,6 +47,16 @@ function signUrl(params: {
    GET /api/files/signed
 ================================ */
 export async function GET(req: Request) {
+  /* ===============================
+     ENVIRONMENT CHECK
+  ================================ */
+  if (!SIGNING_SECRET_RAW) {
+    return NextResponse.json(
+      { error: "Server configuration error: SHELBY_SIGNING_SECRET is missing" },
+      { status: 500 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
 
   const wallet = searchParams.get("wallet");
