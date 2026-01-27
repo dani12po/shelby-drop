@@ -23,15 +23,103 @@ export default function UploadModal({
   const [uploadResult, setUploadResult] = useState<UploadProgress | null>(null);
 
   async function handleUpload() {
-    if (!file) return;
+    // CLIENT-SIDE VALIDATION
+    if (!file) {
+      setUploadResult({
+        status: 'failed',
+        message: 'Please select a file to upload',
+        progress: 0,
+        error: 'No file selected',
+      });
+      setShowResultModal(true);
+      return;
+    }
+
+    if (!wallet) {
+      setUploadResult({
+        status: 'failed',
+        message: 'Please connect your wallet first',
+        progress: 0,
+        error: 'Wallet not connected',
+      });
+      setShowResultModal(true);
+      return;
+    }
+
+    if (days < 1 || days > 365) {
+      setUploadResult({
+        status: 'failed',
+        message: 'Storage days must be between 1 and 365',
+        progress: 0,
+        error: 'Invalid retention period',
+      });
+      setShowResultModal(true);
+      return;
+    }
 
     setIsUploading(true);
 
     try {
+      // COMPREHENSIVE CLIENT-SIDE VALIDATION
+      console.log('🔍 CLIENT VALIDATION CHECK:', {
+        hasFile: !!file,
+        fileName: file?.name || 'no file',
+        fileSize: file?.size || 0,
+        days,
+        wallet: wallet || 'no wallet',
+      });
+
+      if (!file) {
+        setUploadResult({
+          status: 'failed',
+          message: 'Please select a file to upload',
+          progress: 0,
+          error: 'No file selected',
+          stage: 'client_validation',
+        });
+        setShowResultModal(true);
+        return;
+      }
+
+      if (!wallet || !/^0x[a-fA-F0-9]{64}$/.test(wallet)) {
+        setUploadResult({
+          status: 'failed',
+          message: 'Invalid wallet address',
+          progress: 0,
+          error: 'Wallet not connected or invalid format',
+          stage: 'client_validation',
+        });
+        setShowResultModal(true);
+        return;
+      }
+
+      if (days < 1 || days > 365) {
+        setUploadResult({
+          status: 'failed',
+          message: 'Storage days must be between 1 and 365',
+          progress: 0,
+          error: 'Invalid retention period',
+          stage: 'client_validation',
+        });
+        setShowResultModal(true);
+        return;
+      }
+
+      // Generate blobName with extension
+      const fileExtension = file.name.split('.').pop() || '';
+      const blobName = `${Date.now()}-${file.name}`;
+      
+      console.log('📤 PREPARING FORM DATA:', {
+        blobName,
+        retentionDays: days,
+        wallet,
+        fileSize: file.size,
+      });
+
       // Create form data for upload
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('blobName', `${Date.now()}-${file.name}`);
+      formData.append('blobName', blobName);
       formData.append('retentionDays', days.toString());
       formData.append('wallet', wallet);
 
@@ -47,6 +135,19 @@ export default function UploadModal({
         method: 'POST',
         body: formData,
       });
+
+      if (!response.ok) {
+        const errorResult = await response.json();
+        setUploadResult({
+          status: 'failed',
+          message: errorResult.error || 'Upload failed',
+          progress: 0,
+          error: errorResult.details || 'Server error',
+          stage: errorResult.stage,
+        });
+        setShowResultModal(true);
+        return;
+      }
 
       const result = await response.json();
 

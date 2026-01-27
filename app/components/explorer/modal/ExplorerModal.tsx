@@ -398,13 +398,12 @@ export default function ExplorerModal({
                   onClick={() => {
                     const file = resolveFileByItem();
                     if (file) {
-                      // This will be handled by the PreviewModal state management
-                      // For now, let's just open the preview in a new window
+                      // Open preview in new window to avoid UI clutter
                       const previewUrl = getObjectUrl(file, {
                         wallet,
                         mode: "preview",
                       });
-                      window.open(previewUrl, "_blank");
+                      window.open(previewUrl, "_blank", "width=800,height=600,scrollbars=yes,resizable=yes");
                     }
                   }}
                 />

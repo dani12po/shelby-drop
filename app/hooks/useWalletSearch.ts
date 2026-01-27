@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { searchWalletFiles, isValidWalletAddress, type ExplorerSearchResult } from "@/lib/shelby/explorerService";
+import { searchWalletFilesClient, isValidWalletAddress, type ExplorerSearchResult } from "@/lib/shelby/explorerClientService";
 
 export type WalletSearchState = "idle" | "loading" | "found" | "empty" | "error";
 
@@ -23,7 +23,7 @@ export function useWalletSearch() {
       }
 
       // Search for files
-      const searchResult = await searchWalletFiles(walletAddress);
+      const searchResult = await searchWalletFilesClient(walletAddress);
       
       setResult(searchResult);
       

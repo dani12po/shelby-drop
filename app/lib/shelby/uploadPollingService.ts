@@ -44,7 +44,7 @@ export class UploadPollingService {
   constructor() {
     // Initialize Aptos client for verification
     const aptosConfig = new AptosConfig({
-      network: Network.SHELBYNET,
+      network: Network.CUSTOM,
       fullnode: shelbyConfig.aptosNodeUrl,
       indexer: shelbyConfig.aptosIndexerUrl,
     });

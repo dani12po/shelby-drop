@@ -77,7 +77,7 @@ export default function HomePage() {
   ================================ */
 
   return (
-    <main className="relative min-h-screen overflow-hidden text-white">
+    <main className="relative h-screen overflow-hidden text-white pb-12">
       {/* ============================
           WALLET CONNECT (TOP RIGHT)
       ============================ */}

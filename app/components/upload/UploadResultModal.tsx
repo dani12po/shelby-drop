@@ -85,10 +85,14 @@ export function UploadResultModal({
         return <CheckCircle2 className="w-6 h-6 text-green-500" />;
       case 'transaction_confirmed':
         return <CheckCircle2 className="w-6 h-6 text-blue-500" />;
+      case 'transaction_submitted':
+        return <Clock className="w-6 h-6 text-blue-500" />;
       case 'indexing_on_shelby':
-        return <Clock className="w-6 h-6 text-yellow-500" />;
+        return <Clock className="w-6 h-6 text-yellow-500 animate-pulse" />;
       case 'failed':
         return <AlertCircle className="w-6 h-6 text-red-500" />;
+      case 'uploading':
+        return <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />;
       default:
         return <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />;
     }
@@ -100,10 +104,14 @@ export function UploadResultModal({
         return 'text-green-600 bg-green-50 border-green-200';
       case 'transaction_confirmed':
         return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'transaction_submitted':
+        return 'text-blue-500 bg-blue-50 border-blue-200';
       case 'indexing_on_shelby':
         return 'text-yellow-600 bg-yellow-50 border-yellow-200';
       case 'failed':
         return 'text-red-600 bg-red-50 border-red-200';
+      case 'uploading':
+        return 'text-gray-600 bg-gray-50 border-gray-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
     }

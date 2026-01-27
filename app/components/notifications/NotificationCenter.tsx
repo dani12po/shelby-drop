@@ -48,10 +48,14 @@ export default function NotificationCenter() {
         flex-col
         gap-2
         pointer-events-none
+        max-h-[calc(100vh-150px)]
+        overflow-hidden
+        w-[400px]
+        max-w-[calc(100vw-48px)]
       "
     >
       <AnimatePresence>
-        {notifications.map((n) => (
+        {notifications.slice(-3).map((n) => ( // Max 3 notifications
           <motion.div
             key={n.id}
             variants={variants}
@@ -66,7 +70,7 @@ export default function NotificationCenter() {
             <div
               className="
                 p-[1px]
-                rounded-[20px]
+                rounded-[12px]
                 shadow-[0_20px_60px_rgba(0,0,0,0.6)]
               "
               style={{
@@ -79,14 +83,19 @@ export default function NotificationCenter() {
               <div
                 className="
                   px-4 py-3
-                  rounded-[19px]
+                  rounded-[11px]
                   text-sm
                   backdrop-blur-xl
                   bg-[#0b0f14]/95
                   text-white
                   cursor-pointer
                   transition
-                  hover:bg-[#0b0f14]"
+                  hover:bg-[#0b0f14]
+                  min-h-[auto]
+                  w-full
+                  whitespace-normal
+                  break-words
+                "
               >
                 {n.message}
               </div>
