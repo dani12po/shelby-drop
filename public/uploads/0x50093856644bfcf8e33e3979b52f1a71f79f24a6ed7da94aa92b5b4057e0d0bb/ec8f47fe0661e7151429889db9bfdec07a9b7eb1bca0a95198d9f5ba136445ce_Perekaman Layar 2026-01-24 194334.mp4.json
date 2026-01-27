@@ -5,8 +5,8 @@
   "size": 3987415,
   "mime": "video/mp4",
   "hash": "ec8f47fe0661e7151429889db9bfdec07a9b7eb1bca0a95198d9f5ba136445ce",
-  "retentionDays": 15,
-  "expiresAt": "2026-02-10T13:42:04.111Z",
-  "uploadedAt": "2026-01-26T13:42:04.179Z",
+  "retentionDays": 25,
+  "expiresAt": "2026-02-21T05:59:22.248Z",
+  "uploadedAt": "2026-01-27T05:59:22.279Z",
   "blob_name": "ec8f47fe0661e7151429889db9bfdec07a9b7eb1bca0a95198d9f5ba136445ce_Perekaman Layar 2026-01-24 194334.mp4"
 }

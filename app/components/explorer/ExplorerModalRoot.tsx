@@ -7,6 +7,15 @@ import { useExplorerModalController } from "./core/useExplorerModalController";
 export default function ExplorerModalRoot() {
   const [mounted, setMounted] = useState(false);
 
+  // Always call hooks in the same order
+  const {
+    open,
+    wallet,
+    initialFileId,
+    initialPath,
+    closeExplorer,
+  } = useExplorerModalController();
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -15,14 +24,6 @@ export default function ExplorerModalRoot() {
   if (!mounted) {
     return null;
   }
-
-  const {
-    open,
-    wallet,
-    initialFileId,
-    initialPath,
-    closeExplorer,
-  } = useExplorerModalController();
 
   return (
     <ExplorerModal

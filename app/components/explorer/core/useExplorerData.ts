@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { ExplorerItem } from "@/types/explorer";
 import type { FolderItem, FileItemData } from "@/lib/data";
 import { adaptApiItemToExplorerItem } from "../adapters/apiToExplorerItem";
+import { loadWalletFilesFromShelby } from "../adapters/shelbyAdapter";
 
 /* ===============================
    STATE
@@ -92,147 +93,38 @@ export function useExplorerData(
       }));
 
       try {
-        /**
-         * Load index.json
-         * public/uploads/<wallet>/index.json
-         */
-        const res = await fetch(
-          `/uploads/${wallet}/index.json`,
-          { cache: "no-store" }
-        );
-
-        if (!res.ok) {
-          if (!cancelled) {
-            setState({
-              loading: false,
-              error: null,
-              items: [],
-              rawItems: [],
-            });
-          }
-          return;
+        // Load files directly from Shelby Explorer
+        const shelbyData = await loadWalletFilesFromShelby(wallet);
+        
+        if (!cancelled) {
+          setState({
+            loading: false,
+            error: null,
+            items: shelbyData.items,
+            rawItems: shelbyData.rawItems,
+          });
         }
-
-        const indexedFiles: IndexedFile[] =
-          await res.json();
-
-        if (cancelled) return;
-
-        /**
-         * Virtual folder path
-         * []      → root
-         * ["a"]   → a/
-         * ["a/b"] → a/b/
-         */
-        const currentPrefix =
-          path.length > 0
-            ? path.join("/") + "/"
-            : "";
-
-        /**
-         * Files under current virtual folder
-         */
-        const visibleFiles = indexedFiles.filter(
-          (file) =>
-            file.blob_name.startsWith(
-              currentPrefix
-            )
-        );
-
-        /**
-         * Build explorer items
-         */
-        const itemsMap =
-          new Map<string, ExplorerItem>();
-        const rawItemsMap =
-          new Map<string, FileItemData | FolderItem>();
-
-        for (const file of visibleFiles) {
-          const rest = file.blob_name.slice(
-            currentPrefix.length
-          );
-
-          if (!rest) continue;
-
-          const [segment, ...remaining] =
-            rest.split("/");
-
-          /* ===============================
-             FOLDER (virtual)
-          ================================ */
-          if (remaining.length > 0) {
-            if (!itemsMap.has(segment)) {
-              const folder: FolderItem = {
-                id: [...path, segment].join("/"),
-                name: segment,
-                type: "folder",
-                path: [...path, segment],
-                children: [],
-              };
-
-              itemsMap.set(segment, adaptApiItemToExplorerItem(folder));
-              rawItemsMap.set(segment, folder);
-            }
-          }
-
-          /* ===============================
-             FILE
-          ================================ */
-          else {
-            const fileItem: FileItemData = {
-              id: file.blob_name, // ← single source of truth
-              blobId: file.blob_name,
-              name: segment,
-              type: "file",
-              size:
-                typeof file.size === "number"
-                  ? file.size
-                  : 0,
-              path: [...path],
-              uploader: wallet,
-              uploadedAt: file.createdAt,
-            };
-
-            itemsMap.set(segment, adaptApiItemToExplorerItem(fileItem));
-            rawItemsMap.set(segment, fileItem);
-          }
-        }
-
-        setState({
-          loading: false,
-          error: null,
-          items: Array.from(
-            itemsMap.values()
-          ),
-          rawItems: Array.from(
-            rawItemsMap.values()
-          ),
-        });
       } catch (err) {
-        if (cancelled) return;
-
-        setState({
-          loading: false,
-          error:
-            err instanceof Error
-              ? err.message
-              : "Failed to load explorer data",
-          items: [],
-          rawItems: [],
-        });
+        if (!cancelled) {
+          console.error("Failed to load wallet files:", err);
+          setState({
+            loading: false,
+            error: "Failed to load files from Shelby Explorer",
+            items: [],
+            rawItems: [],
+          });
+        }
       }
     }
 
-    load();
+    if (!cancelled) {
+      load();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [
-    wallet,
-    path.join("/"),
-    refreshKey,
-  ]);
+  }, [wallet, path, refreshKey]);
 
   return state;
 }

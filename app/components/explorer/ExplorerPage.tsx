@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 
 import SearchBox from "./SearchBox";
 import WalletSearchController from "./WalletSearchController";
@@ -9,6 +10,9 @@ import WalletSearchController from "./WalletSearchController";
 import PreviewModal from "@/components/modals/PreviewModal";
 import UploadButton from "@/components/upload/UploadButton";
 import UploadPanel from "@/components/upload/UploadPanel";
+
+import { useShareSystem } from "@/hooks/useShareSystem";
+import { useExplorerModalController } from "./core/useExplorerModalController";
 
 import type { FileItemData } from "@/lib/data";
 
@@ -26,6 +30,10 @@ export default function ExplorerPage({
 }: {
   connected: boolean;
 }) {
+  const searchParams = useSearchParams();
+  const { shareMapping, hasActiveShare } = useShareSystem();
+  const { openExplorer } = useExplorerModalController();
+
   /* ===============================
      CORE STATE
   ================================ */
@@ -43,6 +51,21 @@ export default function ExplorerPage({
   const [uploadOpen, setUploadOpen] =
     useState(false);
   const [currentPath] = useState<string[]>([]);
+
+  /* ===============================
+     HANDLE SHARED FILES
+  ================================ */
+  useEffect(() => {
+    if (hasActiveShare && shareMapping) {
+      // Auto-open Explorer with shared file
+      setWallet(shareMapping.wallet);
+      openExplorer({ 
+        wallet: shareMapping.wallet,
+        fileId: shareMapping.filename,
+        path: []
+      });
+    }
+  }, [hasActiveShare, shareMapping, openExplorer]);
 
   /* ===============================
      WALLET SEARCH CONTROLLER
@@ -133,12 +156,14 @@ export default function ExplorerPage({
       {/* ===============================
          WALLET SEARCH CONTROLLER
       ================================ */}
-      <WalletSearchController
-        wallet={searchWallet}
-        onClose={() =>
-          setSearchWallet(null)
-        }
-      />
+      {searchWallet && (
+        <WalletSearchController
+          wallet={searchWallet}
+          onClose={() =>
+            setSearchWallet(null)
+          }
+        />
+      )}
     </>
   );
 }

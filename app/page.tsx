@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
@@ -154,7 +154,9 @@ export default function HomePage() {
 
         {/* MAIN CONTENT (ALL LOGIC LIVES HERE) */}
         <div className="flex-1 p-6">
-          <ExplorerPage connected={connected} />
+          <Suspense fallback={<div>Loading...</div>}>
+            <ExplorerPage connected={connected} />
+          </Suspense>
         </div>
       </div>
     </main>

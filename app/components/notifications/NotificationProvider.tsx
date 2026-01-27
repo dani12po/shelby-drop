@@ -15,16 +15,24 @@ export type NotificationType =
 
 export type Notification = {
   id: string;
+  title?: string;
   message: string;
   type: NotificationType;
+  txHash?: string;
+  wallet?: string;
+  error?: string;
 };
 
 type NotificationContextValue = {
   notifications: Notification[];
-  notify: (
-    message: string,
-    type?: NotificationType
-  ) => void;
+  notify: (options: {
+    title?: string;
+    message: string;
+    type?: NotificationType;
+    txHash?: string;
+    wallet?: string;
+    error?: string;
+  }) => void;
   remove: (id: string) => void;
 };
 
@@ -48,21 +56,33 @@ export function NotificationProvider({
   }, []);
 
   const notify = useCallback(
-    (
-      message: string,
-      type: NotificationType = "info"
-    ) => {
+    (options: {
+      title?: string;
+      message: string;
+      type?: NotificationType;
+      txHash?: string;
+      wallet?: string;
+      error?: string;
+    }) => {
       const id = crypto.randomUUID();
 
       setNotifications((prev) => [
         ...prev,
-        { id, message, type },
+        { 
+          id, 
+          title: options.title,
+          message: options.message, 
+          type: options.type || "info",
+          txHash: options.txHash,
+          wallet: options.wallet,
+          error: options.error,
+        },
       ]);
 
       // auto dismiss
       setTimeout(() => {
         remove(id);
-      }, 3000);
+      }, 5000); // Increased to 5s for transaction info reading
     },
     [remove]
   );

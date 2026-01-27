@@ -4,24 +4,9 @@ import { motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { useExplorerModalController } from "@/components/explorer/core/useExplorerModalController";
-
-export type WalletModalState = "LOADING" | "FOUND" | "EMPTY";
-
-type WalletFileItem = {
-  id: string;
-  name: string;
-  path: string[];
-};
-
-type Props = {
-  wallet: string;
-  state: WalletModalState;
-  onClose: () => void;
-
-  /* NEW */
-  files?: WalletFileItem[];
-  onViewFile?: (file: WalletFileItem) => void;
-};
+import { useWalletSearch } from "@/hooks/useWalletSearch";
+import { FileText } from "lucide-react";
+import type { ExplorerFile } from "@/lib/shelby/explorerService";
 
 const GRADIENT = `
   linear-gradient(
@@ -36,22 +21,46 @@ const GRADIENT = `
   )
 `;
 
+type Props = {
+  wallet: string;
+  onClose: () => void;
+  onViewFile?: (file: any) => void;
+};
+
 export default function WalletSearchModal({
   wallet,
-  state,
   onClose,
-  files = [],
   onViewFile,
 }: Props) {
   const [mounted, setMounted] = useState(false);
-
   const { openExplorer } = useExplorerModalController();
+  const { state, result, error, searchWallet, isLoading, hasResults, isEmpty, hasError } = useWalletSearch();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Auto-search when wallet changes
+    if (wallet && mounted) {
+      searchWallet(wallet);
+    }
+  }, [wallet, mounted]);
 
   if (!mounted) return null;
+
+  const handleOpenExplorer = () => {
+    openExplorer({ wallet });
+    onClose();
+  };
+
+  const getFileIcon = (type?: string) => {
+    switch (type) {
+      case 'image': return '🖼️';
+      case 'video': return '🎥';
+      case 'audio': return '🎵';
+      case 'document': return '📄';
+      case 'code': return '💻';
+      default: return '📁';
+    }
+  };
 
   return createPortal(
     <>
@@ -86,7 +95,7 @@ export default function WalletSearchModal({
         <div
           className="
             w-[750px]
-            h-[380px]
+            h-[500px]
             rounded-[26px]
             bg-[#0b0f14]
             text-white
@@ -108,12 +117,12 @@ export default function WalletSearchModal({
             </div>
 
             {/* CONTENT */}
-            <div className="flex-1 px-6">
+            <div className="flex-1 px-6 overflow-auto">
               <div className="mb-4 text-xs uppercase tracking-wide text-white/50">
                 Files
               </div>
 
-              {state === "LOADING" && (
+              {isLoading && (
                 <div className="space-y-3 animate-pulse">
                   <div className="h-10 rounded-full bg-white/10" />
                   <div className="h-10 rounded-full bg-white/10" />
@@ -121,16 +130,24 @@ export default function WalletSearchModal({
                 </div>
               )}
 
-              {state === "EMPTY" && (
+              {isEmpty && (
                 <div className="pt-16 text-center text-sm text-white/60">
+                  <FileText className="mx-auto mb-4 w-12 h-12 text-white/20" />
                   No files found for this wallet
                 </div>
               )}
 
-              {state === "FOUND" && (
+              {hasError && (
+                <div className="pt-16 text-center text-sm text-red-400">
+                  <div className="mb-2">Failed to load files</div>
+                  <div className="text-xs text-white/40">{error}</div>
+                </div>
+              )}
+
+              {hasResults && (
                 <div className="space-y-3">
-                  {files.map((file) => (
-                    <div key={file.id} className="group relative">
+                  {result!.files.map((file: ExplorerFile, index: number) => (
+                    <div key={index} className="group relative">
                       {/* HOVER GRADIENT */}
                       <div
                         className="
@@ -146,8 +163,11 @@ export default function WalletSearchModal({
                           backgroundSize: "400% 100%",
                           animation: "walletBorder 28s linear infinite",
                         }}
-                      />
+                      >
+                        <div className="w-full h-full rounded-full bg-[#0b0f14]" />
+                      </div>
 
+                      {/* FILE ITEM */}
                       <div
                         className="
                           relative z-10
@@ -155,12 +175,27 @@ export default function WalletSearchModal({
                           rounded-full
                           px-6 py-3
                           bg-white/5
-                          text-sm
+                          hover:bg-white/10
+                          transition-colors
+                          cursor-pointer
+                          group
                         "
                       >
-                        <span className="truncate">
-                          {file.name}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">
+                            {getFileIcon(file.type)}
+                          </span>
+                          <div>
+                            <div className="text-sm font-medium">
+                              {file.name}
+                            </div>
+                            {file.size && (
+                              <div className="text-xs text-white/50">
+                                {file.size}
+                              </div>
+                            )}
+                          </div>
+                        </div>
 
                         {onViewFile && (
                           <button
@@ -180,10 +215,7 @@ export default function WalletSearchModal({
             {/* FOOTER ACTIONS */}
             <div className="pt-6 pb-4 flex flex-col items-center gap-[10px]">
               <button
-                onClick={() => {
-                  openExplorer({ wallet });
-                  onClose(); // Close WalletSearch when opening Explorer
-                }}
+                onClick={handleOpenExplorer}
                 className="
                   w-[50%]
                   rounded-full
