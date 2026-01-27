@@ -11,6 +11,8 @@ import {
 } from "@/components/explorer/core/useExplorerModalController";
 import ExplorerModalRoot from "@/components/explorer/ExplorerModalRoot";
 
+import { SocialMediaIcons } from "@/components/ui/SocialMediaIcons";
+
 export default function RootLayout({
   children,
 }: {
@@ -36,6 +38,11 @@ export default function RootLayout({
                   EXPLORER MODAL ROOT
               ========================== */}
               <ExplorerModalRoot />
+
+              {/* =========================
+                  SOCIAL MEDIA ICONS
+              ========================== */}
+              <SocialMediaIcons />
 
               {/* =========================
                   MODAL ROOT (IMPORTANT)

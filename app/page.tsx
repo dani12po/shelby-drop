@@ -10,6 +10,7 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
 import WalletPill from "@/components/wallet/WalletPill";
 import WalletModal from "@/components/wallet/WalletModal";
+import { WalletConnect } from "@/components/wallet/WalletConnect";
 import ExplorerPage from "@/components/explorer/ExplorerPage";
 import Header from "@/components/layout/Header";
 
@@ -59,19 +60,17 @@ export default function HomePage() {
      WALLET LABEL
   ================================ */
 
-  const walletLabel = account
-    ? (() => {
-        const addr = account.address.toString();
-        return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-      })()
-    : "";
-
-  const availableWallets = wallets.map((w) => w.name);
-
-  const handleSelectWallet = (name: string) => {
-    connect(name);
-    setWalletModalOpen(false);
+  const handleWalletConnect = (wallet: string) => {
+    // For now, just set the wallet address
+    // In real implementation, would connect to wallet adapter
+    console.log('Wallet connected:', wallet);
   };
+
+  const handleWalletDisconnect = () => {
+    disconnect();
+  };
+
+  const currentWallet = account?.address.toString() || null;
 
   /* ===============================
      RENDER
@@ -80,7 +79,7 @@ export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden text-white">
       {/* ============================
-          WALLET PILL (TOP RIGHT)
+          WALLET CONNECT (TOP RIGHT)
       ============================ */}
       <div
         style={{
@@ -90,21 +89,23 @@ export default function HomePage() {
           zIndex: 60,
         }}
       >
-        <WalletPill
-          connected={connected}
-          label={walletLabel}
-          onOpenModal={() => setWalletModalOpen(true)}
-          onDisconnect={disconnect}
+        <WalletConnect
+          wallet={currentWallet}
+          onConnect={handleWalletConnect}
+          onDisconnect={handleWalletDisconnect}
         />
       </div>
 
       {/* ============================
-          WALLET MODAL
+          WALLET MODAL (LEGACY - CAN BE REMOVED)
       ============================ */}
       <WalletModal
         open={walletModalOpen}
-        wallets={availableWallets}
-        onSelectWallet={handleSelectWallet}
+        wallets={wallets.map((w) => w.name)}
+        onSelectWallet={(name) => {
+          connect(name);
+          setWalletModalOpen(false);
+        }}
         onClose={() => setWalletModalOpen(false)}
       />
 

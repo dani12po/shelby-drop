@@ -372,19 +372,19 @@ export default function ExplorerModal({
               <div className="flex items-center justify-between mb-6">
                 <div className="flex-1" /> {/* Left spacer */}
                 <div className="text-center">
-                  <h2 className="text-lg font-semibold text-white">
+                  <h2 className="text-xl font-bold text-white">
                     Shelby Explorer
                   </h2>
-                  <div className="text-sm text-white/60 truncate">
-                    {wallet}
+                  <div className="text-sm text-white/60 truncate font-mono">
+                    {wallet.slice(0, 6)}...{wallet.slice(-4)}
                   </div>
                 </div>
                 <div className="flex-1 flex justify-end">
                   <button
                     onClick={onClose}
-                    className="text-white/40 hover:text-white p-2 rounded-md hover:bg-white/10 transition"
+                    className="text-white/40 hover:text-white p-2 rounded-md hover:bg-white/10 transition-colors"
                   >
-                    ✕
+                    <X size={20} />
                   </button>
                 </div>
               </div>

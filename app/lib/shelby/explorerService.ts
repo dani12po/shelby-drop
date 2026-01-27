@@ -41,7 +41,7 @@ export async function searchWalletFiles(wallet: string): Promise<ExplorerSearchR
 
   try {
     // Build Shelby Explorer URL
-    const explorerUrl = `${shelbyConfig.origin}/${shelbyConfig.network}/account/${wallet}/blobs`;
+    const explorerUrl = `${shelbyConfig.origin}/${shelbyConfig.shelbyNetwork}/account/${wallet}/blobs`;
     
     const response = await fetch(explorerUrl, {
       headers: {

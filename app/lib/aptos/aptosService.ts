@@ -15,7 +15,7 @@ export class AptosService {
     // Initialize Aptos client with Shelby Network configuration
     const config = new AptosConfig({
       network: Network.CUSTOM,
-      fullnode: shelbyConfig.aptosFullnodeUrl,
+      fullnode: shelbyConfig.aptosNodeUrl,
       indexer: shelbyConfig.aptosIndexerUrl,
     });
     

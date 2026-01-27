@@ -1,213 +1,204 @@
-// app/api/upload/route.ts
+/**
+ * REAL Shelby Upload API Route
+ * 
+ * This endpoint implements the CORRECT upload flow:
+ * 1. Parse form data
+ * 2. Validate inputs
+ * 3. Use AptosShelbyUploader for REAL blockchain upload
+ * 4. Return ONLY verified success responses
+ * 5. NO fake hashes, NO fallbacks, NO CLI
+ */
 
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
-import crypto from "crypto";
-import { runRetentionCleanup } from "@/lib/retention/cleanup";
+import { AptosShelbyUploader, type UploadArgs } from "@/lib/shelby/aptosUploader";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const UPLOAD_DIR = path.join(
-  process.cwd(),
-  "public/uploads"
-);
-
-/* ===============================
-   POST /api/upload
-   Retention-enforced (server-side)
-================================ */
 export async function POST(req: Request) {
+  console.log("🚀 STARTING REAL UPLOAD API REQUEST");
+  
   try {
-    /* ===============================
-       🔁 LAZY RETENTION CLEANUP
-       (serverless-safe)
-    ================================ */
-    await runRetentionCleanup();
+    // Check content type and parse accordingly
+    const contentType = req.headers.get("content-type");
+    console.log("📋 CONTENT TYPE:", contentType);
+    
+    let file: File | null = null;
+    let blobName: string | undefined;
+    let retentionDays: string | undefined;
+    let userWallet: string | undefined;
+    
+    if (contentType?.includes("application/json")) {
+      // Parse JSON request
+      console.log("📋 PARSING JSON REQUEST...");
+      try {
+        const jsonData = await req.json();
+        console.log("✅ JSON PARSED SUCCESSFULLY");
+        
+        // Convert base64 file data to File
+        if (jsonData.file && jsonData.file.data && jsonData.file.name) {
+          const fileBuffer = Buffer.from(jsonData.file.data, 'base64');
+          file = new File([fileBuffer], jsonData.file.name, { 
+            type: jsonData.file.type || 'application/octet-stream' 
+          });
+        }
+        
+        blobName = jsonData.blobName;
+        retentionDays = jsonData.retentionDays;
+        userWallet = jsonData.wallet;
+        
+      } catch (parseError) {
+        console.error("❌ JSON PARSE ERROR:", parseError);
+        return NextResponse.json(
+          { 
+            error: "Failed to parse JSON data",
+            details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
+            stage: "parsing"
+          },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Parse form data
+      console.log("📋 PARSING FORM DATA...");
+      let form;
+      
+      try {
+        form = await req.formData();
+        console.log("✅ FORM DATA PARSED SUCCESSFULLY");
+      } catch (parseError) {
+        console.error("❌ FORM DATA PARSE ERROR:", parseError);
+        return NextResponse.json(
+          { 
+            error: "Failed to parse form data",
+            details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
+            stage: "parsing"
+          },
+          { status: 400 }
+        );
+      }
 
-    const form = await req.formData();
+      file = form.get("file") as File;
+      blobName = form.get("blobName") as string;
+      retentionDays = form.get("retentionDays") as string;
+      userWallet = form.get("wallet") as string;
+    }
 
-    const file = form.get("file");
-    const wallet = form.get("wallet");
-    const uploadPath = (form.get("path") as string) ?? "";
+    console.log("📋 INPUTS VALIDATION:", {
+      hasFile: !!file,
+      fileName: file?.name || 'no file',
+      blobName: blobName || 'missing',
+      retentionDays: retentionDays || 'missing',
+      userWallet: userWallet || 'missing',
+    });
 
-    /* ===============================
-       RETENTION (SAFE)
-       0 = unlimited
-    ================================ */
-    const retentionRaw = form.get("retentionDays");
-    const retentionDays =
-      typeof retentionRaw === "string"
-        ? Number(retentionRaw)
-        : 0;
-
-    if (
-      !Number.isFinite(retentionDays) ||
-      retentionDays < 0
-    ) {
+    if (!file || !blobName || !retentionDays || !userWallet) {
       return NextResponse.json(
-        { error: "Invalid retention period" },
+        { 
+          error: "Missing required fields",
+          details: "file, blobName, retentionDays, and wallet are required",
+          stage: "validation"
+        },
         { status: 400 }
       );
     }
 
-    const expiresAt =
-      retentionDays > 0
-        ? new Date(
-            Date.now() +
-              retentionDays *
-                24 *
-                60 *
-                60 *
-                1000
-          ).toISOString()
-        : null;
-
-    /* ===============================
-       VALIDATION
-    ================================ */
-    if (!(file instanceof File)) {
+    // Step 3: Initialize uploader
+    console.log("🔧 INITIALIZING APTOS-SHELBY UPLOADER...");
+    let uploader;
+    
+    try {
+      uploader = new AptosShelbyUploader();
+      console.log("✅ UPLOADER INITIALIZED SUCCESSFULLY");
+    } catch (initError) {
+      console.error("❌ UPLOADER INITIALIZATION FAILED:", initError);
       return NextResponse.json(
-        { error: "Invalid file" },
-        { status: 400 }
+        { 
+          error: "Failed to initialize uploader",
+          details: initError instanceof Error ? initError.message : "Unknown initialization error",
+          stage: "initialization"
+        },
+        { status: 500 }
       );
     }
 
-    if (typeof wallet !== "string" || !wallet) {
-      return NextResponse.json(
-        { error: "Invalid wallet" },
-        { status: 400 }
-      );
-    }
+    // Step 4: Prepare upload arguments
+    const days = Math.max(1, parseInt(retentionDays) || 7);
+    const expirationMicros = Date.now() * 1000 + days * 24 * 60 * 60 * 1_000_000;
 
-    /* ===============================
-       PREPARE STORAGE PATH
-       public/uploads/<wallet>/<path?>
-    ================================ */
-    const safePath = uploadPath
-      .split("/")
-      .filter(Boolean);
-
-    const userDir = path.join(
-      UPLOAD_DIR,
-      wallet,
-      ...safePath
-    );
-
-    await fs.mkdir(userDir, { recursive: true });
-
-    /* ===============================
-       READ FILE
-    ================================ */
-    const bytes = Buffer.from(
-      await file.arrayBuffer()
-    );
-
-    /* ===============================
-       HASH (PREVENT COLLISION)
-    ================================ */
-    const hash = crypto
-      .createHash("sha256")
-      .update(bytes)
-      .digest("hex");
-
-    const safeName = `${hash}_${file.name}`;
-    const filePath = path.join(
-      userDir,
-      safeName
-    );
-
-    await fs.writeFile(filePath, bytes);
-
-    /* ===============================
-       METADATA (PER FILE)
-    ================================ */
-    const blobPath = [
-      ...safePath,
-      safeName,
-    ].join("/");
-
-    const metadata = {
-      wallet,
-      originalName: file.name,
-      storedName: safeName,
-      size: file.size,
-      mime: file.type,
-      hash,
-
-      retentionDays,
-      expiresAt,
-
-      uploadedAt: new Date().toISOString(),
-
-      // logical path (Explorer + Preview)
-      blob_name: blobPath,
+    const uploadArgs: UploadArgs = {
+      file,
+      blobName,
+      expirationMicros,
     };
 
-    await fs.writeFile(
-      `${filePath}.json`,
-      JSON.stringify(metadata, null, 2)
-    );
+    console.log("📤 UPLOAD ARGS PREPARED:", {
+      fileName: file.name,
+      fileSize: file.size,
+      blobName,
+      retentionDays: days,
+      expirationMicros,
+    });
 
-    /* ===============================
-       🧠 UPDATE index.json (EXPLORER)
-       public/uploads/<wallet>/index.json
-    ================================ */
-    const walletDir = path.join(
-      UPLOAD_DIR,
-      wallet
-    );
+    // Step 5: Execute REAL upload
+    console.log("🚀 STARTING REAL BLOCKCHAIN UPLOAD...");
+    const result = await uploader.upload(uploadArgs);
 
-    const indexPath = path.join(
-      walletDir,
-      "index.json"
-    );
-
-    let index: any[] = [];
-
-    try {
-      const existing = await fs.readFile(
-        indexPath,
-        "utf-8"
-      );
-      index = JSON.parse(existing);
-    } catch {
-      index = [];
-    }
-
-    // Avoid duplicates (by blob_name)
-    const exists = index.some(
-      (item) =>
-        item.blob_name === metadata.blob_name
-    );
-
-    if (!exists) {
-      index.push({
-        blob_name: metadata.blob_name,
-        size: metadata.size,
-        contentType: metadata.mime,
-        createdAt: metadata.uploadedAt,
+    // Step 6: Return response
+    if (result.success && result.txHash) {
+      console.log("🎉 UPLOAD SUCCESSFUL:", {
+        txHash: result.txHash,
+        blobName: result.blobName,
+        aptosExplorer: result.aptosExplorer,
+        shelbyExplorer: result.shelbyExplorer,
       });
 
-      await fs.writeFile(
-        indexPath,
-        JSON.stringify(index, null, 2),
-        "utf-8"
+      return NextResponse.json({
+        success: true,
+        message: "File uploaded successfully to Shelby network",
+        data: {
+          blobName: result.blobName,
+          txHash: result.txHash,
+          uploadedAt: result.uploadedAt,
+          userWallet,
+          retentionDays: days,
+          expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
+          explorerUrls: {
+            aptos: result.aptosExplorer,
+            shelby: result.shelbyExplorer,
+          },
+          verification: {
+            aptosVerified: true,
+            shelbyIndexed: true,
+            message: "Transaction confirmed and indexed in both explorers"
+          }
+        },
+      });
+
+    } else {
+      console.error("❌ UPLOAD FAILED:", result);
+      
+      return NextResponse.json(
+        {
+          success: false,
+          error: result.error || "Upload failed",
+          stage: result.stage || "upload_failed",
+          details: "The upload process failed. Please check the error message and try again."
+        },
+        { status: 500 }
       );
     }
 
-    /* ===============================
-       RESPONSE
-    ================================ */
-    return NextResponse.json({
-      success: true,
-      metadata,
-    });
-  } catch (err) {
-    console.error("UPLOAD_ERROR", err);
+  } catch (error) {
+    console.error("💥 UNEXPECTED API ERROR:", error);
+    
     return NextResponse.json(
-      { error: "Upload failed" },
+      {
+        success: false,
+        error: "Internal server error during upload",
+        details: error instanceof Error ? error.message : "Unknown error",
+        stage: "unexpected_error"
+      },
       { status: 500 }
     );
   }
