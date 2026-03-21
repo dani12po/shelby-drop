@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { Twitter, Github, Linkedin } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -72,6 +73,7 @@ export default function Footer() {
                 href="https://x.com/Iq_dani26" 
                 target="_blank"
                 rel="noopener noreferrer"
+                title="Twitter/X"
                 style={{
                   width: '36px', 
                   height: '36px', 
@@ -81,18 +83,26 @@ export default function Footer() {
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  fontSize: '14px', 
                   color: '#94a3b8', 
                   textDecoration: 'none',
-                  transition: 'background 0.2s'
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = '#94a3b8';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
                 }}
               >
-                𝕏
+                <Twitter size={18} />
               </a>
               <a 
                 href="https://github.com/dani12po/shelby-drop" 
                 target="_blank"
                 rel="noopener noreferrer"
+                title="GitHub"
                 style={{
                   width: '36px', 
                   height: '36px', 
@@ -102,18 +112,26 @@ export default function Footer() {
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  fontSize: '16px', 
                   color: '#94a3b8', 
                   textDecoration: 'none',
-                  transition: 'background 0.2s'
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = '#94a3b8';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
                 }}
               >
-                ⌥
+                <Github size={18} />
               </a>
               <a 
                 href="https://www.linkedin.com/in/imam-qolandani-070373149/" 
                 target="_blank"
                 rel="noopener noreferrer"
+                title="LinkedIn"
                 style={{
                   width: '36px', 
                   height: '36px', 
@@ -123,14 +141,20 @@ export default function Footer() {
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  fontSize: '14px', 
-                  fontWeight: 600,
                   color: '#94a3b8', 
                   textDecoration: 'none',
-                  transition: 'background 0.2s'
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = '#94a3b8';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
                 }}
               >
-                in
+                <Linkedin size={18} />
               </a>
             </div>
           </div>

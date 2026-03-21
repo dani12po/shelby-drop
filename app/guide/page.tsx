@@ -26,6 +26,11 @@ const steps = [
     description: "Klik tombol 'Connect Wallet' di pojok kanan atas. Pilih wallet yang sudah dipasang dan approve koneksi.",
   },
   {
+    number: "02.5",
+    title: "Dapatkan Token Testnet",
+    description: "Untuk upload file, kamu butuh APT dan ShelbyUSD di Shelby Testnet. Buka Petra wallet, switch ke Shelbynet, lalu klik tombol 'Faucet'. Untuk ShelbyUSD, bergabunglah di Discord Shelby.",
+  },
+  {
     number: "03",
     title: "Upload File",
     description: "Drag & drop file ke area upload atau klik untuk memilih. Isi nama blob dan lama penyimpanan, lalu klik Upload.",

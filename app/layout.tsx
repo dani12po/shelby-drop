@@ -32,8 +32,6 @@ import {
 } from "@/components/explorer/core/useExplorerModalController";
 import ExplorerModalRoot from "@/components/explorer/ExplorerModalRoot";
 
-import { SocialMediaIcons } from "@/components/ui/SocialMediaIcons";
-
 const inter = Inter({ 
   subsets: ['latin'], 
   variable: '--font-inter',
@@ -76,11 +74,6 @@ export default function RootLayout({
                   EXPLORER MODAL ROOT
               ========================== */}
               <ExplorerModalRoot />
-
-              {/* =========================
-                  SOCIAL MEDIA ICONS
-              ========================== */}
-              <SocialMediaIcons />
 
               {/* =========================
                   MODAL ROOT (IMPORTANT)

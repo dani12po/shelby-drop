@@ -38,6 +38,14 @@ const faqs = [
     question: "Bagaimana cara share file?",
     answer: "Klik tombol Share pada file yang ingin Anda bagikan. Sistem akan menghasilkan link yang dapat Anda bagikan ke siapa pun. Penerima dapat membuka link tersebut untuk melihat preview atau mendownload file.",
   },
+  {
+    question: "Apakah Shelby Drop gratis digunakan?",
+    answer: "Shelby Drop gratis untuk diakses dan browse file. Untuk upload file, Anda memerlukan APT tokens (untuk gas fee) dan ShelbyUSD tokens (untuk biaya storage) di Shelby Testnet. Kedua token ini bisa didapatkan gratis melalui faucet testnet.",
+  },
+  {
+    question: "Di mana saya bisa mendapatkan APT dan ShelbyUSD untuk testnet?",
+    answer: "APT testnet bisa didapatkan melalui Petra wallet dengan klik tombol 'Faucet' setelah switch ke network Shelbynet. ShelbyUSD testnet bisa didapatkan dengan bergabung di Discord Shelby (discord.gg/shelbyserves) dan request di channel yang tersedia.",
+  },
 ];
 
 export default function FAQPage() {

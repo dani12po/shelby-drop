@@ -17,7 +17,9 @@ import {
   ExternalLink,
   Loader2,
   AlertCircle,
-  FolderOpen
+  FolderOpen,
+  Copy,
+  Check
 } from "lucide-react";
 import type { ExplorerFile } from "@/lib/shelby/explorerService";
 
@@ -47,6 +49,7 @@ export default function WalletSearchModal({
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [copied, setCopied] = useState(false);
   const { openExplorer } = useExplorerModalController();
   const { state, result, error, searchWallet, isLoading, hasResults, isEmpty, hasError } = useWalletSearch();
 
@@ -71,6 +74,12 @@ export default function WalletSearchModal({
   const handleOpenExplorer = () => {
     openExplorer({ wallet });
     onClose();
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(wallet);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const getFileIcon = (type?: string) => {
@@ -180,6 +189,21 @@ export default function WalletSearchModal({
               }}>
                 {wallet.slice(0,6)}...{wallet.slice(-4)}
               </p>
+              <button
+                onClick={handleCopy}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  marginTop: '6px', background: 'none', border: 'none',
+                  color: copied ? '#10b981' : '#475569',
+                  fontSize: '0.72rem', cursor: 'pointer',
+                  transition: 'color 0.2s'
+                }}
+              >
+                {copied
+                  ? <><Check size={12} strokeWidth={2.5} /> Copied!</>
+                  : <><Copy size={12} strokeWidth={2} /> Copy address</>
+                }
+              </button>
             </div>
 
             {/* CONTENT */}

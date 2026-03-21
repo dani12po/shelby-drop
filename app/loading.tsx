@@ -1,58 +1,40 @@
-'use client';
+'use client'
 
 export default function Loading() {
   return (
     <div style={{
       minHeight: '100vh',
+      background: '#050508',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      background: '#050508'
+      justifyContent: 'center'
     }}>
       <div style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '24px'
+        gap: '16px'
       }}>
-        {/* Animated hexagon loader */}
+        {/* Spinner */}
         <div style={{
-          width: '60px',
-          height: '60px',
-          position: 'relative',
-          animation: 'pulse 1.5s ease-in-out infinite'
-        }}>
-          <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-            <defs>
-              <linearGradient id="loaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{ stopColor: '#8b5cf6' }} />
-                <stop offset="100%" style={{ stopColor: '#3b82f6' }} />
-              </linearGradient>
-            </defs>
-            <polygon 
-              points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" 
-              fill="none" 
-              stroke="url(#loaderGrad)" 
-              strokeWidth="4"
-            />
-          </svg>
-        </div>
-        
+          width: '40px', height: '40px',
+          borderRadius: '50%',
+          border: '3px solid rgba(139,92,246,0.2)',
+          borderTopColor: '#8b5cf6',
+          animation: 'spin 0.8s linear infinite'
+        }} />
         <p style={{
-          color: '#94a3b8',
-          fontSize: '16px',
-          fontWeight: 500
+          fontSize: '0.875rem',
+          color: '#475569'
         }}>
           Loading...
         </p>
-
-        <style jsx>{`
-          @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(0.95); }
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
           }
         `}</style>
       </div>
     </div>
-  );
+  )
 }
