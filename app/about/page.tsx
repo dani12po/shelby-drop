@@ -59,7 +59,7 @@ export default function AboutPage() {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
-                Shelby Drop
+                Tentang Shelby Drop
               </h1>
               <p style={{
                 fontSize: '18px',

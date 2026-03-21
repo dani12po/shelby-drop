@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://shelby-drop.vercel.app/sitemap.xml

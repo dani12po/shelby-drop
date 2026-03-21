@@ -1,6 +1,26 @@
 import "../styles/globals.css";
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import Providers from "./providers";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Shelby Drop — Decentralized File Storage on Aptos',
+  description: 'Upload, browse, and share files on Shelby Network using only your wallet address. Built on Aptos blockchain.',
+  keywords: 'Shelby, Aptos, blockchain, decentralized storage, Web3, file upload',
+  openGraph: {
+    title: 'Shelby Drop — Own Your Files. Power the Chain.',
+    description: 'Decentralized file storage on Aptos blockchain via Shelby Network.',
+    url: 'https://shelby-drop.vercel.app',
+    siteName: 'Shelby Drop',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Shelby Drop',
+    description: 'Decentralized file storage on Aptos blockchain.',
+    creator: 'Dani.xyz',
+  },
+};
 
 import {
   NotificationProvider,
@@ -33,6 +53,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      </head>
       <body className="font-sans antialiased" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Providers>
           <NotificationProvider>
