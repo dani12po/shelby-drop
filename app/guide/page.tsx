@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Header from "@/app/components/layout/Header";
-import Footer from "@/app/components/layout/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import { Wallet, Link2, Upload, FolderOpen, Share2, Download, Check } from 'lucide-react';
 
 const stepIcons = [

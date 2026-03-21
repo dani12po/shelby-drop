@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getShareMapping, type ShareMapping } from "@/lib/share/shareService";
+import { getShareMapping, type ShareMapping } from "../lib/share/shareService";
 
 interface SharePageProps {
   params: Promise<{

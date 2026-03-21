@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "@aptos-labs/ts-sdk": "^5.2.1",
     "@aptos-labs/wallet-adapter-ant-design": "^5.3.11",
     "@aptos-labs/wallet-adapter-react": "^8.1.0",
