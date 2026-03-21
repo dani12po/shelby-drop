@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  // Disable static generation for 404 page to avoid SSR issues
   trailingSlash: false,
   generateBuildId: async () => {
     return 'build'
@@ -12,6 +11,13 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'app'),
+    };
+    return config;
   },
 };
 
