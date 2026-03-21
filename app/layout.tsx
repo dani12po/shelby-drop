@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import Providers from "./providers";
 
 import {
@@ -13,21 +14,35 @@ import ExplorerModalRoot from "@/components/explorer/ExplorerModalRoot";
 
 import { SocialMediaIcons } from "@/components/ui/SocialMediaIcons";
 
+const inter = Inter({ 
+  subsets: ['latin'], 
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const mono = JetBrains_Mono({ 
+  subsets: ['latin'], 
+  variable: '--font-mono',
+  display: 'swap',
+});
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="overflow-hidden">
-      <body className="overflow-hidden">
+    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+      <body className="font-sans antialiased" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Providers>
           <NotificationProvider>
             <ExplorerModalProvider>
               {/* =========================
                   MAIN APP CONTENT
               ========================== */}
-              {children}
+              <div style={{ flex: 1 }}>
+                {children}
+              </div>
 
               {/* =========================
                   GLOBAL NOTIFICATIONS

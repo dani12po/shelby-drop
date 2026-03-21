@@ -10,7 +10,7 @@ import { Copy, LogOut, Wallet, ChevronDown, CheckCircle2 } from 'lucide-react';
 
 interface WalletConnectProps {
   wallet: string | null;
-  onConnect: (wallet: string) => void;
+  onConnect: () => void;
   onDisconnect: () => void;
 }
 
@@ -32,9 +32,8 @@ export function WalletConnect({ wallet, onConnect, onDisconnect }: WalletConnect
   }, []);
 
   const handleConnect = () => {
-    // Simulate wallet connection (in real app, would connect to wallet adapter)
-    const mockWallet = '0x50093856644bfcf8e33e3979b52f1a71f79f24a6ed7da94aa92b5b4057e0d0bb';
-    onConnect(mockWallet);
+    // Trigger modal for wallet connection
+    onConnect();
   };
 
   const handleCopyAddress = async () => {

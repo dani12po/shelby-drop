@@ -124,7 +124,8 @@ export async function POST(req: Request) {
 
     // Step 4: Prepare upload arguments
     const days = Math.max(1, parseInt(retentionDays) || 7);
-    const expirationMicros = Date.now() * 1000 + days * 24 * 60 * 60 * 1_000_000;
+    // Use BigInt to avoid JS Number overflow
+    const expirationMicros = BigInt(Date.now()) * 1000n + BigInt(days) * 86400n * 1_000_000n;
 
     const uploadArgs: UploadArgs = {
       file,

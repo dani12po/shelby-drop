@@ -33,10 +33,15 @@ function signUrl(params: {
   objectKey: string;
   expires: number;
 }) {
+  // Double-check: ensure secret is available before signing
+  if (!SIGNING_SECRET_RAW) {
+    throw new Error("SHELBY_SIGNING_SECRET is not configured");
+  }
+
   const payload = `${params.wallet}/${params.objectKey}:${params.expires}`;
 
   const signature = crypto
-    .createHmac("sha256", SIGNING_SECRET_RAW!)
+    .createHmac("sha256", SIGNING_SECRET_RAW)
     .update(payload)
     .digest("hex");
 

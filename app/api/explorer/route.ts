@@ -1,23 +1,24 @@
 // app/api/explorer/route.ts
 
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /* ===============================
-   CONFIG
-================================ */
-const UPLOAD_DIR = path.join(
-  process.cwd(),
-  "public/uploads"
-);
+   SHELBY NETWORK CONFIG
+=============================== */
+const APTOS_NODE_URL = 
+  process.env.APTOS_NODE_URL ?? 
+  "https://api.shelbynet.shelby.xyz/v1";
+
+const APTOS_INDEXER_URL = 
+  process.env.APTOS_INDEXER_URL ?? 
+  "https://api.shelbynet.shelby.xyz/v1/graphql";
 
 /* ===============================
-   TYPES (LOCAL, BACKEND-ONLY)
-================================ */
+   TYPES
+=============================== */
 type ExplorerFile = {
   id: string;
   type: "file";
@@ -43,7 +44,7 @@ type ExplorerFolder = {
 
 /* ===============================
    HELPERS
-================================ */
+=============================== */
 function inferFileType(
   name: string
 ): "PDF" | "IMG" | "OTHER" {
@@ -73,95 +74,175 @@ function formatSize(bytes: number): string {
 }
 
 /* ===============================
-   WALK DIRECTORY
-================================ */
-async function walkDirectory(
-  absDir: string,
-  wallet: string,
-  relPath: string[] = []
-): Promise<Array<ExplorerFolder | ExplorerFile>> {
-  let entries: string[];
+   FETCH FROM SHELBY NETWORK
+=============================== */
+interface ShelbyBlob {
+  blob_id: string;
+  blob_name: string;
+  size: number;
+  creator_address: string;
+  inserted_at: string;
+  expiration_date?: string;
+}
 
+/**
+ * Fetch blobs from Shelby Network API
+ * Uses Aptos Indexer GraphQL endpoint for efficient querying
+ */
+async function fetchBlobsFromShelbyNetwork(
+  wallet: string
+): Promise<ShelbyBlob[]> {
+  const blobs: ShelbyBlob[] = [];
+  
   try {
-    entries = await fs.readdir(absDir);
-  } catch {
-    return [];
+    // Try GraphQL endpoint first (more efficient for querying)
+    const query = `
+      query GetAccountBlobs($address: String!) {
+        ledger_objects(
+          where: {
+            creator_address: { _eq: $address },
+            _or: [
+              { object_type: { _eq: "0x3::blob::Blob" } }
+              { object_type: { _contains: "blob" } }
+            ]
+          },
+          limit: 100
+        ) {
+          blob_id: guid_id
+          object_type
+          owner_address
+          state_key
+          inserted_at
+        }
+      }
+    `;
+
+    const response = await fetch(APTOS_INDEXER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query,
+        variables: { address: wallet },
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const ledgerObjects = data?.data?.ledger_objects ?? [];
+      
+      return ledgerObjects.map((obj: any) => ({
+        blob_id: obj.blob_id?.toString() ?? "",
+        blob_name: `blob_${obj.blob_id ?? "unknown"}`,
+        size: 0, // Size not available in indexer
+        creator_address: wallet,
+        inserted_at: obj.inserted_at ?? new Date().toISOString(),
+      }));
+    }
+  } catch (graphqlError) {
+    console.log("GraphQL query failed, trying REST fallback:", graphqlError);
   }
 
-  const items: Array<
-    ExplorerFolder | ExplorerFile
-  > = [];
+  // Fallback: Use REST API to fetch account resources
+  try {
+    const accountResponse = await fetch(
+      `${APTOS_NODE_URL}/accounts/${wallet}/resources`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  for (const entryName of entries) {
-    const absPath = path.join(absDir, entryName);
-    const stat = await fs.stat(absPath);
-
-    /* ===== FOLDER ===== */
-    if (stat.isDirectory()) {
-      const children = await walkDirectory(
-        absPath,
-        wallet,
-        [...relPath, entryName]
+    if (accountResponse.ok) {
+      const resources = await accountResponse.json();
+      
+      // Find blob-related resources
+      const blobResources = resources.filter(
+        (r: any) => 
+          r.type?.includes("Blob") || 
+          r.type?.includes("blob")
       );
+
+      for (const blob of blobResources) {
+        blobs.push({
+          blob_id: blob.data?.blob_id ?? blob.guid?.id ?? "",
+          blob_name: blob.data?.name ?? "unknown",
+          size: blob.data?.size ?? 0,
+          creator_address: wallet,
+          inserted_at: blob.data?.inserted_at ?? new Date().toISOString(),
+        });
+      }
+    }
+  } catch (restError) {
+    console.error("REST API also failed:", restError);
+  }
+
+  return blobs;
+}
+
+/**
+ * Convert Shelby blobs to Explorer format
+ */
+function blobsToExplorerItems(
+  blobs: ShelbyBlob[],
+  wallet: string
+): Array<ExplorerFolder | ExplorerFile> {
+  const items: Array<ExplorerFolder | ExplorerFile> = [];
+  
+  // Group blobs by their path (first part of name)
+  const pathGroups = new Map<string, ShelbyBlob[]>();
+  
+  for (const blob of blobs) {
+    const nameParts = blob.blob_name.split("/");
+    const folderName = nameParts.length > 1 ? nameParts[0] : "root";
+    
+    if (!pathGroups.has(folderName)) {
+      pathGroups.set(folderName, []);
+    }
+    pathGroups.get(folderName)!.push(blob);
+  }
+
+  // Create folder structure
+  for (const [folderName, folderBlobs] of pathGroups) {
+    if (folderName === "root") {
+      // Files directly in root
+      for (const blob of folderBlobs) {
+        items.push({
+          id: blob.blob_id,
+          type: "file" as const,
+          name: blob.blob_name,
+          size: formatSize(blob.size),
+          path: [],
+          blobId: blob.blob_id,
+          fileType: inferFileType(blob.blob_name),
+          uploader: wallet,
+          expiresAt: blob.expiration_date,
+        });
+      }
+    } else {
+      // Folder with files
+      const children: Array<ExplorerFile> = folderBlobs.map((blob) => ({
+        id: blob.blob_id,
+        type: "file" as const,
+        name: blob.blob_name.split("/").slice(1).join("/") || blob.blob_name,
+        size: formatSize(blob.size),
+        path: [folderName],
+        blobId: blob.blob_id,
+        fileType: inferFileType(blob.blob_name),
+        uploader: wallet,
+        expiresAt: blob.expiration_date,
+      }));
 
       items.push({
-        id: entryName,
-        type: "folder",
-        name: entryName,
-        path: [...relPath, entryName],
+        id: folderName,
+        type: "folder" as const,
+        name: folderName,
+        path: [],
         children,
       });
-
-      continue;
     }
-
-    /* ===== SKIP METADATA FILE ===== */
-    if (entryName.endsWith(".json")) continue;
-
-    /* ===== FILE ===== */
-    const metaPath = `${absPath}.json`;
-
-    let meta: any = null;
-    try {
-      const raw = await fs.readFile(
-        metaPath,
-        "utf-8"
-      );
-      meta = JSON.parse(raw);
-    } catch {
-      // metadata optional (legacy files)
-    }
-
-    const [blobId, ...rest] =
-      entryName.split("_");
-    const originalName =
-      meta?.originalName ??
-      rest.join("_") ??
-      entryName;
-
-    /* ===== RETENTION FILTER ===== */
-    if (
-      meta?.expiresAt &&
-      new Date(meta.expiresAt).getTime() <
-        Date.now()
-    ) {
-      continue; // expired → hidden
-    }
-
-    items.push({
-      id: blobId,
-      type: "file",
-      name: originalName,
-      size: formatSize(stat.size),
-      path: relPath,
-
-      blobId,
-      fileType: inferFileType(originalName),
-      uploader: wallet,
-
-      expiresAt: meta?.expiresAt,
-      retentionDays: meta?.retentionDays,
-    });
   }
 
   return items;
@@ -169,7 +250,7 @@ async function walkDirectory(
 
 /* ===============================
    GET /api/explorer
-================================ */
+=============================== */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const wallet = searchParams.get("wallet");
@@ -181,15 +262,11 @@ export async function GET(req: Request) {
     );
   }
 
-  const userDir = path.join(
-    UPLOAD_DIR,
-    wallet
-  );
-
-  const children = await walkDirectory(
-    userDir,
-    wallet
-  );
+  // Fetch blobs from Shelby Network instead of local filesystem
+  const blobs = await fetchBlobsFromShelbyNetwork(wallet);
+  
+  // Convert to explorer structure
+  const children = blobsToExplorerItems(blobs, wallet);
 
   const root: ExplorerFolder = {
     id: wallet,

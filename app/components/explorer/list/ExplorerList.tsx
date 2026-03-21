@@ -128,7 +128,7 @@ export default function ExplorerList({
     if (!col) {
       return (
         <div
-          className={`text-white/50 ${
+          className={`text-[#475569] ${
             align === "right"
               ? "text-right"
               : ""
@@ -154,7 +154,7 @@ export default function ExplorerList({
           ${
             active
               ? "text-white"
-              : "text-white/50 hover:text-white"
+              : "text-[#475569] hover:text-white"
           }
         `}
       >
@@ -180,7 +180,9 @@ export default function ExplorerList({
           grid grid-cols-[20px_1fr_90px_80px]
           px-[15px] py-2
           text-[11px] font-medium
-          bg-[#0b0f14]
+          bg-[rgba(255,255,255,0.03)]
+          border-b border-[rgba(255,255,255,0.06)]
+          text-[#475569]
         "
       >
         <div />
@@ -213,10 +215,12 @@ export default function ExplorerList({
               className={`
                 relative
                 transition
+                bg-[rgba(255,255,255,0.02)]
+                border-b border-[rgba(255,255,255,0.04)]
                 ${
                   selected
-                    ? "bg-white/10 ring-1 ring-white/20"
-                    : "hover:bg-white/5"
+                    ? "bg-purple-500/15 ring-1 ring-purple-400/40"
+                    : "hover:bg-purple-500/08"
                 }
               `}
             >

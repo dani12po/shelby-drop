@@ -1,37 +1,45 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getShareMapping, type ShareMapping } from "@/lib/share/shareService";
 
 interface SharePageProps {
-  params: {
+  params: Promise<{
     code: string;
-  };
+  }>;
 }
 
 export default function SharePage({ params }: SharePageProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const code = params.code;
-    const mapping = getShareMapping(code);
-
-    if (!mapping) {
-      // Share not found or expired, redirect to home
-      router.push("/");
-      return;
-    }
-
-    // Redirect to main app with share parameters
-    const url = new URL("/", window.location.origin);
-    url.searchParams.set('share', code);
-    url.searchParams.set('wallet', mapping.wallet);
-    url.searchParams.set('file', mapping.filename);
+    // Next.js 15 requires awaiting params
+    let cancelled = false;
     
-    window.location.href = url.toString();
-  }, [params.code, router]);
+    params.then((resolvedParams) => {
+      if (cancelled) return;
+      
+      const code = resolvedParams.code;
+      const mapping = getShareMapping(code);
+
+      if (!mapping) {
+        // Share not found or expired, redirect to home
+        router.push("/");
+        return;
+      }
+
+      // Redirect to main app with share parameters
+      const url = new URL("/", window.location.origin);
+      url.searchParams.set('share', code);
+      url.searchParams.set('wallet', mapping.wallet);
+      url.searchParams.set('file', mapping.filename);
+      
+      window.location.href = url.toString();
+    });
+    
+    return () => { cancelled = true; };
+  }, [params, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0b0f14] text-white">

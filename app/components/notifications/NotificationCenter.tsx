@@ -4,19 +4,31 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { useNotifications } from "./useNotifications";
+import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 
-const GRADIENT = `
-  linear-gradient(
-    90deg,
-    #7dd3fc,
-    #a78bfa,
-    #f472b6,
-    #34d399,
-    #fbbf24,
-    #60a5fa,
-    #a78bfa
-  )
-`;
+// Helper function for notification style
+function getNotifStyle(type?: string) {
+  switch(type) {
+    case 'success': return {
+      icon: <CheckCircle2 size={16} strokeWidth={2} color="#10b981" />,
+      accent: '#10b981',
+      bg: 'rgba(16,185,129,0.08)',
+      border: 'rgba(16,185,129,0.2)'
+    }
+    case 'error': return {
+      icon: <AlertCircle size={16} strokeWidth={2} color="#ef4444" />,
+      accent: '#ef4444',
+      bg: 'rgba(239,68,68,0.08)',
+      border: 'rgba(239,68,68,0.2)'
+    }
+    default: return {
+      icon: <Info size={16} strokeWidth={2} color="#3b82f6" />,
+      accent: '#3b82f6',
+      bg: 'rgba(59,130,246,0.08)',
+      border: 'rgba(59,130,246,0.2)'
+    }
+  }
+}
 
 const variants = {
   hidden: { opacity: 0, y: -10, scale: 0.95 },
@@ -32,27 +44,25 @@ export default function NotificationCenter() {
     setMounted(true);
   }, []);
 
-  // SSR-safe: don't render anything on server
+  // SSR-safe: don't Render anything on server
   if (!mounted) {
     return null;
   }
 
   return createPortal(
     <div
-      className="
-        fixed
-        top-[64px]
-        right-[24px]
-        z-[70]
-        flex
-        flex-col
-        gap-2
-        pointer-events-none
-        max-h-[calc(100vh-150px)]
-        overflow-hidden
-        w-[400px]
-        max-w-[calc(100vw-48px)]
-      "
+      style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 70,
+        display: 'flex',
+        flexDirection: 'column-reverse',
+        gap: '8px',
+        width: '360px',
+        maxWidth: 'calc(100vw - 48px)',
+        pointerEvents: 'none'
+      }}
     >
       <AnimatePresence>
         {notifications.slice(-3).map((n) => ( // Max 3 notifications
@@ -63,42 +73,51 @@ export default function NotificationCenter() {
             animate="visible"
             exit="exit"
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="pointer-events-auto"
+            style={{ pointerEvents: 'auto' }}
             onClick={() => remove(n.id)}
           >
-            {/* GRADIENT BORDER */}
-            <div
-              className="
-                p-[1px]
-                rounded-[12px]
-                shadow-[0_20px_60px_rgba(0,0,0,0.6)]
-              "
-              style={{
-                background: GRADIENT,
-                backgroundSize: "400% 100%",
-                animation: "walletBorder 36s linear infinite",
-              }}
-            >
-              {/* NOTIFICATION BODY */}
-              <div
-                className="
-                  px-4 py-3
-                  rounded-[11px]
-                  text-sm
-                  backdrop-blur-xl
-                  bg-[#0b0f14]/95
-                  text-white
-                  cursor-pointer
-                  transition
-                  hover:bg-[#0b0f14]
-                  min-h-[auto]
-                  w-full
-                  whitespace-normal
-                  break-words
-                "
-              >
-                {n.message}
+            {/* NOTIFICATION BODY */}
+            <div style={{
+              padding: '12px 14px',
+              borderRadius: '11px',
+              background: '#0b0f14',
+              border: `1px solid ${getNotifStyle(n.type).border}`,
+              backdropFilter: 'blur(20px)',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'flex-start', gap: '10px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+            }}>
+              {/* Accent line kiri */}
+              <div style={{
+                width: '3px', height: '100%', minHeight: '20px',
+                borderRadius: '2px', flexShrink: 0,
+                background: getNotifStyle(n.type).accent
+              }} />
+              
+              {/* Icon */}
+              <div style={{ flexShrink: 0, marginTop: '1px' }}>
+                {getNotifStyle(n.type).icon}
               </div>
+              
+              {/* Message */}
+              <p style={{
+                flex: 1, fontSize: '0.825rem', color: '#e2e8f0',
+                margin: 0, lineHeight: 1.5
+              }}>
+                {n.message}
+              </p>
+              
+              {/* Close */}
+              <button
+                onClick={e => { e.stopPropagation(); remove(n.id) }}
+                style={{
+                  flexShrink: 0, background: 'none', border: 'none',
+                  color: '#475569', cursor: 'pointer', padding: '2px',
+                  display: 'flex', alignItems: 'center'
+                }}
+              >
+                <X size={13} strokeWidth={2.5} />
+              </button>
             </div>
           </motion.div>
         ))}

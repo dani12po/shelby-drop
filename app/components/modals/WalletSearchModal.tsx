@@ -5,7 +5,20 @@ import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { useExplorerModalController } from "@/components/explorer/core/useExplorerModalController";
 import { useWalletSearch } from "@/hooks/useWalletSearch";
-import { FileText } from "lucide-react";
+import { 
+  X, 
+  FileText, 
+  Image, 
+  Video, 
+  Music, 
+  Code, 
+  Archive, 
+  File,
+  ExternalLink,
+  Loader2,
+  AlertCircle,
+  FolderOpen
+} from "lucide-react";
 import type { ExplorerFile } from "@/lib/shelby/explorerService";
 
 const GRADIENT = `
@@ -33,18 +46,27 @@ export default function WalletSearchModal({
   onViewFile,
 }: Props) {
   const [mounted, setMounted] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const { openExplorer } = useExplorerModalController();
   const { state, result, error, searchWallet, isLoading, hasResults, isEmpty, hasError } = useWalletSearch();
 
+  // Set mounted state and portal target
   useEffect(() => {
     setMounted(true);
-    // Auto-search when wallet changes
-    if (wallet && mounted) {
+    setPortalTarget(document.body);
+  }, []);
+
+  // Separate effect for search to avoid auto-search bug
+  useEffect(() => {
+    if (mounted && wallet) {
       searchWallet(wallet);
     }
-  }, [wallet, mounted]);
+  }, [wallet, mounted, searchWallet]);
 
-  if (!mounted) return null;
+  if (!mounted || !portalTarget) return null;
+  
+  // Validate wallet before rendering
+  if (!wallet || wallet.length < 10) return null;
 
   const handleOpenExplorer = () => {
     openExplorer({ wallet });
@@ -53,12 +75,20 @@ export default function WalletSearchModal({
 
   const getFileIcon = (type?: string) => {
     switch (type) {
-      case 'image': return '🖼️';
-      case 'video': return '🎥';
-      case 'audio': return '🎵';
-      case 'document': return '📄';
-      case 'code': return '💻';
-      default: return '📁';
+      case 'image': 
+        return <Image className="w-5 h-5 text-purple-400" />;
+      case 'video': 
+        return <Video className="w-5 h-5 text-pink-400" />;
+      case 'audio': 
+        return <Music className="w-5 h-5 text-green-400" />;
+      case 'code': 
+        return <Code className="w-5 h-5 text-blue-400" />;
+      case 'archive': 
+        return <Archive className="w-5 h-5 text-yellow-400" />;
+      case 'document': 
+        return <FileText className="w-5 h-5 text-white/70" />;
+      default: 
+        return <File className="w-5 h-5 text-white/50" />;
     }
   };
 
@@ -66,36 +96,46 @@ export default function WalletSearchModal({
     <>
       {/* BACKDROP */}
       <motion.div
-        className="fixed inset-0 z-40 bg-black/60"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 50,
+          background: 'rgba(0,0,0,0.75)',
+          backdropFilter: 'blur(8px)',
+        }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         onClick={onClose}
       />
 
       {/* GRADIENT BORDER */}
       <motion.div
-        className="
-          fixed z-50
-          top-1/2 left-1/2
-          -translate-x-1/2 -translate-y-1/2
-          rounded-[28px]
-          p-[2px]
-        "
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
         style={{
-          background: GRADIENT,
-          backgroundSize: "400% 100%",
-          animation: "walletBorder 36s linear infinite",
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          x: '-50%',
+          y: '-50%',
+          zIndex: 60,
+          borderRadius: '28px',
+          padding: '2px',
+          background: 'linear-gradient(90deg, #7dd3fc, #a78bfa, #f472b6, #34d399, #fbbf24, #60a5fa, #a78bfa)',
+          backgroundSize: '400% 100%',
+          animation: 'walletBorder 4s linear infinite',
         }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* MODAL BODY */}
         <div
           className="
-            w-[750px]
-            h-[500px]
+            w-[600px]
+            min-h-[400px]
+            max-h-[80vh]
             rounded-[26px]
             bg-[#0b0f14]
             text-white
@@ -106,40 +146,66 @@ export default function WalletSearchModal({
         >
           {/* SAFE INNER PADDING */}
           <div className="flex flex-col h-full p-[15px]">
-            {/* HEADER */}
-            <div className="text-center pt-2 pb-6">
-              <h2 className="text-lg font-semibold">
-                Shelby Drop — Wallet Files
-              </h2>
-              <div className="mt-2 text-sm text-white/60 truncate">
-                {wallet}
+            {/* HEADER - centered */}
+            <div style={{ textAlign: 'center', paddingTop: '8px', paddingBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'absolute', right: '15px', top: '15px' }}>
+                <button
+                  onClick={onClose}
+                  style={{
+                    width: '32px', height: '32px',
+                    borderRadius: '8px', border: 'none',
+                    background: 'rgba(255,255,255,0.06)',
+                    color: '#94a3b8', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
+                    e.currentTarget.style.color = 'white'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
+                    e.currentTarget.style.color = '#94a3b8'
+                  }}
+                >
+                  <X size={16} strokeWidth={2} />
+                </button>
               </div>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', margin: 0 }}>
+                Wallet Files
+              </h2>
+              <p style={{
+                fontSize: '0.78rem', color: '#64748b',
+                fontFamily: 'monospace', marginTop: '6px'
+              }}>
+                {wallet.slice(0,6)}...{wallet.slice(-4)}
+              </p>
             </div>
 
             {/* CONTENT */}
             <div className="flex-1 px-6 overflow-auto">
-              <div className="mb-4 text-xs uppercase tracking-wide text-white/50">
-                Files
+              <div className="mb-4 text-xs text-white/50">
+                {result?.total || 0} files found
               </div>
 
               {isLoading && (
-                <div className="space-y-3 animate-pulse">
-                  <div className="h-10 rounded-full bg-white/10" />
-                  <div className="h-10 rounded-full bg-white/10" />
-                  <div className="h-10 rounded-full bg-white/10" />
+                <div className="py-12 text-center">
+                  <Loader2 className="w-8 h-8 mx-auto mb-4 text-purple-400 animate-spin" />
+                  <div className="text-sm text-white/60">Loading files...</div>
                 </div>
               )}
 
               {isEmpty && (
-                <div className="pt-16 text-center text-sm text-white/60">
-                  <FileText className="mx-auto mb-4 w-12 h-12 text-white/20" />
-                  No files found for this wallet
+                <div className="py-16 text-center">
+                  <FolderOpen className="mx-auto mb-4 w-12 h-12 text-white/20" />
+                  <div className="text-sm text-white/60">No files found for this wallet</div>
                 </div>
               )}
 
               {hasError && (
-                <div className="pt-16 text-center text-sm text-red-400">
-                  <div className="mb-2">Failed to load files</div>
+                <div className="py-16 text-center">
+                  <AlertCircle className="mx-auto mb-4 w-12 h-12 text-red-400" />
+                  <div className="text-sm text-red-400 mb-2">Failed to load files</div>
                   <div className="text-xs text-white/40">{error}</div>
                 </div>
               )}
@@ -147,60 +213,57 @@ export default function WalletSearchModal({
               {hasResults && (
                 <div className="space-y-3">
                   {result!.files.map((file: ExplorerFile, index: number) => (
-                    <div key={index} className="group relative">
-                      {/* HOVER GRADIENT */}
-                      <div
-                        className="
-                          absolute inset-0
-                          rounded-full
-                          p-[1.5px]
-                          opacity-0
-                          group-hover:opacity-100
-                          transition-opacity
-                        "
-                        style={{
-                          background: GRADIENT,
-                          backgroundSize: "400% 100%",
-                          animation: "walletBorder 28s linear infinite",
-                        }}
-                      >
-                        <div className="w-full h-full rounded-full bg-[#0b0f14]" />
-                      </div>
-
-                      {/* FILE ITEM */}
-                      <div
-                        className="
-                          relative z-10
-                          flex items-center justify-between
-                          rounded-full
-                          px-6 py-3
-                          bg-white/5
-                          hover:bg-white/10
-                          transition-colors
-                          cursor-pointer
-                          group
-                        "
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg">
-                            {getFileIcon(file.type)}
-                          </span>
-                          <div>
-                            <div className="text-sm font-medium">
-                              {file.name}
-                            </div>
-                            {file.size && (
-                              <div className="text-xs text-white/50">
-                                {file.size}
-                              </div>
-                            )}
-                          </div>
+                    <div 
+                      key={index} 
+                      className="
+                        group
+                        relative
+                        p-4
+                        rounded-xl
+                        bg-white/[0.03]
+                        border border-white/[0.06]
+                        hover:bg-white/[0.06]
+                        hover:border-white/[0.1]
+                        transition-all
+                        cursor-pointer
+                      "
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* ICON */}
+                        <div className="
+                          w-12 h-12 
+                          rounded-lg 
+                          bg-white/[0.05] 
+                          flex items-center justify-center
+                          border border-white/[0.06]
+                        ">
+                          {getFileIcon(file.type)}
                         </div>
 
+                        {/* FILE INFO */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">
+                            {file.name}
+                          </div>
+                          {file.size && (
+                            <div className="text-xs text-white/50">
+                              {file.size}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* VIEW BUTTON */}
                         {onViewFile && (
                           <button
                             onClick={() => onViewFile(file)}
-                            className="text-white/60 hover:text-white text-xs"
+                            className="
+                              px-4 py-2 
+                              rounded-lg 
+                              text-xs font-medium
+                              bg-white/10 hover:bg-white/20
+                              text-white/80 hover:text-white
+                              transition-colors
+                            "
                           >
                             View
                           </button>
@@ -213,34 +276,45 @@ export default function WalletSearchModal({
             </div>
 
             {/* FOOTER ACTIONS */}
-            <div className="pt-6 pb-4 flex flex-col items-center gap-[10px]">
+            <div className="pt-6 pb-4 flex flex-col gap-2">
               <button
                 onClick={handleOpenExplorer}
-                className="
-                  w-[50%]
-                  rounded-full
-                  bg-white
-                  hover:bg-white/90
-                  transition
-                  py-3
-                  text-sm font-medium
-                  text-black
-                "
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                  color: 'white',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
               >
+                <ExternalLink className="w-4 h-4" />
                 Open Explorer
               </button>
 
               <button
                 onClick={onClose}
-                className="
-                  w-[50%]
-                  rounded-full
-                  text-xs
-                  text-white/50
-                  py-2
-                  hover:text-white/70
-                  transition
-                "
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#475569',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  transition: 'color 0.2s',
+                  borderRadius: '10px',
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
+                onMouseLeave={e => e.currentTarget.style.color = '#475569'}
               >
                 Cancel
               </button>

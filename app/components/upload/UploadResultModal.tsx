@@ -12,7 +12,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Clock, AlertCircle, ExternalLink, Loader2, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  CheckCircle2, 
+  Clock, 
+  AlertCircle, 
+  ExternalLink, 
+  Loader2, 
+  X, 
+  Copy, 
+  RefreshCw 
+} from 'lucide-react';
 import { 
   UploadProgress, 
   UploadStatus, 
@@ -32,7 +43,7 @@ export function UploadResultModal({
   isOpen,
   onClose,
   initialProgress,
-  txHash,
+  txHash: initialTxHash,
   blobName,
   walletAddress,
 }: UploadResultModalProps) {
@@ -46,21 +57,26 @@ export function UploadResultModal({
   
   const [isPolling, setIsPolling] = useState(false);
   const [pollingService] = useState(() => new UploadPollingService());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Start polling when modal opens with transaction hash
   useEffect(() => {
-    if (isOpen && txHash && blobName && walletAddress && !isPolling) {
+    if (isOpen && initialTxHash && blobName && walletAddress && !isPolling) {
       setIsPolling(true);
       startPolling();
     }
-  }, [isOpen, txHash, blobName, walletAddress]);
+  }, [isOpen, initialTxHash, blobName, walletAddress]);
 
   const startPolling = async () => {
-    if (!txHash || !blobName || !walletAddress) return;
+    if (!initialTxHash || !blobName || !walletAddress) return;
 
     try {
       const result = await pollingService.verifyUpload(
-        txHash,
+        initialTxHash,
         blobName,
         walletAddress,
         (update) => setProgress(update)
@@ -79,200 +95,299 @@ export function UploadResultModal({
     }
   };
 
-  const getStatusIcon = (status: UploadStatus) => {
-    switch (status) {
-      case 'available_in_shelby':
-        return <CheckCircle2 className="w-6 h-6 text-green-500" />;
-      case 'transaction_confirmed':
-        return <CheckCircle2 className="w-6 h-6 text-blue-500" />;
-      case 'transaction_submitted':
-        return <Clock className="w-6 h-6 text-blue-500" />;
-      case 'indexing_on_shelby':
-        return <Clock className="w-6 h-6 text-yellow-500 animate-pulse" />;
-      case 'failed':
-        return <AlertCircle className="w-6 h-6 text-red-500" />;
-      case 'uploading':
-        return <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />;
-      default:
-        return <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />;
-    }
-  };
-
   const getStatusColor = (status: UploadStatus) => {
     switch (status) {
       case 'available_in_shelby':
-        return 'text-green-600 bg-green-50 border-green-200';
-      case 'transaction_confirmed':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'transaction_submitted':
-        return 'text-blue-500 bg-blue-50 border-blue-200';
-      case 'indexing_on_shelby':
-        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+        return { bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', text: '#10b981' };
       case 'failed':
-        return 'text-red-600 bg-red-50 border-red-200';
-      case 'uploading':
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)', text: '#ef4444' };
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return { bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.2)', text: '#8b5cf6' };
     }
   };
 
-  const getShortTxHash = (hash: string) => {
-    if (!hash || hash.length < 10) return hash;
-    return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
-  };
-
+  if (!mounted) return null;
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Upload Status
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+  const colors = getStatusColor(progress.status);
 
-        {/* Content */}
-        <div className="p-6">
-          {/* Status Display */}
-          <div className={`flex items-center gap-3 p-4 rounded-lg border ${getStatusColor(progress.status)}`}>
-            {getStatusIcon(progress.status)}
-            <div className="flex-1">
-              <div className="font-medium capitalize">
-                {progress.status.replace('_', ' ')}
-              </div>
-              <div className="text-sm opacity-75">
-                {progress.message}
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        style={{
+          position: 'fixed', inset: 0, zIndex: 50,
+          background: 'rgba(0,0,0,0.7)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '16px'
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      >
+        {/* Gradient border wrapper */}
+        <motion.div
+          style={{
+            borderRadius: '28px', padding: '2px',
+            background: 'linear-gradient(90deg, #7dd3fc, #a78bfa, #f472b6, #34d399, #fbbf24, #60a5fa, #a78bfa)',
+            backgroundSize: '400% 100%',
+            animation: 'walletBorder 4s linear infinite',
+            width: '480px', maxWidth: '100%'
+          }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{
+            background: '#0b0f14', borderRadius: '26px',
+            padding: '28px', color: 'white',
+            maxHeight: '85vh', overflowY: 'auto'
+          }}>
+
+            {/* Header */}
+            <div style={{
+              display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', marginBottom: '24px'
+            }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>
+                Upload Status
+              </h2>
+              <button onClick={onClose} style={{
+                width: '32px', height: '32px', borderRadius: '8px',
+                border: 'none', background: 'rgba(255,255,255,0.06)',
+                color: '#94a3b8', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <X size={16} strokeWidth={2} />
+              </button>
+            </div>
+
+            {/* Status card */}
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '14px',
+              padding: '16px',
+              background: colors.bg,
+              border: `1px solid ${colors.border}`,
+              borderRadius: '12px', marginBottom: '20px'
+            }}>
+              {/* Icon sesuai status */}
+              {progress.status === 'available_in_shelby' && (
+                <CheckCircle2 size={22} strokeWidth={2} color="#10b981" style={{flexShrink: 0, marginTop: '2px'}} />
+              )}
+              {progress.status === 'failed' && (
+                <AlertCircle size={22} strokeWidth={2} color="#ef4444" style={{flexShrink: 0, marginTop: '2px'}} />
+              )}
+              {progress.status === 'uploading' && (
+                <Loader2 size={22} strokeWidth={2} color="#3b82f6" style={{flexShrink: 0, marginTop: '2px', animation: 'spin 1s linear infinite'}} />
+              )}
+              {(progress.status === 'transaction_submitted' || 
+                progress.status === 'transaction_confirmed' ||
+                progress.status === 'indexing_on_shelby') && (
+                <Clock size={22} strokeWidth={2} color="#8b5cf6" style={{flexShrink: 0, marginTop: '2px'}} />
+              )}
+              <div>
+                <p style={{
+                  fontSize: '0.875rem', fontWeight: 600, margin: '0 0 4px',
+                  color: colors.text
+                }}>
+                  {progress.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                </p>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: 0 }}>
+                  {progress.message}
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Progress Bar */}
-          {progress.status !== 'available_in_shelby' && progress.status !== 'failed' && (
-            <div className="mt-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Progress</span>
-                <span>{progress.progress}%</span>
+            {/* Progress bar */}
+            {progress.status !== 'available_in_shelby' && 
+             progress.status !== 'failed' && (
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  fontSize: '0.75rem', color: '#64748b', marginBottom: '6px'
+                }}>
+                  <span>Progress</span>
+                  <span>{progress.progress}%</span>
+                </div>
+                <div style={{
+                  height: '6px', background: 'rgba(255,255,255,0.06)',
+                  borderRadius: '3px', overflow: 'hidden'
+                }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${progress.progress}%`,
+                    background: 'linear-gradient(90deg, #8b5cf6, #3b82f6)',
+                    borderRadius: '3px',
+                    transition: 'width 0.4s ease'
+                  }} />
+                </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${progress.progress}%` }}
-                />
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Transaction Hash */}
-          {progress.txHash && (
-            <div className="mt-6">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Transaction Hash
+            {/* Tx Hash */}
+            {progress.txHash && (
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{
+                  fontSize: '0.72rem', color: '#475569',
+                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  marginBottom: '8px', fontWeight: 600
+                }}>
+                  Transaction Hash
+                </p>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '10px 14px',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: '10px'
+                }}>
+                  <code style={{
+                    flex: 1, fontSize: '0.8rem', fontFamily: 'monospace',
+                    color: '#94a3b8'
+                  }}>
+                    {progress.txHash.slice(0, 8)}...{progress.txHash.slice(-6)}
+                  </code>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(progress.txHash || '')}
+                    style={{
+                      background: 'none', border: 'none',
+                      color: '#64748b', cursor: 'pointer', padding: '2px'
+                    }}
+                  >
+                    <Copy size={14} strokeWidth={2} />
+                  </button>
+                  {progress.aptosExplorer && (
+                    <a
+                      href={progress.aptosExplorer}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ color: '#64748b', display: 'flex' }}
+                    >
+                      <ExternalLink size={14} strokeWidth={2} />
+                    </a>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                <code className="text-sm font-mono text-gray-800">
-                  {getShortTxHash(progress.txHash)}
-                </code>
+            )}
+
+            {/* Explorer links */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+              {progress.aptosExplorer && (
                 <a
                   href={progress.aptosExplorer}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                  target="_blank" rel="noopener noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 14px',
+                    background: 'rgba(59,130,246,0.06)',
+                    border: '1px solid rgba(59,130,246,0.15)',
+                    borderRadius: '10px',
+                    color: '#60a5fa', fontSize: '0.875rem',
+                    textDecoration: 'none', fontWeight: 500
+                  }}
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <span>View on Aptos Explorer</span>
+                  <ExternalLink size={14} strokeWidth={2} />
                 </a>
-              </div>
-            </div>
-          )}
-
-          {/* Explorer Links */}
-          <div className="mt-6 space-y-3">
-            {progress.aptosExplorer && (
-              <a
-                href={progress.aptosExplorer}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <span className="text-sm font-medium text-blue-900">
-                  View on Aptos Explorer
-                </span>
-                <ExternalLink className="w-4 h-4 text-blue-600" />
-              </a>
-            )}
-
-            {progress.shelbyExplorer && (
-              <a
-                href={progress.shelbyExplorer}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                <span className="text-sm font-medium text-green-900">
-                  {progress.status === 'available_in_shelby' 
-                    ? 'Open in Shelby Explorer' 
+              )}
+              {progress.shelbyExplorer && (
+                <a
+                  href={progress.shelbyExplorer}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 14px',
+                    background: 'rgba(16,185,129,0.06)',
+                    border: '1px solid rgba(16,185,129,0.15)',
+                    borderRadius: '10px',
+                    color: '#34d399', fontSize: '0.875rem',
+                    textDecoration: 'none', fontWeight: 500
+                  }}
+                >
+                  <span>{progress.status === 'available_in_shelby'
+                    ? 'Open in Shelby Explorer'
                     : 'Check Shelby Explorer'
-                  }
-                </span>
-                <ExternalLink className="w-4 h-4 text-green-600" />
-              </a>
-            )}
-          </div>
-
-          {/* Error Display */}
-          {progress.error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="text-sm text-red-800">
-                <strong>Error:</strong> {progress.error}
-              </div>
-            </div>
-          )}
-
-          {/* File Info */}
-          {blobName && (
-            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-sm text-gray-600">
-                <strong>File:</strong> {blobName}
-              </div>
-              {walletAddress && (
-                <div className="text-sm text-gray-600">
-                  <strong>Wallet:</strong> {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                </div>
+                  }</span>
+                  <ExternalLink size={14} strokeWidth={2} />
+                </a>
               )}
             </div>
-          )}
-        </div>
 
-        {/* Footer */}
-        <div className="p-6 border-t border-gray-200">
-          <div className="flex justify-end gap-3">
-            {progress.status === 'failed' && (
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Retry Upload
-              </button>
+            {/* Error */}
+            {progress.error && (
+              <div style={{
+                padding: '12px 14px', marginBottom: '16px',
+                background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.2)',
+                borderRadius: '10px'
+              }}>
+                <p style={{ fontSize: '0.8rem', color: '#fca5a5', margin: 0 }}>
+                  {progress.error}
+                </p>
+              </div>
             )}
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Close
-            </button>
+
+            {/* File info */}
+            {blobName && (
+              <div style={{
+                padding: '12px 14px', marginBottom: '20px',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '10px'
+              }}>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0 0 4px' }}>
+                  <span style={{ color: '#94a3b8' }}>File: </span>{blobName}
+                </p>
+                {walletAddress && (
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0, fontFamily: 'monospace' }}>
+                    <span style={{ color: '#94a3b8', fontFamily: 'inherit' }}>Wallet: </span>
+                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Footer actions */}
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              {progress.status === 'failed' && (
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '10px 20px', borderRadius: '8px',
+                    background: 'rgba(59,130,246,0.15)',
+                    border: '1px solid rgba(59,130,246,0.3)',
+                    color: '#60a5fa', fontSize: '0.85rem',
+                    fontWeight: 600, cursor: 'pointer'
+                  }}
+                >
+                  <RefreshCw size={14} strokeWidth={2} />
+                  Retry
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                style={{
+                  padding: '10px 24px', borderRadius: '8px', border: 'none',
+                  background: progress.status === 'available_in_shelby'
+                    ? 'linear-gradient(135deg, #8b5cf6, #3b82f6)'
+                    : 'rgba(255,255,255,0.06)',
+                  color: 'white', fontSize: '0.85rem',
+                  fontWeight: 600, cursor: 'pointer'
+                }}
+              >
+                {progress.status === 'available_in_shelby' ? 'Done' : 'Close'}
+              </button>
+            </div>
+
           </div>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
   );
 }

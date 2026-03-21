@@ -1,60 +1,87 @@
 "use client";
 
-import { useState } from "react";
-import { searchWalletFilesClient, isValidWalletAddress, type ExplorerSearchResult } from "@/lib/shelby/explorerClientService";
+import { useState, useCallback } from "react";
 
 export type WalletSearchState = "idle" | "loading" | "found" | "empty" | "error";
 
+export type SearchFile = {
+  id: string;
+  name: string;
+  size?: string;
+  type?: string;
+  blobId?: string;
+  createdAt?: string;
+};
+
+export type SearchResult = {
+  wallet: string;
+  files: SearchFile[];
+  total: number;
+};
+
 export function useWalletSearch() {
   const [state, setState] = useState<WalletSearchState>("idle");
-  const [result, setResult] = useState<ExplorerSearchResult | null>(null);
+  const [result, setResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const searchWallet = async (walletAddress: string) => {
-    // Reset state
+  const searchWallet = useCallback(async (walletAddress: string) => {
     setState("loading");
     setError(null);
     setResult(null);
 
     try {
-      // Validate wallet address format
-      if (!isValidWalletAddress(walletAddress)) {
-        throw new Error("Invalid wallet address format. Please enter a valid Aptos address.");
+      // Fetch dari API route kita sendiri
+      const res = await fetch(
+        `/api/shelby/list?wallet=${encodeURIComponent(walletAddress)}`
+      );
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to fetch wallet files");
       }
 
-      // Search for files
-      const searchResult = await searchWalletFilesClient(walletAddress);
+      const data = await res.json();
       
+      const searchResult: SearchResult = {
+        wallet: walletAddress,
+        files: (data.files || []).map((f: any) => ({
+          id: f.id || f.blob_id || Math.random().toString(),
+          name: f.name || "Unknown",
+          size: f.size ? formatSize(f.size) : undefined,
+          type: f.file_type?.toLowerCase() || "other",
+          blobId: f.blob_id,
+          createdAt: f.created_at,
+        })),
+        total: data.total || 0,
+      };
+
       setResult(searchResult);
-      
-      if (searchResult.files.length === 0) {
-        setState("empty");
-      } else {
-        setState("found");
-      }
-      
+      setState(searchResult.files.length === 0 ? "empty" : "found");
+
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to search wallet";
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : "Search failed");
       setState("error");
     }
-  };
+  }, []);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setState("idle");
     setResult(null);
     setError(null);
-  };
+  }, []);
 
   return {
-    state,
-    result,
-    error,
-    searchWallet,
-    reset,
+    state, result, error, searchWallet, reset,
     isLoading: state === "loading",
-    hasResults: state === "found" && result !== null,
+    hasResults: state === "found",
     isEmpty: state === "empty",
     hasError: state === "error",
   };
+}
+
+function formatSize(bytes: number): string {
+  if (!bytes) return "0 B";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

@@ -338,17 +338,15 @@ export default function ExplorerModal({
 
           {/* GRADIENT BORDER */}
           <motion.div
-            className="
-              fixed z-60
-              top-1/2 left-1/2
-              -translate-x-1/2 -translate-y-1/2
-              rounded-[28px]
-              p-[2px]
-            "
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
             style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              x: '-50%',
+              y: '-50%',
+              zIndex: 60,
+              borderRadius: '28px',
+              padding: '2px',
               background: `
                 linear-gradient(
                   90deg,
@@ -364,12 +362,26 @@ export default function ExplorerModal({
               backgroundSize: "400% 100%",
               animation: "walletBorder 36s linear infinite",
             }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* MODAL BODY */}
-            <div className="w-[1100px] max-w-[95vw] h-[720px] max-h-[90vh] rounded-[26px] bg-[#0b0f14] shadow-[0_30px_120px_rgba(0,0,0,0.7)] p-[15px] text-white">
+            <div style={{
+              width: '1000px', maxWidth: '95vw',
+              height: '75vh', maxHeight: '780px',
+              minHeight: '500px',
+              borderRadius: '26px',
+              background: '#0b0f14',
+              padding: '24px',
+              color: 'white',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
               {/* HEADER - CENTERED TITLE */}
-              <div className="flex items-center justify-between mb-6">
+              <div style={{ flexShrink: 0, marginBottom: '16px' }}>
                 <div className="flex-1" /> {/* Left spacer */}
                 <div className="text-center">
                   <h2 className="text-xl font-bold text-white">
@@ -382,15 +394,36 @@ export default function ExplorerModal({
                 <div className="flex-1 flex justify-end">
                   <button
                     onClick={onClose}
-                    className="text-white/40 hover:text-white p-2 rounded-md hover:bg-white/10 transition-colors"
+                    style={{
+                      width: '32px', height: '32px',
+                      borderRadius: '8px', border: 'none',
+                      background: 'rgba(255,255,255,0.06)',
+                      color: '#94a3b8', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
+                      e.currentTarget.style.color = 'white'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
+                      e.currentTarget.style.color = '#94a3b8'
+                    }}
                   >
-                    <X size={20} />
+                    <X size={16} strokeWidth={2} />
                   </button>
                 </div>
               </div>
 
               {/* ACTION BAR */}
-              <div className="flex justify-center gap-2 mb-4">
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                marginBottom: '12px',
+                flexWrap: 'wrap',
+                flexShrink: 0,
+              }}>
                 <ActionButton
                   icon={<Eye size={16} />}
                   label="View"
@@ -434,7 +467,7 @@ export default function ExplorerModal({
               </div>
 
               {/* BREADCRUMB */}
-              <div className="mb-4">
+              <div style={{ flexShrink: 0, marginBottom: '12px' }}>
                 <ExplorerBreadcrumb
                   path={path}
                   onNavigate={setPath}
@@ -442,10 +475,24 @@ export default function ExplorerModal({
               </div>
 
               {/* MAIN CONTENT AREA */}
-              <div className="flex gap-[15px] flex-1 min-h-0">
+              <div style={{
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                gap: '15px'
+              }}>
                 {/* FILE LIST - FULL WIDTH */}
-                <div className="flex-1 rounded-xl bg-black/30 overflow-hidden">
-                  <div className="flex-1 overflow-auto p-3">
+                <div style={{
+                  flex: 1,
+                  borderRadius: '12px',
+                  background: 'rgba(0,0,0,0.3)',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    height: '100%',
+                    overflowY: 'auto',
+                    padding: '12px'
+                  }}>
                     {!loading && !error && (
                       <ExplorerList
                         items={items}
@@ -543,14 +590,42 @@ function ActionButton({
       disabled={disabled}
       onClick={onClick}
       title={label}
-      className={`p-2 rounded-lg border transition flex items-center justify-center
-        ${
-          disabled
-            ? "border-white/10 text-white/30 cursor-not-allowed"
-            : "border-white/20 text-white hover:bg-white/10"
-        }`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '8px 14px',
+        borderRadius: '8px',
+        border: `1px solid ${disabled
+          ? 'rgba(255,255,255,0.06)'
+          : 'rgba(255,255,255,0.15)'}`,
+        background: disabled
+          ? 'transparent'
+          : 'rgba(255,255,255,0.06)',
+        color: disabled ? '#334155' : '#cbd5e1',
+        fontSize: '0.8rem',
+        fontWeight: 500,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'all 0.15s',
+        whiteSpace: 'nowrap',
+      }}
+      onMouseEnter={e => {
+        if (!disabled) {
+          e.currentTarget.style.background = 'rgba(139,92,246,0.15)'
+          e.currentTarget.style.borderColor = 'rgba(139,92,246,0.4)'
+          e.currentTarget.style.color = 'white'
+        }
+      }}
+      onMouseLeave={e => {
+        if (!disabled) {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
+          e.currentTarget.style.color = '#cbd5e1'
+        }
+      }}
     >
       {icon}
+      <span>{label}</span>
     </button>
   );
 }

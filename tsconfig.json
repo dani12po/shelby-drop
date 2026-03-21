@@ -16,7 +16,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "incremental": true,
     "plugins": [
       {
@@ -31,6 +31,21 @@
     "paths": {
       "@/*": [
         "./app/*"
+      ],
+      "@/components/*": [
+        "./app/components/*"
+      ],
+      "@/lib/*": [
+        "./app/lib/*"
+      ],
+      "@/hooks/*": [
+        "./app/hooks/*"
+      ],
+      "@/types/*": [
+        "./app/types/*"
+      ],
+      "@/config/*": [
+        "./app/config/*"
       ]
     }
   },

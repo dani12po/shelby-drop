@@ -7,7 +7,7 @@
 
 import type { ExplorerItem, ExplorerFileItem } from "@/types/explorer";
 import type { FileItemData, FolderItem } from "@/lib/data";
-import { searchWalletFiles, getShelbyFileUrl } from "@/lib/shelby/explorerService";
+import { searchWalletFilesClient } from "@/lib/shelby/explorerClientService";
 
 /**
  * Gets MIME type from filename
@@ -96,8 +96,8 @@ export async function loadWalletFilesFromShelby(wallet: string): Promise<{
   rawItems: (FileItemData | FolderItem)[];
 }> {
   try {
-    // Search for files in Shelby Explorer
-    const searchResult = await searchWalletFiles(wallet);
+    // Search for files in Shelby Explorer via client API
+    const searchResult = await searchWalletFilesClient(wallet);
     
     // Convert to ExplorerItem format
     const explorerItems = adaptShelbyFilesToExplorerItems(wallet, searchResult.files);

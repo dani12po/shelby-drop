@@ -25,6 +25,11 @@ export default function WalletSearchController({
 }: Props) {
   const { openExplorer } = useExplorerModalController();
 
+  // Validate wallet before rendering modal
+  if (!wallet || wallet.length < 10) {
+    return null;
+  }
+
   const handleViewFile = useCallback((file: any) => {
     // For now, just open Explorer with the file selected
     // In the future, this could open a preview modal

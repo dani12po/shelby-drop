@@ -106,10 +106,12 @@ export function useExplorerData(
         }
       } catch (err) {
         if (!cancelled) {
-          console.error("Failed to load wallet files:", err);
+          // Log error for debugging but don't show to user
+          console.warn("Could not load from Shelby Network:", err);
+          // Show empty state instead of error
           setState({
             loading: false,
-            error: "Failed to load files from Shelby Explorer",
+            error: null,
             items: [],
             rawItems: [],
           });

@@ -25,7 +25,7 @@ import { shelbyConfig } from "@/config/shelby";
 export interface UploadArgs {
   file: File;
   blobName: string;
-  expirationMicros: number;
+  expirationMicros: number | bigint;
 }
 
 export interface UploadResult {
@@ -57,44 +57,40 @@ export class AptosShelbyUploader {
 
   constructor() {
     console.log("🔧 INITIALIZING APTOS-SHELBY UPLOADER");
-    
-    // Validate configuration
     this.validateConfiguration();
-    
-    // Initialize Aptos client
-    const network = Network.SHELBYNET; // Use SHELBYNET for Shelby network
+
+    // Aptos client dengan custom Shelby endpoint
     const aptosConfig = new AptosConfig({
-      network,
-      fullnode: shelbyConfig.aptosNodeUrl,
-      indexer: shelbyConfig.aptosIndexerUrl,
+      network: Network.CUSTOM,
+      fullnode: process.env.APTOS_NODE_URL || 'https://api.testnet.shelby.xyz/v1',
+      indexer: process.env.APTOS_INDEXER_URL || 'https://api.testnet.shelby.xyz/v1/graphql',
     });
-    
+
     this.aptos = new Aptos(aptosConfig);
-    
-    // Initialize account from private key
-    const privateKey = shelbyConfig.accountPrivateKey;
+
+    const privateKey = process.env.SHELBY_ACCOUNT_PRIVATE_KEY!;
     console.log("🔑 PRIVATE KEY FORMAT CHECK:", privateKey.substring(0, 20) + "...");
-    
+
     if (!privateKey.startsWith('ed25519-priv-')) {
       throw new Error('Invalid private key format. Expected: ed25519-priv-...');
     }
-    
+
     this.account = Account.fromPrivateKey({
       privateKey: new Ed25519PrivateKey(privateKey),
     });
-    
+
     this.accountAddress = this.account.accountAddress.toString();
-    
-    // Initialize Shelby client
+
+    // ✅ ShelbyNodeClient support "testnet"
     this.shelbyClient = new ShelbyNodeClient({
-      network: Network.SHELBYNET,
-      apiKey: shelbyConfig.apiKey,
+      network: 'testnet' as any,
+      apiKey: process.env.SHELBY_API_KEY!,
     });
-    
+
     console.log("✅ UPLOADER INITIALIZED:", {
-      network: shelbyConfig.aptosNetwork,
+      network: 'testnet',
       accountAddress: this.accountAddress,
-      hasApiKey: !!shelbyConfig.apiKey,
+      hasApiKey: !!process.env.SHELBY_API_KEY,
     });
   }
 
@@ -145,11 +141,13 @@ export class AptosShelbyUploader {
 
       // Step 2: Upload to Shelby (this creates the blob)
       console.log("📤 STEP 1: UPLOADING TO SHELBY...");
+      // Convert bigint to number if needed
+      const expirationMicros = Number(args.expirationMicros);
       await this.shelbyClient.upload({
         blobData: fileBuffer,
         signer: this.account,
         blobName: args.blobName,
-        expirationMicros: args.expirationMicros,
+        expirationMicros: expirationMicros as number,
       });
       
       console.log("✅ SHELBY UPLOAD COMPLETED");

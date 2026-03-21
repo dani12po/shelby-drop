@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, X, ExternalLink } from "lucide-react";
 import { Notification } from "./NotificationProvider";
 import { 
   shortenTxHash, 
@@ -19,86 +19,99 @@ export default function NotificationItem({
   notification: Notification;
   onClose: () => void;
 }) {
-  const color =
-    notification.type === "success"
-      ? "border-green-500"
-      : notification.type === "error"
-      ? "border-red-500"
-      : "border-blue-500";
+  const styles = {
+    success: { color: '#10b981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.15)' },
+    error:   { color: '#ef4444', bg: 'rgba(239,68,68,0.08)',  border: 'rgba(239,68,68,0.15)'  },
+    info:    { color: '#3b82f6', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.15)' },
+  };
+  const s = styles[notification.type] || styles.info;
 
-  const textColor =
-    notification.type === "success"
-      ? "text-green-400"
-      : notification.type === "error"
-      ? "text-red-400"
-      : "text-blue-400";
+  const icons = {
+    success: <CheckCircle2 size={16} strokeWidth={2} color={s.color} />,
+    error:   <AlertCircle  size={16} strokeWidth={2} color={s.color} />,
+    info:    <Info         size={16} strokeWidth={2} color={s.color} />,
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className={`
-        w-[320px] min-h-[60px]
-        bg-black/70 backdrop-blur
-        border-l-4 ${color}
-        rounded-md
-        px-3 py-2 flex flex-col
-        text-sm text-white
-        shadow-lg relative
-      `}
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 40 }}
+      style={{
+        width: '340px',
+        background: '#0b0f14',
+        border: `1px solid ${s.border}`,
+        borderLeft: `3px solid ${s.color}`,
+        borderRadius: '10px',
+        padding: '12px 14px',
+        display: 'flex', flexDirection: 'column', gap: '6px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        position: 'relative'
+      }}
     >
-      {/* Title */}
-      {notification.title && (
-        <div className={`font-medium ${textColor} mb-1`}>
-          {notification.title}
-        </div>
-      )}
-
-      {/* Message */}
-      <div className="text-white text-xs mb-2">
-        {notification.message}
+      {/* Title row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {icons[notification.type] || icons.info}
+        {notification.title && (
+          <span style={{ fontSize: '0.825rem', fontWeight: 600, color: '#f1f5f9' }}>
+            {notification.title}
+          </span>
+        )}
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          style={{
+            marginLeft: 'auto', background: 'none', border: 'none',
+            color: '#475569', cursor: 'pointer', padding: '2px',
+            display: 'flex', alignItems: 'center'
+          }}
+        >
+          <X size={13} strokeWidth={2.5} />
+        </button>
       </div>
 
-      {/* Wallet Info */}
+      {/* Message */}
+      <p style={{ fontSize: '0.775rem', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+        {notification.message}
+      </p>
+
+      {/* Wallet link */}
       {notification.wallet && isValidWalletAddress(notification.wallet) && (
-        <div className="flex items-center gap-2 text-xs text-white/70 mb-1">
-          <span>Wallet:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '0.72rem', color: '#475569' }}>Wallet:</span>
           <a
             href={buildWalletExplorerUrl(notification.wallet)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-cyan-400 hover:text-cyan-300 underline flex items-center gap-1"
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              fontSize: '0.72rem', color: '#06b6d4',
+              textDecoration: 'none', fontFamily: 'monospace',
+              display: 'flex', alignItems: 'center', gap: '4px'
+            }}
           >
             {shortenWallet(notification.wallet)}
-            <ExternalLink size={10} />
+            <ExternalLink size={10} strokeWidth={2} />
           </a>
         </div>
       )}
 
-      {/* Transaction Hash */}
+      {/* Tx hash link */}
       {notification.txHash && isValidHash(notification.txHash) && (
-        <div className="flex items-center gap-2 text-xs text-white/70">
-          <span>Tx:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '0.72rem', color: '#475569' }}>Tx:</span>
           <a
             href={buildTxExplorerUrl(notification.txHash)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-cyan-400 hover:text-cyan-300 underline flex items-center gap-1"
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              fontSize: '0.72rem', color: '#06b6d4',
+              textDecoration: 'none', fontFamily: 'monospace',
+              display: 'flex', alignItems: 'center', gap: '4px'
+            }}
           >
             {shortenTxHash(notification.txHash)}
-            <ExternalLink size={10} />
+            <ExternalLink size={10} strokeWidth={2} />
           </a>
         </div>
       )}
-
-      {/* Close Button */}
-      <button
-        onClick={onClose}
-        className="absolute top-2 right-2 text-white/60 hover:text-white text-xs"
-      >
-        ✕
-      </button>
     </motion.div>
   );
 }

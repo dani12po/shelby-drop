@@ -65,18 +65,15 @@ export default function MetadataModal({
 
           {/* GRADIENT BORDER */}
           <motion.div
-            className="
-              fixed z-70
-              top-1/2 left-1/2
-              -translate-x-1/2 -translate-y-1/2
-              rounded-[26px]
-              p-[2px]
-            "
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
             style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              x: '-50%',
+              y: '-50%',
+              zIndex: 70,
+              borderRadius: '26px',
+              padding: '2px',
               background: `
                 linear-gradient(
                   90deg,
@@ -91,6 +88,10 @@ export default function MetadataModal({
               backgroundSize: "400% 100%",
               animation: "walletBorder 32s linear infinite",
             }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
           >
             {/* SOLID MODAL */}
             <div

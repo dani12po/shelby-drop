@@ -85,10 +85,12 @@ export default function ExplorerRow({
         select-none
         transition
         cursor-default
+        bg-[rgba(255,255,255,0.02)]
+        border-b border-[rgba(255,255,255,0.04)]
         ${
           selected
             ? "bg-purple-500/15 border border-purple-400/40"
-            : "hover:bg-white/5"
+            : "hover:bg-purple-500/08"
         }
       `}
     >

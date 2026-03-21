@@ -6,8 +6,8 @@
  */
 
 export const shelbyConfig = {
-  // Network configuration
-  aptosNetwork: process.env.APTOS_NETWORK || 'devnet',
+  // Network configuration - Use SHELBYNET for Shelby Network
+  aptosNetwork: process.env.APTOS_NETWORK || 'shelbynet',
   shelbyNetwork: process.env.SHELBY_NETWORK || 'shelbynet',
   
   // Account configuration (server-side only)
@@ -17,13 +17,13 @@ export const shelbyConfig = {
   // API configuration
   apiKey: process.env.SHELBY_API_KEY || '',
   
-  // Aptos API endpoints
-  aptosNodeUrl: process.env.APTOS_NODE_URL || 'https://api.shelbynet.shelby.xyz/v1',
-  aptosIndexerUrl: process.env.APTOS_INDEXER_URL || 'https://api.shelbynet.shelby.xyz/v1/graphql',
+  // Aptos API endpoints - Use Shelby testnet endpoints
+  aptosNodeUrl: process.env.APTOS_NODE_URL || 'https://api.testnet.shelby.xyz/v1',
+  aptosIndexerUrl: process.env.APTOS_INDEXER_URL || 'https://api.testnet.shelby.xyz/v1/graphql',
   
   // Explorer URLs
   aptosExplorerBase: process.env.APTOS_EXPLORER_BASE || 'https://explorer.aptoslabs.com',
-  shelbyExplorerBase: process.env.SHELBY_EXPLORER_BASE || 'https://explorer.shelby.xyz/shelbynet',
+  shelbyExplorerBase: process.env.SHELBY_EXPLORER_BASE || 'https://explorer.shelby.xyz/testnet',
   
   // Shelby configuration
   signingSecret: process.env.SHELBY_SIGNING_SECRET || '',
@@ -34,17 +34,17 @@ export const shelbyConfig = {
   // Helper methods
   getTransactionUrl: (txHash: string) => {
     const baseUrl = process.env.APTOS_EXPLORER_BASE || 'https://explorer.aptoslabs.com';
-    const network = process.env.APTOS_NETWORK || 'devnet';
+    const network = process.env.APTOS_NETWORK || 'shelbynet';
     return `${baseUrl}/txn/${txHash}?network=${network}`;
   },
   
   getExplorerUrl: (walletAddress: string) => {
-    const baseUrl = process.env.SHELBY_EXPLORER_BASE || 'https://explorer.shelby.xyz/shelbynet';
+    const baseUrl = process.env.SHELBY_EXPLORER_BASE || 'https://explorer.shelby.xyz/testnet';
     return `${baseUrl}/account/${walletAddress}`;
   },
   
   getShelbyTransactionUrl: (txHash: string) => {
-    const baseUrl = process.env.SHELBY_EXPLORER_BASE || 'https://explorer.shelby.xyz/shelbynet';
+    const baseUrl = process.env.SHELBY_EXPLORER_BASE || 'https://explorer.shelby.xyz/testnet';
     return `${baseUrl}/tx/${txHash}`;
   },
   

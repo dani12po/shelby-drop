@@ -85,11 +85,11 @@ export default function BaseModal({
           className={`
             fixed z-50
             top-1/2 left-1/2
-            -translate-x-1/2 -translate-y-1/2
             rounded-[28px]
             p-[2px]
             ${sizeClasses[size]}
           `}
+          transformTemplate={({ scale }) => `translate(-50%, -50%) scale(${scale})`}
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}

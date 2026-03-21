@@ -56,10 +56,14 @@ export async function uploadToShelby({
   /* ===============================
      FORM DATA
   ================================ */
+  // Generate blobName from filename + timestamp
+  const blobName = `${Date.now()}-${file.name}`;
+  
   const formData = new FormData();
   formData.append("file", file);
   formData.append("wallet", wallet);
   formData.append("path", path.join("/"));
+  formData.append("blobName", blobName);  // ← Required field
   formData.append(
     "retentionDays",
     String(retentionDays)

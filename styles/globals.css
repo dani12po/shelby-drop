@@ -3,31 +3,35 @@
 @tailwind utilities;
 
 /* ===============================
-   ROOT
-================================ */
+   ROOT - DESIGN SYSTEM
+============================== */
 :root {
-  --c1: #0b0f14;
-  --c2: #0f1220;
-  --c3: #101a2e;
-  --c4: #0d1f2d;
-  --c5: #1a0f2e;
-  --c6: #0b1a20;
-  --c7: #1a120b;
-
-  --glow-blue: rgba(120, 180, 255, 0.16);
-  --glow-purple: rgba(180, 120, 255, 0.16);
-  --glow-green: rgba(120, 255, 200, 0.12);
-  --glow-amber: rgba(255, 180, 120, 0.1);
-
-  --text-main: #ffffff;
-  --text-muted: rgba(255, 255, 255, 0.6);
-
-  --radius-pill: 999px;
+  --bg-primary: #050508;
+  --bg-secondary: #0a0a0f;
+  --bg-card: #0f0f17;
+  --bg-card-hover: #14141f;
+  --border: rgba(255,255,255,0.06);
+  --border-hover: rgba(139,92,246,0.4);
+  --accent: #8b5cf6;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --glow: rgba(139,92,246,0.15);
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
 }
 
 /* ===============================
    RESET
-================================ */
+============================== */
 *,
 *::before,
 *::after {
@@ -37,155 +41,322 @@
 html,
 body {
   height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  color: var(--text-main);
-  font-family: ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-
-  background:
-    radial-gradient(1200px 650px at 20% 10%, var(--glow-blue), transparent 60%),
-    radial-gradient(900px 520px at 85% 15%, var(--glow-purple), transparent 60%),
-    radial-gradient(750px 520px at 50% 85%, var(--glow-green), transparent 60%),
-    radial-gradient(650px 450px at 10% 80%, var(--glow-amber), transparent 65%),
-    linear-gradient(
-      135deg,
-      var(--c1),
-      var(--c2),
-      var(--c3),
-      var(--c4),
-      var(--c5),
-      var(--c6),
-      var(--c7)
-    );
-
-  background-size: 240% 240%;
-  animation: cinematicDrop 28s ease-in-out infinite;
+  color: var(--text-primary);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg-primary);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Grid pattern background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(139,92,246,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,92,246,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===============================
+   TYPOGRAPHY
+============================== */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+}
+
+code, pre, .font-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
 }
 
 /* ===============================
    ANIMATIONS
-================================ */
-@keyframes cinematicDrop {
-  0%   { background-position: 0% 50%; filter: hue-rotate(0deg); }
-  14%  { background-position: 20% 45%; filter: hue-rotate(20deg); }
-  28%  { background-position: 40% 55%; filter: hue-rotate(40deg); }
-  42%  { background-position: 60% 50%; filter: hue-rotate(60deg); }
-  56%  { background-position: 80% 45%; filter: hue-rotate(80deg); }
-  70%  { background-position: 60% 55%; filter: hue-rotate(100deg); }
-  84%  { background-position: 30% 50%; filter: hue-rotate(120deg); }
-  100% { background-position: 0% 50%; filter: hue-rotate(140deg); }
+============================== */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px var(--glow); }
+  50% { box-shadow: 0 0 40px var(--glow), 0 0 60px var(--glow); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes count-up {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.05); }
+  66%       { transform: translate(-20px, 15px) scale(0.95); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(-25px, 20px) scale(1.03); }
+  66%       { transform: translate(20px, -15px) scale(0.97); }
 }
 
 @keyframes walletBorder {
   0%   { background-position: 0% 50%; }
-  100% { background-position: 400% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-@keyframes dropdown {
-  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* ===============================
-   MICRO INTERACTION
-================================ */
-* {
-  transition:
-    background-color 0.35s ease,
-    box-shadow 0.35s ease,
-    transform 0.25s ease,
-    opacity 0.25s ease,
-    filter 0.4s ease;
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* ===============================
-   FORM & BUTTON
-================================ */
-button,
-input {
+   GLASSMORPHISM
+============================== */
+.glass {
+  background: rgba(15, 15, 23, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
+}
+
+/* ===============================
+   GRADIENTS
+============================== */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-blue) 50%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-blue), var(--accent-cyan));
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: gradient-shift 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-blue) 100%);
+}
+
+/* ===============================
+   BUTTONS
+============================== */
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-blue) 100%);
+  color: white;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
+}
+
+/* ===============================
+   INPUTS
+============================== */
+.input-glass {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   outline: none;
-  border: none;
-  color: var(--text-main);
-  font-family: inherit;
 }
 
-button {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-  border-radius: var(--radius-pill);
-  padding: 0.45rem 0.9rem;
-  cursor: pointer;
+.input-glass::placeholder {
+  color: var(--text-muted);
 }
 
-button:hover,
-input:focus {
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.12),
-    0 0 22px rgba(255, 255, 255, 0.1);
-}
-
-button:hover,
-input:hover {
-  transform: scale(1.015);
-}
-
-button:active {
-  transform: scale(0.97);
-}
-
-input[type="search"],
-input[type="text"],
-input[type="number"] {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(12px);
-  border-radius: var(--radius-pill);
-  padding: 0.5rem 0.9rem;
+.input-glass:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--glow);
 }
 
 /* ===============================
    UTILITIES
-================================ */
-.animate-dropdown {
-  animation: dropdown 180ms ease-out;
+============================== */
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-blue) 50%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-footer {
-  color: var(--text-muted);
+.glow-purple {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
 }
+
+.glow-blue {
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease forwards;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Stagger children animations */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up 0.5s ease forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
 
 /* ===============================
    SCROLLBAR
-================================ */
+============================== */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ===============================
-   RESPONSIVE & A11Y
-================================ */
-@media (max-width: 640px) {
-  body {
-    animation-duration: 34s;
+   RESPONSIVE
+============================== */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  body {
-    animation: none;
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
   }
+}
 
+/* ===============================
+   REDUCED MOTION
+============================== */
+@media (prefers-reduced-motion: reduce) {
   * {
-    transition: none !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
