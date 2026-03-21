@@ -304,7 +304,7 @@ export default function HomePage() {
                   WebkitBackgroundClip: 'text', 
                   WebkitTextFillColor: 'transparent',
                   lineHeight: 1.2
-                }}>ShelbyNet</span>
+                }}>Testnet</span>
                 <span style={{ fontSize: '13px', marginTop: '8px', color: '#64748b', letterSpacing: '0.02em' }}>Network</span>
               </div>
             </div>

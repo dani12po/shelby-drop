@@ -5,10 +5,10 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
 const roadmap = [
-  { quarter: "Q1 2025", items: ["Launch Shelby Drop Beta", "Basic upload/download", "Wallet integration"] },
-  { quarter: "Q2 2025", items: ["Multi-wallet support", "File preview", "Share links"] },
-  { quarter: "Q3 2025", items: ["Bulk upload", "Folder organization", "Search & filter"] },
-  { quarter: "Q4 2025", items: ["Mobile app", "Public API", "NFT integration"] },
+  { quarter: "Q1 2026", items: ["Launch Shelby Drop Beta", "Basic upload/download", "Wallet integration"] },
+  { quarter: "Q2 2026", items: ["Multi-wallet support", "File preview", "Share links"] },
+  { quarter: "Q3 2026", items: ["Bulk upload", "Folder organization", "Search & filter"] },
+  { quarter: "Q4 2026", items: ["Mobile app", "Public API", "NFT integration"] },
 ];
 
 export default function VisionPage() {
@@ -158,9 +158,9 @@ export default function VisionPage() {
                 textAlign: 'center',
                 marginBottom: '48px'
               }}
-            >
-              Roadmap 2025
-            </motion.h2>
+              >
+                Roadmap 2026
+              </motion.h2>
             
             <div style={{
               display: 'grid',

@@ -37,14 +37,7 @@ export function SocialMediaIcons() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-black/60 backdrop-blur-sm">
       <div className="flex items-center justify-center px-6 py-3">
-        {/* Branding */}
-        <div className="flex items-center gap-2 text-white/60 text-xs">
-          <span>Built with</span>
-          <span className="text-red-500">❤️</span>
-          <span>by</span>
-          <span className="text-white/80 font-medium">Dani.xyz</span>
-          <span className="mx-2 text-white/40">|</span>
-        </div>
+        {/* Branding - Removed duplicate, keeping only social icons */}
 
         {/* Social Media Icons */}
         <div className="flex items-center gap-3">
