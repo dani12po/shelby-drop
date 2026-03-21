@@ -14,7 +14,7 @@ type Props = {
 };
 
 const navItems = [
-  { href: "/", label: "Explorer" },
+  { href: "/explorer", label: "Explorer" },
   { href: "/guide", label: "Panduan" },
   { href: "/vision", label: "Visi Misi" },
   { href: "/faq", label: "FAQ" },
