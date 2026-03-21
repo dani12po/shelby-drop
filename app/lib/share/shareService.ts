@@ -148,3 +148,17 @@ export function cleanupExpiredShares(): void {
     console.error('Failed to cleanup expired shares:', error);
   }
 }
+
+/**
+ * Resolves a share code to its target URL via API
+ */
+export async function resolveShareCode(code: string): Promise<string | null> {
+  try {
+    const res = await fetch(`/api/share?code=${code}`)
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.target || null
+  } catch {
+    return null
+  }
+}
