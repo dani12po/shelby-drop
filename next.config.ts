@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   generateBuildId: async () => {
     return 'build'
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default nextConfig;

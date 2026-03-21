@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
 
 const roadmap = [
   { quarter: "Q1 2025", items: ["Launch Shelby Drop Beta", "Basic upload/download", "Wallet integration"] },
