@@ -10,8 +10,8 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
 import WalletModal from "@/components/wallet/WalletModal";
 import ExplorerPage from "@/components/explorer/ExplorerPage";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import Header from "@/app/components/layout/Header";
+import Footer from "@/app/components/layout/Footer";
 import SearchBox from "@/components/explorer/SearchBox";
 import UploadButton from "@/components/upload/UploadButton";
 import UploadPanel from "@/components/upload/UploadPanel";
