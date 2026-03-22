@@ -76,7 +76,7 @@ export default function FAQPage() {
               }}>
                 Frequently Asked Questions
               </h1>
-              <p style={{ fontSize: '18px', color: '#94a3b8' }}>
+              <p style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
                 Jawaban untuk pertanyaan yang sering diajukan
               </p>
             </motion.div>
@@ -93,10 +93,13 @@ export default function FAQPage() {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05 }}
                   style={{
-                    background: 'rgba(15,15,23,0.7)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    borderRadius: '16px',
-                    overflow: 'hidden'
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    marginBottom: '8px',
+                    overflow: 'hidden',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
                   }}
                 >
                   <button
@@ -113,9 +116,9 @@ export default function FAQPage() {
                       cursor: 'pointer'
                     }}
                   >
-                    <span style={{ color: 'white', fontWeight: 500, fontSize: '16px', flex: 1, paddingRight: '16px' }}>{faq.question}</span>
-                    <span style={{ 
-                      color: '#94a3b8', 
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.95rem', flex: 1, paddingRight: '16px' }}>{faq.question}</span>
+                    <span style={{
+                      color: 'var(--text-muted)',
                       transition: 'transform 0.2s',
                       transform: openIndex === index ? 'rotate(180deg)' : 'rotate(0deg)'
                     }}>
@@ -132,7 +135,7 @@ export default function FAQPage() {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div style={{ padding: '0 24px 20px', color: '#94a3b8', lineHeight: 1.7 }}>
+                        <div style={{ padding: '0 20px 18px', color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.7 }}>
                           {faq.answer}
                         </div>
                       </motion.div>
@@ -144,7 +147,7 @@ export default function FAQPage() {
           </section>
 
           {/* Contact Section */}
-          <section style={{ padding: '60px 0', background: 'rgba(15,15,23,0.5)', borderRadius: '16px', textAlign: 'center' }}>
+          <section style={{ padding: '60px 0', textAlign: 'center' }}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -154,7 +157,7 @@ export default function FAQPage() {
               <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
                 Masih ada pertanyaan?
               </h2>
-              <p style={{ color: '#94a3b8', marginBottom: '32px' }}>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
                 Jika Anda tidak menemukan jawaban yang Anda cari, jangan ragu untuk menghubungi kami.
               </p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>

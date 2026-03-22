@@ -53,7 +53,7 @@ export default function NotificationItem({
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {icons[notification.type] || icons.info}
         {notification.title && (
-          <span style={{ fontSize: '0.825rem', fontWeight: 600, color: '#f1f5f9' }}>
+          <span style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             {notification.title}
           </span>
         )}
@@ -62,7 +62,7 @@ export default function NotificationItem({
           onClick={onClose}
           style={{
             marginLeft: 'auto', background: 'none', border: 'none',
-            color: '#475569', cursor: 'pointer', padding: '2px',
+            color: 'var(--text-muted)', cursor: 'pointer', padding: '2px',
             display: 'flex', alignItems: 'center'
           }}
         >
@@ -71,19 +71,19 @@ export default function NotificationItem({
       </div>
 
       {/* Message */}
-      <p style={{ fontSize: '0.775rem', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+      <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
         {notification.message}
       </p>
 
       {/* Wallet link */}
       {notification.wallet && isValidWalletAddress(notification.wallet) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '0.72rem', color: '#475569' }}>Wallet:</span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Wallet:</span>
           <a
             href={buildWalletExplorerUrl(notification.wallet)}
             target="_blank" rel="noopener noreferrer"
             style={{
-              fontSize: '0.72rem', color: '#06b6d4',
+              fontSize: '0.72rem', color: 'var(--accent-cyan)',
               textDecoration: 'none', fontFamily: 'monospace',
               display: 'flex', alignItems: 'center', gap: '4px'
             }}
@@ -97,12 +97,12 @@ export default function NotificationItem({
       {/* Tx hash link */}
       {notification.txHash && isValidHash(notification.txHash) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '0.72rem', color: '#475569' }}>Tx:</span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Tx:</span>
           <a
             href={buildTxExplorerUrl(notification.txHash)}
             target="_blank" rel="noopener noreferrer"
             style={{
-              fontSize: '0.72rem', color: '#06b6d4',
+              fontSize: '0.72rem', color: 'var(--accent-cyan)',
               textDecoration: 'none', fontFamily: 'monospace',
               display: 'flex', alignItems: 'center', gap: '4px'
             }}

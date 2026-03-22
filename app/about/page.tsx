@@ -55,7 +55,7 @@ export default function AboutPage() {
                 fontWeight: 700,
                 color: 'white',
                 marginBottom: '24px',
-                background: 'linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4)',
+                background: 'linear-gradient(135deg, var(--heading-from), var(--heading-to))',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
@@ -63,7 +63,7 @@ export default function AboutPage() {
               </h1>
               <p style={{
                 fontSize: '18px',
-                color: '#94a3b8',
+                color: 'var(--text-secondary)',
                 maxWidth: '600px',
                 margin: '0 auto',
                 lineHeight: 1.6
@@ -105,10 +105,12 @@ export default function AboutPage() {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   style={{
-                    background: 'rgba(15,15,23,0.7)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
                     borderRadius: '16px',
                     padding: '24px',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
                     transition: 'all 0.3s'
                   }}
                 >
@@ -122,17 +124,15 @@ export default function AboutPage() {
                   }}>
                     {feature.icon}
                   </div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'white', marginBottom: '8px' }}>{feature.title}</h3>
-                  <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.6 }}>{feature.description}</p>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>{feature.title}</h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{feature.description}</p>
                 </motion.div>
               ))}
             </div>
           </section>
 
           {/* About Section */}
-          <section style={{ marginBottom: '80px', borderRadius: '16px',
-            background: 'rgba(15,15,23,0.5)',
-            border: '1px solid rgba(255,255,255,0.04)' }}>
+          <section style={{ marginBottom: '80px', borderRadius: '16px' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 24px' }}>
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
@@ -152,7 +152,7 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                style={{ color: '#94a3b8', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '16px' }}
+                style={{ color: 'var(--text-secondary)', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '16px' }}
               >
                 <p>
                   Shelby Drop adalah aplikasi Web3 yang memungkinkan Anda menyimpan 
@@ -196,8 +196,8 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
                 style={{
                   padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                  color: 'white',
+                  background: 'linear-gradient(135deg, var(--accent-blue), var(--accent))',
+                  color: 'var(--text-on-accent)',
                   borderRadius: '8px',
                   fontWeight: 500,
                   textDecoration: 'none',
@@ -246,6 +246,44 @@ export default function AboutPage() {
               >
                 Shelby Explorer
               </a>
+            </div>
+          </section>
+
+          {/* Creator Section */}
+          <section style={{ padding: '60px 24px', textAlign: 'center' }}>
+            <div style={{
+              maxWidth: '500px', margin: '0 auto',
+              padding: '32px',
+            }}>
+              <div style={{
+                width: '64px', height: '64px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
+                margin: '0 auto 16px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.8rem'
+              }}>👨‍💻</div>
+              <h3 style={{ color: 'var(--text-primary)', fontWeight: 700, marginBottom: '8px' }}>
+                Dibuat oleh Dani
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
+                Web3 developer yang passionate tentang decentralized technology
+                dan ekosistem Aptos blockchain.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <a href="https://x.com/Iq_dani26" target="_blank"
+                  style={{ color: 'var(--text-link)', fontSize: '0.85rem', textDecoration: 'none' }}>
+                  Twitter/X
+                </a>
+                <a href="https://github.com/dani12po" target="_blank"
+                  style={{ color: 'var(--text-link)', fontSize: '0.85rem', textDecoration: 'none' }}>
+                  GitHub
+                </a>
+                <a href="https://www.linkedin.com/in/imam-qolandani-070373149/" target="_blank"
+                  style={{ color: 'var(--text-link)', fontSize: '0.85rem', textDecoration: 'none' }}>
+                  LinkedIn
+                </a>
+              </div>
             </div>
           </section>
 

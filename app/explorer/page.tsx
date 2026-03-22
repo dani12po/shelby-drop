@@ -32,9 +32,9 @@ export default function ExplorerPublicPage() {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '6px 14px', borderRadius: '20px', marginBottom: '24px',
-            background: 'rgba(139,92,246,0.1)',
-            border: '1px solid rgba(139,92,246,0.3)',
-            fontSize: '0.8rem', color: '#a78bfa'
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            fontSize: '0.8rem', color: 'var(--text-accent)'
           }}>
             🔍 Public Explorer
           </div>
@@ -42,14 +42,14 @@ export default function ExplorerPublicPage() {
           <h1 style={{
             fontSize: 'clamp(1.8rem, 4vw, 3rem)',
             fontWeight: 800, marginBottom: '16px',
-            background: 'linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4)',
+            background: 'linear-gradient(135deg, var(--heading-from), var(--heading-to))',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
           }}>
             Explore Wallet Files
           </h1>
 
           <p style={{
-            color: '#94a3b8', marginBottom: '40px',
+            color: 'var(--text-secondary)', marginBottom: '40px',
             fontSize: '1rem', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto 40px'
           }}>
             Masukkan wallet address siapapun untuk melihat
@@ -62,9 +62,9 @@ export default function ExplorerPublicPage() {
           }} />
 
           <p style={{
-            marginTop: '16px', fontSize: '0.75rem', color: '#334155'
+            marginTop: '16px', fontSize: '0.75rem', color: 'var(--text-muted)'
           }}>
-            Contoh: 0x50093856644bfcf8e33e3979b52f1a71f79f24a6ed7da94aa92b5b4057e0d0bb
+            Contoh: 0x1234...abcd
           </p>
         </div>
       </main>

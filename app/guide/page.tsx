@@ -70,15 +70,14 @@ export default function GuidePage() {
               <h1 style={{
                 fontSize: 'clamp(28px, 5vw, 48px)',
                 fontWeight: 700,
-                color: 'white',
                 marginBottom: '24px',
-                background: 'linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4)',
+                background: 'linear-gradient(135deg, var(--heading-from), var(--heading-to))',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
                 Panduan Penggunaan
               </h1>
-              <p style={{ fontSize: '18px', color: '#94a3b8' }}>
+              <p style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
                 Langkah mudah menggunakan Shelby Drop
               </p>
             </motion.div>
@@ -113,16 +112,18 @@ export default function GuidePage() {
                   {/* Content */}
                   <div style={{
                     flex: 1,
-                    background: 'rgba(15,15,23,0.7)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
                     borderRadius: '16px',
                     padding: '24px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', fontFamily: 'monospace', color: '#8b5cf6' }}>{step.number}</span>
-                      <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'white' }}>{step.title}</h3>
+                      <span style={{ fontSize: '14px', fontFamily: 'monospace', color: 'var(--text-accent)' }}>{step.number}</span>
+                      <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>{step.title}</h3>
                     </div>
-                    <p style={{ color: '#94a3b8', lineHeight: 1.6 }}>{step.description}</p>
+                    <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>{step.description}</p>
                   </div>
                 </motion.div>
               ))}
@@ -130,7 +131,7 @@ export default function GuidePage() {
           </section>
 
           {/* Tips Section */}
-          <section style={{ marginBottom: '60px', padding: '60px 0', background: 'rgba(15,15,23,0.5)', borderRadius: '16px' }}>
+          <section style={{ marginBottom: '60px', padding: '60px 0' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px' }}>
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
@@ -139,7 +140,7 @@ export default function GuidePage() {
                 style={{
                   fontSize: '24px',
                   fontWeight: 700,
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   textAlign: 'center',
                   marginBottom: '32px'
                 }}
@@ -171,13 +172,15 @@ export default function GuidePage() {
                       alignItems: 'center',
                       gap: '12px',
                       padding: '16px',
-                      background: 'rgba(15,15,23,0.7)',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border)',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)',
                       borderRadius: '12px'
                     }}
                   >
-                    <Check size={16} strokeWidth={2.5} color="#10b981" />
-                    <span style={{ fontSize: '14px', color: '#94a3b8' }}>{tip}</span>
+                    <Check size={16} strokeWidth={2.5} style={{ color: 'var(--text-success)' }} />
+                    <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{tip}</span>
                   </motion.div>
                 ))}
               </div>
@@ -192,10 +195,10 @@ export default function GuidePage() {
               viewport={{ once: true }}
               style={{ maxWidth: '500px', margin: '0 auto' }}
             >
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>
                 Siap memulai?
               </h2>
-              <p style={{ color: '#94a3b8', marginBottom: '32px' }}>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
                 Connect wallet Anda dan mulai upload file pertama Anda ke Shelby Drop
               </p>
               <a
@@ -203,8 +206,8 @@ export default function GuidePage() {
                 style={{
                   display: 'inline-block',
                   padding: '14px 32px',
-                  background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-                  color: 'white',
+                  background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
+                  color: 'var(--text-on-accent)',
                   borderRadius: '8px',
                   fontWeight: 500,
                   textDecoration: 'none',

@@ -187,7 +187,7 @@ export default function WalletSearchModal({
                 fontSize: '0.78rem', color: '#64748b',
                 fontFamily: 'monospace', marginTop: '6px'
               }}>
-                {wallet.slice(0,6)}...{wallet.slice(-4)}
+                View & Download Files
               </p>
               <button
                 onClick={handleCopy}

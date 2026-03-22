@@ -29,22 +29,22 @@ export default function VisionPage() {
               <h1 style={{
                 fontSize: 'clamp(28px, 5vw, 48px)',
                 fontWeight: 700,
-                color: 'white',
+                color: 'var(--text-primary)',
                 marginBottom: '24px',
-                background: 'linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4)',
+                background: 'linear-gradient(135deg, var(--heading-from), var(--heading-to))',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
                 Visi & Misi
               </h1>
-              <p style={{ fontSize: '18px', color: '#94a3b8' }}>
+              <p style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
                 Membangun masa depan penyimpanan file terdesentralisasi
               </p>
             </motion.div>
           </section>
 
           {/* Vision Section */}
-          <section style={{ marginBottom: '80px', padding: '60px 0', background: 'rgba(15,15,23,0.5)', borderRadius: '16px' }}>
+          <section style={{ marginBottom: '80px', padding: '60px 0' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -54,9 +54,9 @@ export default function VisionPage() {
                 <div style={{
                   display: 'inline-block',
                   padding: '8px 16px',
-                  background: 'rgba(139,92,246,0.2)',
+                  background: 'var(--bg-card)',
                   borderRadius: '9999px',
-                  color: '#8b5cf6',
+                  color: 'var(--text-accent)',
                   fontSize: '12px',
                   fontWeight: 600,
                   marginBottom: '16px',
@@ -68,7 +68,7 @@ export default function VisionPage() {
                 <h2 style={{
                   fontSize: 'clamp(20px, 3vw, 28px)',
                   fontWeight: 700,
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   lineHeight: 1.5
                 }}>
                   "Menjadi platform penyimpanan file terdesentralisasi terdepan 
@@ -88,7 +88,7 @@ export default function VisionPage() {
               style={{
                 fontSize: '28px',
                 fontWeight: 700,
-                color: 'white',
+                color: 'var(--text-primary)',
                 textAlign: 'center',
                 marginBottom: '48px'
               }}
@@ -124,21 +124,23 @@ export default function VisionPage() {
                     display: 'flex',
                     gap: '24px',
                     padding: '24px',
-                    background: 'rgba(15,15,23,0.7)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    borderRadius: '16px'
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '16px',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
                   }}
                 >
                   <span style={{
                     fontSize: '36px',
                     fontWeight: 700,
-                    background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                    background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
                   }}>{mission.number}</span>
                   <div>
-                    <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'white', marginBottom: '8px' }}>{mission.title}</h3>
-                    <p style={{ color: '#94a3b8', lineHeight: 1.6 }}>{mission.description}</p>
+                    <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>{mission.title}</h3>
+                    <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>{mission.description}</p>
                   </div>
                 </motion.div>
               ))}
@@ -146,7 +148,7 @@ export default function VisionPage() {
           </section>
 
           {/* Roadmap Section */}
-          <section style={{ padding: '60px 0', background: 'rgba(15,15,23,0.5)', borderRadius: '16px' }}>
+          <section style={{ padding: '60px 0' }}>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -154,7 +156,7 @@ export default function VisionPage() {
               style={{
                 fontSize: '28px',
                 fontWeight: 700,
-                color: 'white',
+                color: 'var(--text-primary)',
                 textAlign: 'center',
                 marginBottom: '48px'
               }}
@@ -177,15 +179,17 @@ export default function VisionPage() {
                   transition={{ delay: index * 0.1 }}
                   style={{
                     padding: '24px',
-                    background: 'rgba(15,15,23,0.7)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    borderRadius: '16px'
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '16px',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
                   }}
                 >
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#8b5cf6', marginBottom: '16px' }}>{quarter.quarter}</h3>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--accent)', marginBottom: '16px' }}>{quarter.quarter}</h3>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {quarter.items.map((item) => (
-                      <li key={item} style={{ fontSize: '14px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <li key={item} style={{ fontSize: '14px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
                         {item}
                       </li>

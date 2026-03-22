@@ -135,11 +135,11 @@ export default function HomePage() {
                 background: 'rgba(139,92,246,0.15)',
                 marginBottom: '32px',
                 fontSize: '14px',
-                color: '#a78bfa'
+                color: 'var(--text-accent)'
               }}
             >
               <span>⚡</span>
-              <span style={{ color: '#c4b5fd', fontWeight: 500 }}>Powered by Shelby Network</span>
+              <span style={{ color: 'var(--text-accent)', fontWeight: 500 }}>Powered by Shelby Network</span>
             </div>
 
             {/* Headline */}
@@ -152,7 +152,7 @@ export default function HomePage() {
               }}
             >
               <span style={{
-                background: 'linear-gradient(135deg, #8b5cf6, #a78bfa, #3b82f6)',
+                background: 'linear-gradient(135deg, var(--heading-from), var(--text-accent), var(--heading-to))',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
@@ -164,7 +164,7 @@ export default function HomePage() {
             <p
               style={{
                 fontSize: '18px',
-                color: '#94a3b8',
+                color: 'var(--text-secondary)',
                 marginBottom: '40px',
                 maxWidth: '600px'
               }}
@@ -195,9 +195,6 @@ export default function HomePage() {
                 gap: '48px',
                 maxWidth: '680px',
                 margin: '0 auto',
-                background: 'rgba(15,15,23,0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: '24px',
                 padding: '32px 56px',
                 flexWrap: 'wrap'
@@ -208,12 +205,12 @@ export default function HomePage() {
                 <span style={{
                   fontSize: '36px',
                   fontWeight: 700,
-                  background: 'linear-gradient(135deg, #a78bfa, #8b5cf6, #3b82f6)',
+                  background: 'linear-gradient(135deg, var(--heading-from), var(--accent), var(--heading-to))',
                   WebkitBackgroundClip: 'text', 
                   WebkitTextFillColor: 'transparent',
                   lineHeight: 1.2
-                }}>12,847</span>
-                <span style={{ fontSize: '13px', marginTop: '8px', color: '#64748b', letterSpacing: '0.02em' }}>Files Uploaded</span>
+                }}>1,159,370</span>
+                <span style={{ fontSize: '13px', marginTop: '8px', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>Total Blobs</span>
               </div>
 
               {/* Divider */}
@@ -224,12 +221,12 @@ export default function HomePage() {
                 <span style={{
                   fontSize: '36px',
                   fontWeight: 700,
-                  background: 'linear-gradient(135deg, #a78bfa, #8b5cf6, #3b82f6)',
+                  background: 'linear-gradient(135deg, var(--text-success), #059669)',
                   WebkitBackgroundClip: 'text', 
                   WebkitTextFillColor: 'transparent',
                   lineHeight: 1.2
-                }}>3,291</span>
-                <span style={{ fontSize: '13px', marginTop: '8px', color: '#64748b', letterSpacing: '0.02em' }}>Active Wallets</span>
+                }}>89.87 GB</span>
+                <span style={{ fontSize: '13px', marginTop: '8px', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>Storage Used</span>
               </div>
 
               {/* Divider */}
@@ -240,12 +237,12 @@ export default function HomePage() {
                 <span style={{
                   fontSize: '32px',
                   fontWeight: 700,
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  background: 'linear-gradient(135deg, var(--text-success), #059669)',
                   WebkitBackgroundClip: 'text', 
                   WebkitTextFillColor: 'transparent',
                   lineHeight: 1.2
                 }}>Testnet</span>
-                <span style={{ fontSize: '13px', marginTop: '8px', color: '#64748b', letterSpacing: '0.02em' }}>Network</span>
+                <span style={{ fontSize: '13px', marginTop: '8px', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>Network</span>
               </div>
             </div>
           </section>
@@ -279,7 +276,7 @@ export default function HomePage() {
                     justifyContent: 'center',
                     padding: '100px 20px',
                     textAlign: 'center',
-                    minHeight: '400px'
+                    minHeight: '400px',
                   }}
                 >
                   {/* Empty State Icon */}
@@ -302,15 +299,15 @@ export default function HomePage() {
                   </div>
                   
                   <h3 style={{
-                    fontSize: '22px',
-                    fontWeight: 600,
-                    color: 'white',
-                    marginBottom: '8px'
+                    fontSize: '1.2rem',
+                    fontWeight: 700,
+                    color: 'var(--text-primary)',
+                    margin: 0
                   }}>
                     No wallet connected
                   </h3>
                   <p style={{
-                    color: '#64748b',
+                    color: 'var(--text-secondary)',
                     fontSize: '14px',
                     maxWidth: '280px',
                     textAlign: 'center',
@@ -324,8 +321,8 @@ export default function HomePage() {
                     style={{
                       padding: '14px 36px',
                       borderRadius: '9999px',
-                      background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-                      color: 'white',
+                      background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
+                      color: 'var(--text-on-accent)',
                       border: 'none',
                       fontSize: '15px',
                       fontWeight: 600,
@@ -347,8 +344,6 @@ export default function HomePage() {
           FOOTER
       ============================ */}
       <div style={{ 
-        background: '#0a0a0f', 
-        borderTop: '1px solid rgba(255,255,255,0.1)', 
         paddingTop: '64px',
         paddingBottom: '32px',
         position: 'relative',

@@ -36,7 +36,6 @@ export default function Footer() {
       borderTop: '1px solid var(--border)',
       padding: '64px 24px 32px',
       marginTop: 'auto',
-      background: 'var(--bg-secondary)'
     }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         

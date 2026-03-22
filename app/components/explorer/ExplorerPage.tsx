@@ -136,7 +136,7 @@ export default function ExplorerPage({
               <span style={{
                 fontSize: '13px',
                 fontWeight: 500,
-                color: '#a78bfa',
+                color: 'var(--accent)',
                 letterSpacing: '0.02em'
               }}>
                 Powered by Aptos
@@ -151,7 +151,7 @@ export default function ExplorerPage({
               style={{
                 fontSize: 'clamp(32px, 6vw, 52px)',
                 fontWeight: 700,
-                color: 'white',
+                color: 'var(--text-primary)',
                 marginBottom: '16px',
                 lineHeight: 1.1,
                 letterSpacing: '-0.02em'
@@ -173,7 +173,7 @@ export default function ExplorerPage({
               transition={{ delay: 0.2 }}
               style={{
                 fontSize: '16px',
-                color: '#94a3b8',
+                color: 'var(--text-secondary)',
                 maxWidth: '480px',
                 marginBottom: '40px',
                 lineHeight: 1.6
@@ -181,7 +181,7 @@ export default function ExplorerPage({
             >
               Download, upload, and share files using only your wallet.
               <br />
-              <span style={{ color: '#64748b', fontSize: '14px' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
                 No email required. No accounts. Just you and the blockchain.
               </span>
             </motion.p>
@@ -205,14 +205,14 @@ export default function ExplorerPage({
                   alignItems: 'center', 
                   justifyContent: 'center',
                   gap: '6px',
-                  color: '#60a5fa',
+                  color: 'var(--accent-blue)',
                   fontSize: '24px',
                   fontWeight: 700
                 }}>
                   <FileKey className="w-5 h-5" />
                   100K+
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Files Stored
                 </div>
               </div>
@@ -222,14 +222,14 @@ export default function ExplorerPage({
                   alignItems: 'center', 
                   justifyContent: 'center',
                   gap: '6px',
-                  color: '#34d399',
+                  color: 'var(--accent-green)',
                   fontSize: '24px',
                   fontWeight: 700
                 }}>
                   <Layers className="w-5 h-5" />
                   50K+
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Wallets
                 </div>
               </div>
@@ -239,14 +239,14 @@ export default function ExplorerPage({
                   alignItems: 'center', 
                   justifyContent: 'center',
                   gap: '6px',
-                  color: '#a78bfa',
+                  color: 'var(--accent)',
                   fontSize: '24px',
                   fontWeight: 700
                 }}>
                   <Globe className="w-5 h-5" />
                   Global
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Decentralized
                 </div>
               </div>
@@ -301,15 +301,15 @@ export default function ExplorerPage({
                   justifyContent: 'center'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
                   <Shield className="w-4 h-4 text-green-400" />
                   <span>End-to-end encrypted</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
                   <Zap className="w-4 h-4 text-yellow-400" />
                   <span>Instant uploads</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
                   <Globe className="w-4 h-4 text-blue-400" />
                   <span>Worldwide CDN</span>
                 </div>

@@ -10,9 +10,10 @@ export default function Providers({
   children: ReactNode;
 }) {
   return (
-    <AptosWalletAdapterProvider 
+    <AptosWalletAdapterProvider
       autoConnect={false}
-      dappConfig={{ network: Network.SHELBYNET }}
+      dappConfig={{ network: Network.TESTNET }}
+      onError={(error) => console.error('Wallet adapter error:', error)}
     >
       {children}
     </AptosWalletAdapterProvider>

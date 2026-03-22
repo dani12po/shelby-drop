@@ -72,27 +72,28 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <ThemeProvider>
-          {/* Layer 1: Background — paling bawah */}
+          {/* Layer 1: Background — z-index 0 */}
           <AnimatedBackground />
+
+          {/* Layer 2: Content — z-index 10 */}
           <Providers>
             <NotificationProvider>
-              {/* Layer 2: Semua konten — WAJIB z-index lebih tinggi */}
-              <div style={{
-                position: 'relative',
-                zIndex: 10,
-                minHeight: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-              }}>
-                {children}
-              </div>
-
-              {/* Layer 3: Notifikasi dan overlay */}
-              <div style={{ position: 'relative', zIndex: 100 }}>
-                <NotificationCenterWrapper />
-              </div>
-
               <ExplorerModalProvider>
+                <div style={{
+                  position: 'relative',
+                  zIndex: 10,
+                  minHeight: '100vh',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}>
+                  {children}
+                </div>
+
+                {/* Layer 3: Notifikasi dan overlay */}
+                <div style={{ position: 'relative', zIndex: 100 }}>
+                  <NotificationCenterWrapper />
+                </div>
+
                 {/* =========================
                     EXPLORER MODAL ROOT
                 ========================== */}

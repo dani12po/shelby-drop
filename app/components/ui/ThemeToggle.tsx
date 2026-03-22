@@ -2,11 +2,23 @@
 import { useTheme } from '@/hooks/useTheme'
 import { Sun, Moon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function ThemeToggle() {
   const { theme, toggleTheme, isDark } = useTheme()
   const [showTooltip, setShowTooltip] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div style={{ width: '52px', height: '28px' }} />
+    )
+  }
 
   return (
     <div 
@@ -66,7 +78,7 @@ export default function ThemeToggle() {
           outline: 'none',
         }}
         aria-label="Toggle theme"
-        title={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
+        title={isDark ? 'Switch to Aurora Mode' : 'Switch to Space Mode'}
       >
         {/* Thumb dengan icon */}
         <motion.div

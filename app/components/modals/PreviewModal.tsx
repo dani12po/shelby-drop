@@ -236,7 +236,7 @@ export default function PreviewModal({
               fontSize: '0.72rem', color: '#475569',
               fontFamily: 'monospace', margin: 0
             }}>
-              {wallet.slice(0, 6)}...{wallet.slice(-4)}
+              Owner Wallet
             </p>
           </div>
 

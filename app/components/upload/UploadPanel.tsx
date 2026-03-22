@@ -168,11 +168,11 @@ export default function UploadPanel({
                 justifyContent: 'space-between', marginBottom: '28px'
               }}>
                 <div>
-                  <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
                     Upload File
                   </h2>
                   <p style={{
-                    fontSize: '0.75rem', color: '#475569',
+                    fontSize: '0.75rem', color: 'var(--text-muted)',
                     fontFamily: 'monospace', margin: '4px 0 0'
                   }}>
                     {wallet.slice(0, 6)}...{wallet.slice(-4)}
@@ -184,17 +184,17 @@ export default function UploadPanel({
                     width: '32px', height: '32px',
                     borderRadius: '8px', border: 'none',
                     background: 'rgba(255,255,255,0.06)',
-                    color: '#94a3b8', cursor: 'pointer',
+                    color: 'var(--text-secondary)', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'all 0.2s'
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-                    e.currentTarget.style.color = 'white'
+                    e.currentTarget.style.color = 'var(--text-primary)'
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
-                    e.currentTarget.style.color = '#94a3b8'
+                    e.currentTarget.style.color = 'var(--text-secondary)'
                   }}
                 >
                   <X size={16} strokeWidth={2} />
@@ -246,11 +246,11 @@ export default function UploadPanel({
                       />
                       <p style={{
                         fontSize: '0.9rem', fontWeight: 500,
-                        color: 'white', margin: '0 0 4px'
+                        color: 'var(--text-primary)', margin: '0 0 4px'
                       }}>
                         {file.name}
                       </p>
-                      <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
                         {(file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
@@ -259,16 +259,16 @@ export default function UploadPanel({
                       <Upload
                         size={32}
                         strokeWidth={1.5}
-                        color="#475569"
+                        color="var(--text-muted)"
                         style={{ margin: '0 auto 12px' }}
                       />
                       <p style={{
-                        fontSize: '0.9rem', color: '#94a3b8',
+                        fontSize: '0.9rem', color: 'var(--text-secondary)',
                         margin: '0 0 4px', fontWeight: 500
                       }}>
                         Drop file here or click to browse
                       </p>
-                      <p style={{ fontSize: '0.75rem', color: '#475569', margin: 0 }}>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
                         All file types supported
                       </p>
                     </div>
@@ -287,10 +287,10 @@ export default function UploadPanel({
                 marginBottom: '24px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Clock size={16} strokeWidth={1.8} color="#94a3b8" />
+                  <Clock size={16} strokeWidth={1.8} color="var(--text-secondary)" />
                   <div>
                     <p style={{
-                      fontSize: '0.875rem', color: 'white',
+                      fontSize: '0.875rem', color: 'var(--text-primary)',
                       fontWeight: 500, margin: 0
                     }}>
                       Retention Period

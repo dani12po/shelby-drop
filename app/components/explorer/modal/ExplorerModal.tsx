@@ -388,7 +388,7 @@ export default function ExplorerModal({
                     Shelby Explorer
                   </h2>
                   <div className="text-sm text-white/60 truncate font-mono">
-                    {wallet.slice(0, 6)}...{wallet.slice(-4)}
+                    Files & Folders
                   </div>
                 </div>
                 <div className="flex-1 flex justify-end">
