@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#050508',
+      background: 'transparent',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',

@@ -373,7 +373,7 @@ export default function ExplorerModal({
               height: '75vh', maxHeight: '780px',
               minHeight: '500px',
               borderRadius: '26px',
-              background: '#0b0f14',
+              background: 'var(--bg-modal)',
               padding: '24px',
               color: 'white',
               display: 'flex',

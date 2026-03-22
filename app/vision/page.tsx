@@ -13,7 +13,7 @@ const roadmap = [
 
 export default function VisionPage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#050508' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1 }}>
       <Header />
       
       <main style={{ flex: 1, paddingTop: '64px' }}>

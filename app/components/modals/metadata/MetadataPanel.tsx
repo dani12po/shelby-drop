@@ -69,7 +69,7 @@ export default function MetadataPanel({
               w-[360px] max-w-[92vw]
               h-[88vh]
               rounded-[22px]
-              bg-[#0b0f14]/95
+              bg-[var(--bg-modal)]/95
               backdrop-blur-xl
               shadow-[0_30px_90px_rgba(0,0,0,0.7)]
               flex flex-col

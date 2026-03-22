@@ -146,8 +146,8 @@ export default function WalletSearchModal({
             min-h-[400px]
             max-h-[80vh]
             rounded-[26px]
-            bg-[#0b0f14]
-            text-white
+            bg-[var(--bg-modal)]
+            text-[var(--text-primary)]
             shadow-[0_30px_120px_rgba(0,0,0,0.7)]
             flex flex-col
             overflow-hidden

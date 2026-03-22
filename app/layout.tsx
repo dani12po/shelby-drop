@@ -1,6 +1,8 @@
 import "../styles/globals.css";
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import Providers from "./providers";
+import ThemeProvider from "@/components/ui/ThemeProvider";
+import AnimatedBackground from "@/components/effects/AnimatedBackground";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -50,39 +52,61 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('shelby-theme');
+                  if (theme) {
+                    document.documentElement.setAttribute('data-theme', theme);
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="font-sans antialiased" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Providers>
-          <NotificationProvider>
-            <ExplorerModalProvider>
-              {/* =========================
-                  MAIN APP CONTENT
-              ========================== */}
-              <div style={{ flex: 1 }}>
+        <ThemeProvider>
+          {/* Layer 1: Background — paling bawah */}
+          <AnimatedBackground />
+          <Providers>
+            <NotificationProvider>
+              {/* Layer 2: Semua konten — WAJIB z-index lebih tinggi */}
+              <div style={{
+                position: 'relative',
+                zIndex: 10,
+                minHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+              }}>
                 {children}
               </div>
 
-              {/* =========================
-                  GLOBAL NOTIFICATIONS
-              ========================== */}
-              <NotificationCenterWrapper />
+              {/* Layer 3: Notifikasi dan overlay */}
+              <div style={{ position: 'relative', zIndex: 100 }}>
+                <NotificationCenterWrapper />
+              </div>
 
-              {/* =========================
-                  EXPLORER MODAL ROOT
-              ========================== */}
-              <ExplorerModalRoot />
+              <ExplorerModalProvider>
+                {/* =========================
+                    EXPLORER MODAL ROOT
+                ========================== */}
+                <ExplorerModalRoot />
 
-              {/* =========================
-                  MODAL ROOT (IMPORTANT)
-                  DO NOT REMOVE
-              ========================== */}
-              <div id="modal-root" />
-            </ExplorerModalProvider>
-          </NotificationProvider>
-        </Providers>
+                {/* =========================
+                    MODAL ROOT (IMPORTANT)
+                    DO NOT REMOVE
+                ========================== */}
+                <div id="modal-root" />
+              </ExplorerModalProvider>
+            </NotificationProvider>
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

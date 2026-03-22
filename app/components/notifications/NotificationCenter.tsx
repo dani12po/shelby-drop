@@ -10,20 +10,20 @@ import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 function getNotifStyle(type?: string) {
   switch(type) {
     case 'success': return {
-      icon: <CheckCircle2 size={16} strokeWidth={2} color="#10b981" />,
-      accent: '#10b981',
+      icon: <CheckCircle2 size={16} strokeWidth={2} color="var(--accent-green)" />,
+      accent: 'var(--accent-green)',
       bg: 'rgba(16,185,129,0.08)',
       border: 'rgba(16,185,129,0.2)'
     }
     case 'error': return {
-      icon: <AlertCircle size={16} strokeWidth={2} color="#ef4444" />,
-      accent: '#ef4444',
+      icon: <AlertCircle size={16} strokeWidth={2} color="var(--accent-red)" />,
+      accent: 'var(--accent-red)',
       bg: 'rgba(239,68,68,0.08)',
       border: 'rgba(239,68,68,0.2)'
     }
     default: return {
-      icon: <Info size={16} strokeWidth={2} color="#3b82f6" />,
-      accent: '#3b82f6',
+      icon: <Info size={16} strokeWidth={2} color="var(--accent-blue)" />,
+      accent: 'var(--accent-blue)',
       bg: 'rgba(59,130,246,0.08)',
       border: 'rgba(59,130,246,0.2)'
     }
@@ -80,12 +80,12 @@ export default function NotificationCenter() {
             <div style={{
               padding: '12px 14px',
               borderRadius: '11px',
-              background: '#0b0f14',
+              background: 'var(--bg-modal)',
               border: `1px solid ${getNotifStyle(n.type).border}`,
               backdropFilter: 'blur(20px)',
               cursor: 'pointer',
               display: 'flex', alignItems: 'flex-start', gap: '10px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
             }}>
               {/* Accent line kiri */}
               <div style={{
@@ -101,7 +101,7 @@ export default function NotificationCenter() {
               
               {/* Message */}
               <p style={{
-                flex: 1, fontSize: '0.825rem', color: '#e2e8f0',
+                flex: 1, fontSize: '0.825rem', color: 'var(--text-primary)',
                 margin: 0, lineHeight: 1.5
               }}>
                 {n.message}
@@ -112,7 +112,7 @@ export default function NotificationCenter() {
                 onClick={e => { e.stopPropagation(); remove(n.id) }}
                 style={{
                   flexShrink: 0, background: 'none', border: 'none',
-                  color: '#475569', cursor: 'pointer', padding: '2px',
+                  color: 'var(--text-muted)', cursor: 'pointer', padding: '2px',
                   display: 'flex', alignItems: 'center'
                 }}
               >

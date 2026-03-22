@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
+// Theme is handled globally via AnimatedBackground in layout
 
 /* ===============================
    COMPONENT IMPORTS
@@ -67,68 +68,7 @@ export default function HomePage() {
   ================================ */
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#050508', position: 'relative', overflowX: 'hidden' }}>
-       
-      {/* Animated background */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 0,
-        overflow: 'hidden',
-        background: '#050508'
-      }}>
-        {/* Orb 1 — purple, kiri atas */}
-        <div style={{
-          position: 'absolute',
-          top: '-20%',
-          left: '-10%',
-          width: '70vw',
-          height: '70vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, rgba(139,92,246,0.05) 40%, transparent 70%)',
-          animation: 'orbFloat1 12s ease-in-out infinite',
-          filter: 'blur(40px)'
-        }} />
-
-        {/* Orb 2 — blue, kanan tengah */}
-        <div style={{
-          position: 'absolute',
-          top: '20%',
-          right: '-15%',
-          width: '60vw',
-          height: '60vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(59,130,246,0.04) 40%, transparent 70%)',
-          animation: 'orbFloat2 15s ease-in-out infinite',
-          filter: 'blur(40px)'
-        }} />
-
-        {/* Orb 3 — cyan, kiri bawah */}
-        <div style={{
-          position: 'absolute',
-          bottom: '-10%',
-          left: '20%',
-          width: '50vw',
-          height: '50vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, rgba(6,182,212,0.03) 40%, transparent 70%)',
-          animation: 'orbFloat1 18s ease-in-out infinite reverse',
-          filter: 'blur(50px)'
-        }} />
-
-        {/* Grid pattern overlay */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `
-            linear-gradient(rgba(139,92,246,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(139,92,246,0.06) 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px',
-          pointerEvents: 'none'
-        }} />
-      </div>
-
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1, overflowX: 'hidden', transition: 'background-color 0.4s ease' }}>
       <Header 
         connected={connected} 
         onConnect={handleWalletConnect}

@@ -87,7 +87,7 @@ export default function ExplorerItemContextMenu({
           className="
             min-w-[220px]
             rounded-xl
-            bg-[#0b0f14]/95
+            bg-[var(--bg-modal)]/95
             backdrop-blur-xl
             shadow-[0_20px_60px_rgba(0,0,0,0.6)]
             py-1

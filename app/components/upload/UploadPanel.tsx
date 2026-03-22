@@ -156,7 +156,7 @@ export default function UploadPanel({
           >
             {/* Modal body */}
             <div style={{
-              background: '#0b0f14',
+              background: 'var(--bg-modal)',
               borderRadius: '26px',
               padding: '32px',
               color: 'white',

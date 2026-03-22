@@ -36,7 +36,7 @@ const features: Feature[] = [
 
 export default function AboutPage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#050508' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1 }}>
       <Header />
       
       <main style={{ flex: 1, paddingTop: '64px' }}>
@@ -145,7 +145,7 @@ export default function AboutPage() {
                   marginBottom: '24px'
                 }}
               >
-                Tentang Shelby Drop
+                Latar Belakang
               </motion.h2>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

@@ -142,8 +142,8 @@ export function UploadResultModal({
           onClick={e => e.stopPropagation()}
         >
           <div style={{
-            background: '#0b0f14', borderRadius: '26px',
-            padding: '28px', color: 'white',
+            background: 'var(--bg-modal)', borderRadius: '26px',
+            padding: '28px', color: 'var(--text-primary)',
             maxHeight: '85vh', overflowY: 'auto'
           }}>
 

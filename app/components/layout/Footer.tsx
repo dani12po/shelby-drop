@@ -33,10 +33,10 @@ export default function Footer() {
 
   return (
     <footer style={{
-      borderTop: '1px solid rgba(255,255,255,0.06)',
+      borderTop: '1px solid var(--border)',
       padding: '64px 24px 32px',
       marginTop: 'auto',
-      background: '#0a0a0f'
+      background: 'var(--bg-secondary)'
     }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         
@@ -60,7 +60,7 @@ export default function Footer() {
             </div>
             <p style={{
               fontSize: '0.875rem', 
-              color: '#475569', 
+              color: 'var(--text-muted)', 
               lineHeight: 1.6,
               maxWidth: '240px',
               marginBottom: '16px'
@@ -78,22 +78,22 @@ export default function Footer() {
                   width: '36px', 
                   height: '36px', 
                   borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.05)', 
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-card)', 
+                  border: '1px solid var(--border)',
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  color: '#94a3b8', 
+                  color: 'var(--text-secondary)', 
                   textDecoration: 'none',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.borderColor = 'var(--border-hover)';
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.color = '#94a3b8';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                  e.currentTarget.style.borderColor = 'var(--border)';
                 }}
               >
                 <Twitter size={18} />
@@ -107,22 +107,22 @@ export default function Footer() {
                   width: '36px', 
                   height: '36px', 
                   borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.05)', 
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-card)', 
+                  border: '1px solid var(--border)',
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  color: '#94a3b8', 
+                  color: 'var(--text-secondary)', 
                   textDecoration: 'none',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.borderColor = 'var(--border-hover)';
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.color = '#94a3b8';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                  e.currentTarget.style.borderColor = 'var(--border)';
                 }}
               >
                 <Github size={18} />
@@ -136,22 +136,22 @@ export default function Footer() {
                   width: '36px', 
                   height: '36px', 
                   borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.05)', 
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-card)', 
+                  border: '1px solid var(--border)',
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  color: '#94a3b8', 
+                  color: 'var(--text-secondary)', 
                   textDecoration: 'none',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                  e.currentTarget.style.borderColor = 'var(--border-hover)';
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.color = '#94a3b8';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                  e.currentTarget.style.borderColor = 'var(--border)';
                 }}
               >
                 <Linkedin size={18} />
@@ -164,7 +164,7 @@ export default function Footer() {
             <h4 style={{
               fontSize: '0.75rem', 
               fontWeight: 600, 
-              color: 'white',
+              color: 'var(--text-primary)',
               textTransform: 'uppercase', 
               letterSpacing: '0.1em', 
               marginBottom: '16px'
@@ -179,10 +179,10 @@ export default function Footer() {
               flexDirection: 'column', 
               gap: '12px'
             }}>
-              <li><Link href="/" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Explorer</Link></li>
-              <li><Link href="/guide" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Panduan</Link></li>
-              <li><Link href="/faq" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>FAQ</Link></li>
-              <li><Link href="/about" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Tentang</Link></li>
+              <li><Link href="/" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Explorer</Link></li>
+              <li><Link href="/guide" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Panduan</Link></li>
+              <li><Link href="/faq" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>FAQ</Link></li>
+              <li><Link href="/about" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Tentang</Link></li>
             </ul>
           </div>
 
@@ -191,7 +191,7 @@ export default function Footer() {
             <h4 style={{
               fontSize: '0.75rem', 
               fontWeight: 600, 
-              color: 'white',
+              color: 'var(--text-primary)',
               textTransform: 'uppercase', 
               letterSpacing: '0.1em', 
               marginBottom: '16px'
@@ -206,11 +206,11 @@ export default function Footer() {
               flexDirection: 'column', 
               gap: '12px'
             }}>
-              <li><a href="https://docs.shelby.xyz" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Docs</a></li>
-              <li><a href="https://developers.shelby.xyz" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Developer Portal</a></li>
-              <li><a href="https://github.com/shelby/shelby-quickstart" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Quick Start</a></li>
-              <li><a href="https://explorer.shelby.xyz/shelbynet" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Shelby Explorer</a></li>
-              <li><a href="https://github.com/shelby/feedback/issues/new/choose" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Bug Report</a></li>
+              <li><a href="https://docs.shelby.xyz" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Docs</a></li>
+              <li><a href="https://developers.shelby.xyz" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Developer Portal</a></li>
+              <li><a href="https://github.com/shelby/shelby-quickstart" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Quick Start</a></li>
+              <li><a href="https://explorer.shelby.xyz/shelbynet" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Shelby Explorer</a></li>
+              <li><a href="https://github.com/shelby/feedback/issues/new/choose" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Bug Report</a></li>
             </ul>
           </div>
 
@@ -219,7 +219,7 @@ export default function Footer() {
             <h4 style={{
               fontSize: '0.75rem', 
               fontWeight: 600, 
-              color: 'white',
+              color: 'var(--text-primary)',
               textTransform: 'uppercase', 
               letterSpacing: '0.1em', 
               marginBottom: '16px'
@@ -234,17 +234,17 @@ export default function Footer() {
               flexDirection: 'column', 
               gap: '12px'
             }}>
-              <li><Link href="/about" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Tentang</Link></li>
-              <li><Link href="/vision" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Visi Misi</Link></li>
-              <li><Link href="/faq" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>FAQ</Link></li>
-              <li><Link href="/guide" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none' }}>Panduan</Link></li>
+              <li><Link href="/about" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Tentang</Link></li>
+              <li><Link href="/vision" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Visi Misi</Link></li>
+              <li><Link href="/faq" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>FAQ</Link></li>
+              <li><Link href="/guide" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Panduan</Link></li>
             </ul>
           </div>
 
         </div>
 
         {/* Divider */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
+        <div style={{ borderTop: '1px solid var(--border)' }} />
 
         {/* Bottom bar */}
         <div style={{
@@ -257,14 +257,14 @@ export default function Footer() {
           gap: '16px'
         }}>
           {/* Kiri */}
-          <span style={{ fontSize: '0.875rem', color: '#475569' }}>
+          <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
             © {currentYear} Shelby Drop. All rights reserved.
           </span>
 
           {/* Tengah — KREATOR */}
-          <span style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
             Created by{' '}
-            <a href="https://x.com/Iq_dani26" target="_blank" rel="noopener noreferrer" style={{ color: '#8b5cf6', fontWeight: 600, textDecoration: 'none' }}>
+            <a href="https://x.com/Iq_dani26" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
               Dani.xyz
             </a>
             {' '}with ❤️ | Shelby Network
@@ -276,10 +276,10 @@ export default function Footer() {
               width: '8px', 
               height: '8px', 
               borderRadius: '50%',
-              background: '#10b981',
+              background: 'var(--accent-green)',
               animation: 'pulse 2s infinite'
             }} />
-            <span style={{ fontSize: '0.875rem', color: '#10b981' }}>Network Active</span>
+            <span style={{ fontSize: '0.875rem', color: 'var(--accent-green)' }}>Network Active</span>
           </div>
         </div>
 

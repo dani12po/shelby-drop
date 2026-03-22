@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Copy, Check, ChevronDown, ExternalLink, Wallet, LogOut } from "lucide-react";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
   connected?: boolean;
@@ -24,6 +26,7 @@ const navItems = [
 export default function Header({ connected, onConnect, onDisconnect }: Props) {
   const pathname = usePathname();
   const { account } = useWallet();
+  const { isDark } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -110,10 +113,10 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
           right: 0,
           zIndex: 50,
           height: '64px',
-          background: scrolled ? 'rgba(5,5,8,0.95)' : 'rgba(5,5,8,0.5)',
+          background: scrolled ? (isDark ? 'rgba(5,5,8,0.95)' : 'rgba(240,244,255,0.95)') : 'transparent',
           backdropFilter: 'blur(20px)',
-          boxShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.3)' : 'none',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: scrolled ? '0 4px 30px var(--glow)' : 'none',
+          borderBottom: '1px solid var(--border)',
           transition: 'all 0.3s ease'
         }}
       >
@@ -149,7 +152,7 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                   href={item.href}
                   style={{
                     fontSize: '0.875rem',
-                    color: isActive ? 'white' : '#94a3b8',
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                     textDecoration: 'none',
                     transition: 'color 0.2s'
                   }}
@@ -160,9 +163,14 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
             })}
           </nav>
 
-          {/* KANAN: Wallet + hamburger */}
+          {/* KANAN: Theme Toggle + Wallet + hamburger */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             
+            {/* Theme Toggle - Desktop */}
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+
             {/* Desktop: WalletConnect normal */}
             <div className="hidden md:block">
               {connected && onConnect ? (
@@ -175,17 +183,17 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                       gap: '8px',
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'white',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-primary)',
                       cursor: 'pointer'
                     }}
                   >
                     {/* Green dot connected indicator */}
                     <span style={{
                       width: '7px', height: '7px', borderRadius: '50%',
-                      background: '#10b981', display: 'inline-block',
-                      boxShadow: '0 0 6px #10b981'
+                      background: 'var(--accent-green)', display: 'inline-block',
+                      boxShadow: '0 0 6px var(--accent-green)'
                     }} />
 
                     {/* Short address */}
@@ -204,7 +212,7 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                       style={{
                         display: 'inline-flex', alignItems: 'center',
                         padding: '2px', borderRadius: '4px',
-                        color: showCopied ? '#10b981' : '#94a3b8',
+                        color: showCopied ? 'var(--accent-green)' : 'var(--text-secondary)',
                         transition: 'color 0.2s',
                         cursor: 'pointer'
                       }}
@@ -220,7 +228,7 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                       size={14}
                       strokeWidth={2}
                       style={{
-                        color: '#94a3b8',
+                        color: 'var(--text-secondary)',
                         transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                         transition: 'transform 0.2s ease'
                       }}
@@ -239,10 +247,10 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                           right: 0,
                           width: '240px',
                           borderRadius: '12px',
-                          background: 'rgba(15,15,23,0.98)',
-                          border: '1px solid rgba(255,255,255,0.08)',
+                          background: 'var(--bg-dropdown)',
+                          border: '1px solid var(--border)',
                           backdropFilter: 'blur(20px)',
-                          boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+                          boxShadow: '0 16px 48px rgba(0,0,0,0.3)',
                           overflow: 'hidden',
                           zIndex: 100
                         }}
@@ -250,17 +258,17 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                         {/* Header address */}
                         <div style={{
                           padding: '14px 16px',
-                          borderBottom: '1px solid rgba(255,255,255,0.06)'
+                          borderBottom: '1px solid var(--border)'
                         }}>
                           <p style={{
-                            fontSize: '0.7rem', color: '#475569',
+                            fontSize: '0.7rem', color: 'var(--text-muted)',
                             margin: '0 0 4px', textTransform: 'uppercase',
                             letterSpacing: '0.08em', fontWeight: 600
                           }}>
                             Connected
                           </p>
                           <p style={{
-                            fontSize: '0.78rem', color: '#94a3b8',
+                            fontSize: '0.78rem', color: 'var(--text-secondary)',
                             fontFamily: 'monospace', margin: 0,
                             overflow: 'hidden', textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
@@ -278,18 +286,18 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                             display: 'flex', alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '12px 16px', gap: '10px',
-                            fontSize: '0.875rem', color: '#e2e8f0',
+                            fontSize: '0.875rem', color: 'var(--text-primary)',
                             textDecoration: 'none',
                             transition: 'background 0.15s',
                           }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
                           <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <ExternalLink size={15} strokeWidth={1.8} color="#94a3b8" />
+                            <ExternalLink size={15} strokeWidth={1.8} color="var(--text-secondary)" />
                             <span>View on Explorer</span>
                           </div>
-                          <ExternalLink size={11} strokeWidth={1.5} color="#475569" />
+                          <ExternalLink size={11} strokeWidth={1.5} color="var(--text-muted)" />
                         </a>
 
                         {/* Item 2: Balance */}
@@ -297,21 +305,21 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                           display: 'flex', alignItems: 'center',
                           justifyContent: 'space-between',
                           padding: '12px 16px',
-                          borderBottom: '1px solid rgba(255,255,255,0.06)'
+                          borderBottom: '1px solid var(--border)'
                         }}>
                           <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <Wallet size={15} strokeWidth={1.8} color="#94a3b8" />
-                            <span style={{fontSize: '0.875rem', color: '#e2e8f0'}}>Balance</span>
+                            <Wallet size={15} strokeWidth={1.8} color="var(--text-secondary)" />
+                            <span style={{fontSize: '0.875rem', color: 'var(--text-primary)'}}>Balance</span>
                           </div>
                           <span style={{
                             fontSize: '0.875rem', fontFamily: 'monospace',
-                            color: '#10b981', fontWeight: 600
+                            color: 'var(--accent-green)', fontWeight: 600
                           }}>
                             {balance ?? (
                               <span style={{
                                 display: 'inline-block', width: '60px', height: '12px',
                                 borderRadius: '4px',
-                                background: 'rgba(255,255,255,0.08)',
+                                background: 'var(--bg-card-hover)',
                                 animation: 'shimmer 1.5s infinite'
                               }} />
                             )}
@@ -327,7 +335,7 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                           style={{
                             width: '100%', display: 'flex', alignItems: 'center',
                             gap: '10px', padding: '12px 16px',
-                            fontSize: '0.875rem', color: '#f87171',
+                            fontSize: '0.875rem', color: 'var(--accent-red)',
                             background: 'none', border: 'none', cursor: 'pointer',
                             textAlign: 'left', transition: 'background 0.15s'
                           }}
@@ -370,6 +378,9 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
 
             {/* Mobile: */}
             <div className="md:hidden">
+              {/* Mobile: Theme Toggle (always visible) */}
+              <ThemeToggle />
+
               {!currentWallet ? (
                 // Belum connect: tombol Connect Wallet
                 <button
@@ -380,7 +391,7 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                     gap: '6px',
                     padding: '8px 16px',
                     borderRadius: '8px',
-                    background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                    background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
                     color: 'white',
                     fontSize: '0.8rem',
                     fontWeight: 600,
@@ -399,9 +410,9 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                       width: '40px',
                       height: '40px',
                       borderRadius: '8px',
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'white',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-primary)',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -428,22 +439,22 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                           right: 0,
                           width: '220px',
                           borderRadius: '12px',
-                          background: 'rgba(15,15,23,0.95)',
-                          border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'var(--bg-dropdown)',
+                          border: '1px solid var(--border)',
                           backdropFilter: 'blur(20px)',
-                          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
                           overflow: 'hidden',
                           zIndex: 100
                         }}
                       >
                         <div style={{
                           padding: '12px 16px',
-                          borderBottom: '1px solid rgba(255,255,255,0.06)'
+                          borderBottom: '1px solid var(--border)'
                         }}>
-                          <div style={{ fontSize: '0.7rem', color: '#475569', marginBottom: '4px' }}>Connected</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Connected</div>
                           <div style={{
                             fontSize: '0.75rem',
-                            color: '#94a3b8',
+                            color: 'var(--text-secondary)',
                             fontFamily: 'monospace',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -462,16 +473,16 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                               display: 'block',
                               padding: '12px 16px',
                               fontSize: '0.875rem',
-                              color: '#94a3b8',
+                              color: 'var(--text-secondary)',
                               textDecoration: 'none',
-                              borderBottom: '1px solid rgba(255,255,255,0.04)'
+                              borderBottom: '1px solid var(--border)'
                             }}
                           >
                             {item.label}
                           </Link>
                         ))}
 
-                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+                        <div style={{ height: '1px', background: 'var(--border)' }} />
 
                         <a
                           href={`https://explorer.shelby.xyz/shelbynet/account/${currentWallet}`}
@@ -484,11 +495,11 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                             gap: '10px',
                             padding: '12px 16px',
                             fontSize: '0.875rem',
-                            color: '#f1f5f9',
+                            color: 'var(--text-primary)',
                             textDecoration: 'none'
                           }}
                         >
-                          <ExternalLink size={15} strokeWidth={1.8} color="#94a3b8" />
+                          <ExternalLink size={15} strokeWidth={1.8} color="var(--text-secondary)" />
                           View on Explorer
                         </a>
 
@@ -498,21 +509,21 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           padding: '12px 16px',
-                          borderBottom: '1px solid rgba(255,255,255,0.06)'
+                          borderBottom: '1px solid var(--border)'
                         }}>
                           <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <Wallet size={15} strokeWidth={1.8} color="#94a3b8" />
-                            <span style={{fontSize: '0.875rem', color: '#e2e8f0'}}>Balance</span>
+                            <Wallet size={15} strokeWidth={1.8} color="var(--text-secondary)" />
+                            <span style={{fontSize: '0.875rem', color: 'var(--text-primary)'}}>Balance</span>
                           </div>
                           <span style={{
                             fontSize: '0.875rem', fontFamily: 'monospace',
-                            color: '#10b981', fontWeight: 600
+                            color: 'var(--accent-green)', fontWeight: 600
                           }}>
                             {balance ?? '...'}
                           </span>
                         </div>
 
-                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+                        <div style={{ height: '1px', background: 'var(--border)' }} />
 
                         <button
                           onClick={() => {
@@ -526,14 +537,14 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                             alignItems: 'center',
                             gap: '10px',
                             fontSize: '0.875rem',
-                            color: '#ef4444',
+                            color: 'var(--accent-red)',
                             background: 'none',
                             border: 'none',
                             cursor: 'pointer',
                             textAlign: 'left'
                           }}
                         >
-                          <LogOut size={15} strokeWidth={1.8} color="#f87171" />
+                          <LogOut size={15} strokeWidth={1.8} color="var(--accent-red)" />
                           Disconnect
                         </button>
                       </motion.div>

@@ -100,7 +100,7 @@ export default function MetadataModal({
                 h-[360px]
                 max-w-[94vw]
                 rounded-[24px]
-                bg-[#0b0f14]
+                bg-[var(--bg-modal)]
                 shadow-[0_25px_90px_rgba(0,0,0,0.65)]
                 overflow-hidden
                 flex flex-col

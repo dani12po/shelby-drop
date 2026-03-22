@@ -73,9 +73,9 @@ export default function SearchBox({ onSearch }: Props) {
           paddingLeft: '28px',
           paddingRight: value ? '200px' : '160px',
           fontSize: '1rem',
-          background: 'rgba(255,255,255,0.06)',
-          border: `1px solid ${isFocused ? 'rgba(139,92,246,0.6)' : 'rgba(139,92,246,0.3)'}`,
-          color: '#f1f5f9',
+          background: 'var(--bg-card)',
+          border: `1px solid ${isFocused ? 'var(--accent)' : 'var(--border-hover)'}`,
+          color: 'var(--text-primary)',
           outline: 'none',
           fontFamily: 'inherit',
           transition: 'border-color 0.2s'
@@ -94,15 +94,15 @@ export default function SearchBox({ onSearch }: Props) {
           transform: 'translateY(-50%)',
           background: 'none',
           border: 'none',
-          color: '#475569',
+          color: 'var(--text-muted)',
           cursor: 'pointer',
           padding: '4px',
           display: 'flex',
           alignItems: 'center',
           transition: 'color 0.2s'
         }}
-        onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
-        onMouseLeave={e => e.currentTarget.style.color = '#475569'}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
       >
         <ClipboardPaste size={16} strokeWidth={1.8} />
       </button>
@@ -120,14 +120,14 @@ export default function SearchBox({ onSearch }: Props) {
             transform: 'translateY(-50%)',
             background: 'none',
             border: 'none',
-            color: '#475569',
+            color: 'var(--text-muted)',
             cursor: 'pointer',
             padding: '4px',
             display: 'flex',
             alignItems: 'center',
             transition: 'color 0.2s'
           }}
-          onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
           onMouseLeave={e => e.currentTarget.style.color = '#475569'}
         >
           <X size={16} strokeWidth={2} />

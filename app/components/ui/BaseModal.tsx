@@ -107,8 +107,8 @@ export default function BaseModal({
               ${sizeClasses[size]}
               ${heightClasses[size]}
               rounded-[26px]
-              bg-[#0b0f14]
-              text-white
+              bg-[var(--bg-modal)]
+              text-[var(--text-primary)]
               shadow-[0_30px_120px_rgba(0,0,0,0.7)]
               flex flex-col
               overflow-hidden
@@ -117,15 +117,15 @@ export default function BaseModal({
           >
             {/* HEADER */}
             {(title || showCloseButton) && (
-              <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
                 <div className="flex-1">
                   {title && (
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                       {title}
                     </h2>
                   )}
                   {subtitle && (
-                    <div className="text-sm text-white/60 mt-1">
+                    <div className="text-sm text-[var(--text-secondary)] mt-1">
                       {subtitle}
                     </div>
                   )}
@@ -133,7 +133,7 @@ export default function BaseModal({
                 {showCloseButton && (
                   <button
                     onClick={onClose}
-                    className="text-white/40 hover:text-white p-2 rounded-md hover:bg-white/10 transition-colors"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 rounded-md hover:bg-[var(--bg-card-hover)] transition-colors"
                   >
                     <X size={20} />
                   </button>

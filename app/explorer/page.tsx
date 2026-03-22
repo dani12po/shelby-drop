@@ -14,8 +14,9 @@ export default function ExplorerPublicPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#050508',
-      display: 'flex', flexDirection: 'column'
+      minHeight: '100vh', background: 'transparent',
+      display: 'flex', flexDirection: 'column',
+      position: 'relative', zIndex: 1
     }}>
       <Header
         connected={connected}

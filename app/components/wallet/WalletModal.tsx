@@ -82,7 +82,7 @@ export default function WalletModal({
               style={{
                 width: '420px',
                 borderRadius: '24px',
-                background: '#0b0f14',
+                background: 'var(--bg-modal)',
                 boxShadow: '0 25px 80px rgba(0,0,0,0.7)',
                 overflow: 'hidden'
               }}
@@ -92,7 +92,7 @@ export default function WalletModal({
                 <h2 style={{
                   fontSize: '16px',
                   fontWeight: 600,
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   textAlign: 'center',
                   marginBottom: '18px'
                 }}>
@@ -112,16 +112,16 @@ export default function WalletModal({
                         <button
                           onClick={() => onSelectWallet(name)}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(139,92,246,0.1)';
-                            e.currentTarget.style.borderColor = 'rgba(139,92,246,0.4)';
+                            e.currentTarget.style.background = 'var(--bg-card-hover)';
+                            e.currentTarget.style.borderColor = 'var(--border-hover)';
                           }}
                           onMouseLeave={(e) => {
                             if (isRecommended) {
                               e.currentTarget.style.background = 'rgba(139,92,246,0.15)';
                               e.currentTarget.style.borderColor = 'rgba(139,92,246,0.4)';
                             } else {
-                              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                              e.currentTarget.style.background = 'var(--bg-card)';
+                              e.currentTarget.style.borderColor = 'var(--border)';
                             }
                           }}
                           style={{
@@ -132,9 +132,9 @@ export default function WalletModal({
                             alignItems: 'center',
                             gap: '14px',
                             padding: '0 18px',
-                            background: isRecommended ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.05)',
-                            border: isRecommended ? '1px solid rgba(139,92,246,0.4)' : '1px solid rgba(255,255,255,0.1)',
-                            color: 'white',
+                            background: isRecommended ? 'rgba(139,92,246,0.15)' : 'var(--bg-card)',
+                            border: isRecommended ? '1px solid rgba(139,92,246,0.4)' : '1px solid var(--border)',
+                            color: 'var(--text-primary)',
                             fontSize: '0.95rem',
                             fontWeight: 500,
                             cursor: 'pointer',
@@ -147,7 +147,7 @@ export default function WalletModal({
                             width: '32px',
                             height: '32px',
                             borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.1)',
+                            background: 'var(--bg-card)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center'

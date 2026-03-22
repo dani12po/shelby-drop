@@ -68,8 +68,8 @@ export default function ExplorerBulkContextMenu({
         fixed z-[10000]
         min-w-[220px]
         rounded-xl
-        bg-[#0b0f14]
-        border border-white/10
+        bg-[var(--bg-modal)]
+        border border-[var(--border)]
         shadow-[0_20px_60px_rgba(0,0,0,0.6)]
         py-1
       "

@@ -74,8 +74,8 @@ export default function ShareModal({ url, onClose }: Props) {
             style={{
               width: '360px',
               borderRadius: '26px',
-              background: '#0b0f14',
-              color: 'white',
+              background: 'var(--bg-modal)',
+              color: 'var(--text-primary)',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden'
             }}
