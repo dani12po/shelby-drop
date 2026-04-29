@@ -48,7 +48,7 @@ export async function uploadWithBrowserWallet(
 
     // Dynamically import browser SDK to avoid SSR issues
     // ShelbyClient (not ShelbyNodeClient) runs WASM in the browser
-    const { ShelbyClient } = await import("@shelby-protocol/sdk");
+    const { ShelbyClient } = await import("@shelby-protocol/sdk/browser");
 
     const sdkNetwork =
       args.network === "shelbynet" ? Network.SHELBYNET : Network.TESTNET;
