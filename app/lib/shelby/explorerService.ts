@@ -42,7 +42,7 @@ export async function searchWalletFiles(wallet: string): Promise<ExplorerSearchR
   try {
     // BUG #5 FIX: Use shelbyExplorerBase which already includes the network path
     // shelbyConfig.origin = https://explorer.shelby.xyz (no network)
-    // shelbyConfig.shelbyExplorerBase = https://explorer.shelby.xyz/testnet (correct)
+    // shelbyConfig.shelbyExplorerBase = https://explorer.shelby.xyz/shelbynet (correct)
     const explorerUrl = `${shelbyConfig.shelbyExplorerBase}/account/${wallet}/blobs`;
     
     const response = await fetch(explorerUrl, {

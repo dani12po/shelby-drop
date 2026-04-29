@@ -31,7 +31,8 @@ type IndexedFile = {
 ================================ */
 export function useExplorerData(
   wallet: string,
-  path: string[]
+  path: string[],
+  network?: string
 ) {
   const [state, setState] = useState<State>({
     loading: false,
@@ -94,7 +95,7 @@ export function useExplorerData(
 
       try {
         // Load files directly from Shelby Explorer
-        const shelbyData = await loadWalletFilesFromShelby(wallet);
+        const shelbyData = await loadWalletFilesFromShelby(wallet, network);
         
         if (!cancelled) {
           setState({
@@ -126,7 +127,7 @@ export function useExplorerData(
     return () => {
       cancelled = true;
     };
-  }, [wallet, path, refreshKey]);
+  }, [wallet, path, refreshKey, network]);
 
   return state;
 }

@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     let blobName: string | undefined;
     let retentionDays: string | undefined;
     let userWallet: string | undefined;
+    let network: string | undefined;
     
     if (contentType?.includes("application/json")) {
       // Parse JSON request
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
         blobName = jsonData.blobName;
         retentionDays = jsonData.retentionDays;
         userWallet = jsonData.wallet;
+        network = jsonData.network;
         
       } catch (parseError) {
         console.error("❌ JSON PARSE ERROR:", parseError);
@@ -82,6 +84,7 @@ export async function POST(req: Request) {
       blobName = form.get("blobName") as string;
       retentionDays = form.get("retentionDays") as string;
       userWallet = form.get("wallet") as string;
+      network = form.get("network") as string || undefined;
     }
 
     console.log("📋 INPUTS VALIDATION:", {
@@ -108,7 +111,7 @@ export async function POST(req: Request) {
     let uploader;
     
     try {
-      uploader = new AptosShelbyUploader();
+      uploader = new AptosShelbyUploader(network);
       console.log("✅ UPLOADER INITIALIZED SUCCESSFULLY");
     } catch (initError) {
       console.error("❌ UPLOADER INITIALIZATION FAILED:", initError);

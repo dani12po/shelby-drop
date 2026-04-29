@@ -16,6 +16,7 @@ import MetadataModal from "@/components/modals/metadata/MetadataModal";
 import PreviewModal from "@/components/modals/PreviewModal";
 import { useBulkDownloadController } from "@/lib/download/useBulkDownloadController";
 import DownloadProgressPanel from "@/lib/download/DownloadProgressPanel";
+import { useNetwork } from "@/hooks/useNetwork";
 import { buildShareUrl } from "@/lib/share/buildShareUrl";
 import { useNotifications } from "@/components/notifications/useNotifications";
 import type { FileItemData } from "@/lib/data";
@@ -39,7 +40,8 @@ export default function ExplorerModal({
   useEffect(() => setMounted(true), []);
 
   const [path, setPath] = useState<string[]>([]);
-  const { items, rawItems, loading, error } = useExplorerData(wallet, path);
+  const { network } = useNetwork();
+  const { items, rawItems, loading, error } = useExplorerData(wallet, path, network);
 
   const [metaFile,    setMetaFile]    = useState<FileItemData | null>(null);
   const [previewFile, setPreviewFile] = useState<FileItemData | null>(null);
@@ -205,6 +207,20 @@ export default function ExplorerModal({
                   </button>
                 </div>
               </div>
+
+              {/* Shelbynet warning banner */}
+              {network === "shelbynet" && (
+                <div style={{
+                  padding: "8px 14px", marginBottom: "12px",
+                  borderRadius: "8px", flexShrink: 0,
+                  background: "rgba(251,191,36,0.08)",
+                  border: "1px solid rgba(251,191,36,0.25)",
+                  fontSize: "0.75rem", color: "#fbbf24",
+                  display: "flex", alignItems: "center", gap: "8px",
+                }}>
+                  ⚠️ Shelbynet adalah devnet yang lebih lama. Untuk Early Access resmi gunakan <strong>Testnet</strong>.
+                </div>
+              )}
 
               {/* Action bar */}
               <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap", flexShrink: 0 }}>

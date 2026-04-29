@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Copy, Check, ChevronDown, ExternalLink, Wallet, LogOut } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import NetworkSwitcher from "@/components/ui/NetworkSwitcher";
 import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
@@ -169,6 +170,11 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
             {/* Theme Toggle - Desktop */}
             <div className="hidden md:block">
               <ThemeToggle />
+            </div>
+
+            {/* Network Switcher - Desktop */}
+            <div className="hidden md:block">
+              <NetworkSwitcher />
             </div>
 
             {/* Desktop: WalletConnect normal */}

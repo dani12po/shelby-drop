@@ -6,6 +6,7 @@ import { X, Upload, FileText, Clock } from "lucide-react";
 import { useState } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useNotifications } from "@/components/notifications/useNotifications";
+import { useNetwork } from "@/hooks/useNetwork";
 import {
   uploadToShelby,
   type UploadMetadata,
@@ -29,6 +30,7 @@ export default function UploadPanel({
   path,
 }: UploadPanelProps) {
   const { notify } = useNotifications();
+  const { network } = useNetwork();
   const { account } = useWallet();
 
   const [file, setFile] = useState<File | null>(null);
@@ -66,6 +68,7 @@ export default function UploadPanel({
         wallet: account.address.toString(),
         path,
         retentionDays: days,
+        network,
       });
 
       /* ===============================

@@ -41,12 +41,13 @@ function parseSize(sizeStr?: string | number): number {
  * Loads wallet files via /api/shelby/list
  * (merges local upload index + Shelby Network indexer)
  */
-export async function loadWalletFilesFromShelby(wallet: string): Promise<{
+export async function loadWalletFilesFromShelby(wallet: string, network?: string): Promise<{
   items: ExplorerItem[];
   rawItems: (FileItemData | FolderItem)[];
 }> {
   try {
-    const res = await fetch(`/api/shelby/list?wallet=${encodeURIComponent(wallet)}`);
+    const networkParam = network ? `&network=${encodeURIComponent(network)}` : "";
+    const res = await fetch(`/api/shelby/list?wallet=${encodeURIComponent(wallet)}${networkParam}`);
     if (!res.ok) throw new Error(`/api/shelby/list returned ${res.status}`);
 
     const data = await res.json();

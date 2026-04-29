@@ -38,9 +38,10 @@ export type ShelbyUploadArgs = {
   file: File;
   wallet: string;
   path?: string[];
-
   /** REQUIRED by backend */
   retentionDays: number;
+  /** Optional network override — defaults to env SHELBY_NETWORK */
+  network?: string;
 };
 
 /* ===============================
@@ -52,22 +53,17 @@ export async function uploadToShelby({
   wallet,
   path = [],
   retentionDays,
+  network,
 }: ShelbyUploadArgs): Promise<UploadMetadata> {
-  /* ===============================
-     FORM DATA
-  ================================ */
-  // Generate blobName from filename + timestamp
   const blobName = `${Date.now()}-${file.name}`;
   
   const formData = new FormData();
   formData.append("file", file);
   formData.append("wallet", wallet);
   formData.append("path", path.join("/"));
-  formData.append("blobName", blobName);  // ← Required field
-  formData.append(
-    "retentionDays",
-    String(retentionDays)
-  );
+  formData.append("blobName", blobName);
+  formData.append("retentionDays", String(retentionDays));
+  if (network) formData.append("network", network);
 
   /* ===============================
      REQUEST

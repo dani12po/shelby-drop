@@ -3,20 +3,22 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { getNetworkConfig } from "@/config/shelby";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /* ===============================
    SHELBY NETWORK CONFIG
+   Resolved per-request from ?network= query param
 =============================== */
-const APTOS_NODE_URL = 
-  process.env.APTOS_NODE_URL ?? 
-  "https://api.testnet.shelby.xyz/v1";
-
-const APTOS_INDEXER_URL = 
-  process.env.APTOS_INDEXER_URL ?? 
-  "https://api.testnet.shelby.xyz/v1/graphql";
+function getEndpoints(network?: string | null) {
+  const cfg = getNetworkConfig(network);
+  return {
+    nodeUrl:    process.env.APTOS_NODE_URL    || cfg.aptosNodeUrl,
+    indexerUrl: process.env.APTOS_INDEXER_URL || cfg.aptosIndexerUrl,
+  };
+}
 
 /* ===============================
    TYPES
@@ -116,7 +118,7 @@ function mergeBlobs(local: BlobItem[], remote: BlobItem[]): BlobItem[] {
     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 }
-async function fetchBlobsFromShelbyNetwork(wallet: string): Promise<BlobItem[]> {
+async function fetchBlobsFromShelbyNetwork(wallet: string, nodeUrl: string, indexerUrl: string): Promise<BlobItem[]> {
   const blobs: BlobItem[] = [];
   
   // Add timeout controller
@@ -144,7 +146,7 @@ async function fetchBlobsFromShelbyNetwork(wallet: string): Promise<BlobItem[]> 
       }
     `;
 
-    const response = await fetch(APTOS_INDEXER_URL, {
+    const response = await fetch(indexerUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -188,7 +190,7 @@ async function fetchBlobsFromShelbyNetwork(wallet: string): Promise<BlobItem[]> 
   // Fallback: Use REST API to fetch account resources
   try {
     const accountResponse = await fetch(
-      `${APTOS_NODE_URL}/accounts/${wallet}/resources`,
+      `${nodeUrl}/accounts/${wallet}/resources`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -278,28 +280,22 @@ function groupBlobsIntoFolders(blobs: BlobItem[]): (BlobItem | FolderItem)[] {
 =============================== */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const wallet = searchParams.get("wallet");
+  const wallet  = searchParams.get("wallet");
+  const network = searchParams.get("network");
 
   if (!wallet) {
-    return NextResponse.json(
-      { error: "Missing wallet parameter" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing wallet parameter" }, { status: 400 });
+  }
+  if (!wallet.startsWith("0x") || wallet.length < 66) {
+    return NextResponse.json({ error: "Invalid wallet address format" }, { status: 400 });
   }
 
-  // Validate wallet address format
-  if (!wallet.startsWith("0x") || wallet.length < 66) {
-    return NextResponse.json(
-      { error: "Invalid wallet address format" },
-      { status: 400 }
-    );
-  }
+  const { nodeUrl, indexerUrl } = getEndpoints(network);
 
   try {
-    // Fetch from both sources in parallel
     const [localBlobs, remoteBlobs] = await Promise.all([
       readLocalIndex(wallet),
-      fetchBlobsFromShelbyNetwork(wallet),
+      fetchBlobsFromShelbyNetwork(wallet, nodeUrl, indexerUrl),
     ]);
 
     // Merge: local index takes priority (always up-to-date after upload)
