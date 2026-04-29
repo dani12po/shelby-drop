@@ -92,7 +92,7 @@ export default function ExplorerRow({
       onContextMenu={onContextMenu}
       onDoubleClick={handleDoubleClick}
       className={`
-        grid grid-cols-[20px_1fr_90px_80px]
+        grid grid-cols-[20px_minmax(0,1fr)_80px_120px]
         items-center gap-3
         px-[15px] py-2
         rounded-md
@@ -118,7 +118,7 @@ export default function ExplorerRow({
       </div>
 
       {/* NAME */}
-      <div className="truncate text-sm">
+      <div className="truncate text-sm min-w-0">
         {item.name}
       </div>
 

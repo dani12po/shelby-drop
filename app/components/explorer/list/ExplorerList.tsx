@@ -179,7 +179,7 @@ export default function ExplorerList({
       {/* HEADER */}
       <div
         className="
-          grid grid-cols-[20px_1fr_90px_80px]
+          grid grid-cols-[20px_minmax(0,1fr)_80px_120px]
           px-[15px] py-2
           text-[11px] font-medium
           bg-[rgba(255,255,255,0.03)]
