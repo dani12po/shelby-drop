@@ -4,24 +4,20 @@
  * Uses ShelbyClient from the browser SDK.
  * Upload happens in the user's browser — transaction signed by user's wallet.
  * clay.wasm runs in the browser, NOT on Vercel server → fixes the wasm issue entirely.
- *
- * Trade-offs vs server wallet:
- * ✓ File registered under user's own wallet address
- * ✓ No clay.wasm needed on server
- * ✓ User controls their own keys
- * ✗ User needs APT for gas fee
- * ✗ Extra wallet confirmation step
  */
 
-import { Network } from "@aptos-labs/ts-sdk";
+import { Network, AccountAddress } from "@aptos-labs/ts-sdk";
 
 export interface BrowserUploadArgs {
   file: File;
   blobName: string;
   expirationMicros: number;
+  /** The wallet's account address (hex string) */
+  accountAddress: string;
+  /** Wallet adapter's signAndSubmitTransaction function */
   signAndSubmitTransaction: (transaction: unknown) => Promise<{ hash: string }>;
   network?: "testnet" | "shelbynet";
-  /** Optional API key override — if not provided, reads NEXT_PUBLIC_SHELBY_API_KEY */
+  /** Optional API key override */
   apiKey?: string;
 }
 
@@ -33,21 +29,45 @@ export interface BrowserUploadResult {
   error?: string;
 }
 
+/**
+ * Creates a signer-compatible object that wraps the wallet adapter.
+ * The Shelby SDK expects an Account object with accountAddress + signing methods.
+ */
+function createWalletSigner(
+  address: string,
+  signAndSubmitTransaction: (tx: unknown) => Promise<{ hash: string }>
+) {
+  const accountAddress = AccountAddress.fromString(address);
+
+  return {
+    accountAddress,
+    // The SDK calls signer.signAndSubmitTransaction internally
+    signAndSubmitTransaction: async (tx: unknown) => {
+      const result = await signAndSubmitTransaction(tx);
+      return result;
+    },
+    // Stub other Account methods the SDK might call
+    publicKey: {
+      toUint8Array: () => new Uint8Array(32),
+      toString: () => address,
+    },
+    sign: async (data: Uint8Array) => ({ data }),
+    signTransaction: async (tx: unknown) => tx,
+    verifySignature: () => true,
+  };
+}
+
 export async function uploadWithBrowserWallet(
   args: BrowserUploadArgs
 ): Promise<BrowserUploadResult> {
   try {
     const apiKey = args.apiKey || process.env.NEXT_PUBLIC_SHELBY_API_KEY;
     if (!apiKey) {
-      // Fallback: fetch from our own API endpoint (server has the key)
       throw new Error(
-        "NEXT_PUBLIC_SHELBY_API_KEY is not configured. " +
-        "Add it to your Vercel environment variables and redeploy."
+        "Shelby API key is not configured. Contact support."
       );
     }
 
-    // Dynamically import browser SDK to avoid SSR issues
-    // ShelbyClient (not ShelbyNodeClient) runs WASM in the browser
     const { ShelbyClient } = await import("@shelby-protocol/sdk/browser");
 
     const sdkNetwork =
@@ -59,13 +79,15 @@ export async function uploadWithBrowserWallet(
     });
 
     const fileBuffer = await args.file.arrayBuffer();
+    const signer = createWalletSigner(
+      args.accountAddress,
+      args.signAndSubmitTransaction
+    );
 
     // This triggers the wallet popup for user confirmation
     const result = await shelbyClient.upload({
       blobData: new Uint8Array(fileBuffer),
-      signer: {
-        signAndSubmitTransaction: args.signAndSubmitTransaction,
-      } as any,
+      signer: signer as any,
       blobName: args.blobName,
       expirationMicros: args.expirationMicros,
     });

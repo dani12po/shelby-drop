@@ -79,6 +79,7 @@ export default function UploadWithWalletButton({
       file,
       blobName,
       expirationMicros,
+      accountAddress: account.address.toString(),
       network: network as "testnet" | "shelbynet",
       apiKey,
       signAndSubmitTransaction: async (tx) => {
