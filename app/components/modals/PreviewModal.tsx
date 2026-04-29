@@ -108,9 +108,12 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
         height: "100%", padding: "16px", overflow: "auto",
       }}>
         {imgErr ? (
-          <div style={{ textAlign: "center", color: "#f87171" }}>
+          <div style={{ textAlign: "center", color: "#f87171", padding: "32px" }}>
             <AlertTriangle size={40} style={{ margin: "0 auto 12px", opacity: 0.6 }} />
-            <p style={{ fontSize: "0.875rem" }}>Failed to load image</p>
+            <p style={{ fontSize: "0.875rem", marginBottom: "8px" }}>Failed to load image</p>
+            <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "16px" }}>
+              The Shelby storage nodes may be temporarily unavailable.
+            </p>
             <a href={proxyUrl} target="_blank" rel="noopener noreferrer"
               style={{ color: "#a78bfa", fontSize: "0.8rem" }}>Open directly ↗</a>
           </div>
@@ -136,7 +139,10 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
         {vidErr ? (
           <div style={{ textAlign: "center", color: "#f87171", padding: "32px" }}>
             <AlertTriangle size={40} style={{ margin: "0 auto 12px", opacity: 0.6 }} />
-            <p style={{ fontSize: "0.875rem" }}>Failed to load video</p>
+            <p style={{ fontSize: "0.875rem", marginBottom: "8px" }}>Failed to load video</p>
+            <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "16px" }}>
+              The Shelby storage nodes may be temporarily unavailable.
+            </p>
             <a href={proxyUrl} target="_blank" rel="noopener noreferrer"
               style={{ color: "#a78bfa", fontSize: "0.8rem" }}>Open directly ↗</a>
           </div>
@@ -211,6 +217,9 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "12px", color: "#f87171" }}>
           <AlertTriangle size={32} style={{ opacity: 0.6 }} />
           <p style={{ fontSize: "0.875rem" }}>Failed to load file content</p>
+          <p style={{ fontSize: "0.75rem", color: "#64748b" }}>
+            The Shelby storage nodes may be temporarily unavailable.
+          </p>
           <a href={proxyUrl} target="_blank" rel="noopener noreferrer"
             style={{ color: "#a78bfa", fontSize: "0.8rem" }}>Open directly ↗</a>
         </div>

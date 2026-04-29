@@ -105,6 +105,8 @@ async function fetchFromIndexer(
     return rows
       // Filter deleted: is_deleted is "0" (not deleted) or "1" (deleted)
       .filter((b: any) => b.is_deleted === "0" || b.is_deleted === 0 || b.is_deleted === false)
+      // Only show fully written blobs
+      .filter((b: any) => b.is_written === "1" || b.is_written === 1 || b.is_written === true)
       .map((b: any, i: number) => {
         const rawBlobName: string = b.blob_name ?? `blob_${i}`;
         const displayName = stripBlobNamePrefix(rawBlobName, wallet);
