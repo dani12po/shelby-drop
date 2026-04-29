@@ -173,7 +173,7 @@ export default function ExplorerModal({
               x: "-50%", y: "-50%", zIndex: 60,
               borderRadius: "28px", padding: "2px",
               background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-              backgroundSize: "400% 100%", animation: "walletBorder 36s linear infinite",
+              backgroundSize: "400% 100%", animation: "walletBorder 4s linear infinite",
             }}
             initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
@@ -183,10 +183,19 @@ export default function ExplorerModal({
               width: "1000px", maxWidth: "95vw",
               height: "75vh", maxHeight: "780px", minHeight: "500px",
               borderRadius: "26px", background: "var(--bg-modal)",
-              padding: "24px", color: "white",
+              color: "white",
               display: "flex", flexDirection: "column", overflow: "hidden",
             }}>
 
+              {/* Top accent bar */}
+              <div style={{
+                height: "3px", flexShrink: 0,
+                background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+                backgroundSize: "400% 100%",
+                animation: "walletBorder 4s linear infinite",
+              }} />
+
+              <div style={{ padding: "24px", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
               {/* Header */}
               <div style={{ flexShrink: 0, marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ flex: 1 }} />
@@ -265,6 +274,7 @@ export default function ExplorerModal({
                 </div>
               </div>
 
+              </div>{/* end padding div */}
             </div>
           </motion.div>
 

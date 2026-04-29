@@ -279,6 +279,14 @@ export default function WalletSearchModal({ wallet, onClose, onViewFile }: Props
           color: "var(--text-primary)", display: "flex", flexDirection: "column",
           overflow: "hidden",
         }}>
+          {/* Top accent bar */}
+          <div style={{
+            height: "3px", flexShrink: 0,
+            background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+            backgroundSize: "400% 100%",
+            animation: "walletBorder 4s linear infinite",
+          }} />
+
           <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "15px" }}>
 
             {/* HEADER */}

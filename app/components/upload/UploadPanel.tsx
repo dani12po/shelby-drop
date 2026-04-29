@@ -61,9 +61,18 @@ export default function UploadPanel({ open, onClose, onUploaded, path }: UploadP
           >
             <div style={{
               background: "var(--bg-modal)", borderRadius: "26px",
-              padding: "32px", color: "white",
+              color: "white", overflow: "hidden",
             }}>
 
+              {/* Top accent bar */}
+              <div style={{
+                height: "3px",
+                background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+                backgroundSize: "400% 100%",
+                animation: "walletBorder 4s linear infinite",
+              }} />
+
+              <div style={{ padding: "28px 32px" }}>
               {/* Header */}
               <div style={{
                 display: "flex", alignItems: "center",
@@ -199,7 +208,8 @@ export default function UploadPanel({ open, onClose, onUploaded, path }: UploadP
                 Cancel
               </button>
 
-            </div>
+              </div>{/* end padding div */}
+            </div>{/* end bg-modal div */}
           </motion.div>
         </>
       )}

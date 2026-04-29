@@ -86,7 +86,7 @@ export default function MetadataModal({
                 )
               `,
               backgroundSize: "400% 100%",
-              animation: "walletBorder 32s linear infinite",
+              animation: "walletBorder 4s linear infinite",
             }}
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -107,6 +107,14 @@ export default function MetadataModal({
               "
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Top accent bar */}
+              <div style={{
+                height: "3px", flexShrink: 0,
+                background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+                backgroundSize: "400% 100%",
+                animation: "walletBorder 4s linear infinite",
+              }} />
+
               {/* HEADER */}
               <div
                 className="

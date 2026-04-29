@@ -280,6 +280,14 @@ export default function PreviewModal({ file, wallet, onClose, open, allFiles = [
             overflow: "hidden",
           }}>
 
+            {/* Top accent bar */}
+            <div style={{
+              height: "3px", flexShrink: 0,
+              background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+              backgroundSize: "400% 100%",
+              animation: "walletBorder 4s linear infinite",
+            }} />
+
             {/* ── HEADER ── */}
             <div style={{
               display: "flex", alignItems: "center", gap: "12px",

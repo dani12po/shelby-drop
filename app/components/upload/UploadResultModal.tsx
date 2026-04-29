@@ -143,9 +143,19 @@ export function UploadResultModal({
         >
           <div style={{
             background: 'var(--bg-modal)', borderRadius: '26px',
-            padding: '28px', color: 'var(--text-primary)',
-            maxHeight: '85vh', overflowY: 'auto'
+            color: 'var(--text-primary)',
+            maxHeight: '85vh', overflowY: 'auto',
+            overflow: 'hidden',
           }}>
+            {/* Top accent bar */}
+            <div style={{
+              height: "3px",
+              background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+              backgroundSize: "400% 100%",
+              animation: "walletBorder 4s linear infinite",
+            }} />
+
+            <div style={{ padding: '28px', maxHeight: '85vh', overflowY: 'auto' }}>
 
             {/* Header */}
             <div style={{
@@ -384,7 +394,8 @@ export function UploadResultModal({
               </button>
             </div>
 
-          </div>
+            </div>{/* end padding div */}
+          </div>{/* end bg-modal div */}
         </motion.div>
       </motion.div>
     </AnimatePresence>,

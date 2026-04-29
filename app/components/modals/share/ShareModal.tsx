@@ -83,6 +83,14 @@ export default function ShareModal({ url, onClose }: Props) {
               overflow: 'hidden'
             }}
           >
+            {/* Top accent bar */}
+            <div style={{
+              height: "3px",
+              background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+              backgroundSize: "400% 100%",
+              animation: "walletBorder 4s linear infinite",
+            }} />
+
             {/* SAFE INNER PADDING */}
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
               {/* HEADER */}

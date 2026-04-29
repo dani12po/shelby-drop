@@ -87,6 +87,14 @@ export default function WalletModal({
                 overflow: 'hidden'
               }}
             >
+              {/* Top accent bar */}
+              <div style={{
+                height: "3px",
+                background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+                backgroundSize: "400% 100%",
+                animation: "walletBorder 4s linear infinite",
+              }} />
+
               <div style={{ padding: '28px 32px' }}>
                 {/* HEADER */}
                 <h2 style={{
