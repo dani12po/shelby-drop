@@ -138,6 +138,7 @@ export default function UploadWithWalletButton({
       setStep("done");
       notify("success", "Upload berhasil! File tersimpan di blockchain.", {
         txHash: result.txHash,
+        network: resolvedNetwork,
         duration: 10000,
       });
 

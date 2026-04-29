@@ -15,6 +15,8 @@ export type NotificationType = "success" | "error" | "info" | "warning";
 export type NotificationMeta = {
   /** Transaction hash — shown as a clickable short link */
   txHash?: string;
+  /** Network the transaction was confirmed on — used to build the correct explorer URL */
+  network?: "testnet" | "shelbynet";
   /** Custom link URL (overrides auto-generated tx explorer URL) */
   link?: string;
   /** Link label text */

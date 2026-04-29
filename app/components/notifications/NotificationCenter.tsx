@@ -27,9 +27,10 @@ function shortenHash(hash: string) {
   return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
 }
 
-function buildTxUrl(txHash: string) {
-  // Use Aptos explorer — works for both testnet and shelbynet
-  return `https://explorer.aptoslabs.com/txn/${txHash}?network=testnet`;
+function buildTxUrl(txHash: string, network?: string) {
+  // Shelbynet txs must use ?network=shelbynet, testnet uses ?network=testnet
+  const net = network === "shelbynet" ? "shelbynet" : "testnet";
+  return `https://explorer.aptoslabs.com/txn/${txHash}?network=${net}`;
 }
 
 /* ── single notification item with countdown bar ── */
@@ -59,7 +60,7 @@ function NotifItem({ n, onRemove }: { n: Notification; onRemove: () => void }) {
   }, [duration]);
 
   const txHash = n.meta?.txHash;
-  const link   = n.meta?.link || (txHash ? buildTxUrl(txHash) : undefined);
+  const link   = n.meta?.link || (txHash ? buildTxUrl(txHash, n.meta?.network) : undefined);
   const label  = n.meta?.linkLabel || (txHash ? shortenHash(txHash) : "View");
 
   return (
