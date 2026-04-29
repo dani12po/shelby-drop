@@ -57,6 +57,18 @@ export default function UploadWithWalletButton({
     setStep("preparing");
     setTxHash("");
 
+    // Fetch API key from server (NEXT_PUBLIC_ vars need build-time injection)
+    let apiKey: string | undefined;
+    try {
+      const cfgRes = await fetch("/api/shelby/config");
+      if (cfgRes.ok) {
+        const cfg = await cfgRes.json();
+        apiKey = cfg.apiKey;
+      }
+    } catch {
+      // fall through — browserUploader will use NEXT_PUBLIC_ if available
+    }
+
     const blobName = `${Date.now()}-${file.name}`;
     const expirationMicros =
       Date.now() * 1000 + retentionDays * 24 * 60 * 60 * 1_000_000;
@@ -68,6 +80,7 @@ export default function UploadWithWalletButton({
       blobName,
       expirationMicros,
       network: network as "testnet" | "shelbynet",
+      apiKey,
       signAndSubmitTransaction: async (tx) => {
         setStep("uploading");
         const response = await signAndSubmitTransaction(tx as any);
@@ -116,7 +129,7 @@ export default function UploadWithWalletButton({
     } else {
       setStep("error");
       const errMsg = result.error || "Upload gagal";
-      notify("error", errMsg);
+      // Don't call notify here — onError in parent (UploadPanel) will notify
       onError?.(errMsg);
     }
   }

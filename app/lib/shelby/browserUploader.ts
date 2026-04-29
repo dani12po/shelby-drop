@@ -21,6 +21,8 @@ export interface BrowserUploadArgs {
   expirationMicros: number;
   signAndSubmitTransaction: (transaction: unknown) => Promise<{ hash: string }>;
   network?: "testnet" | "shelbynet";
+  /** Optional API key override — if not provided, reads NEXT_PUBLIC_SHELBY_API_KEY */
+  apiKey?: string;
 }
 
 export interface BrowserUploadResult {
@@ -35,11 +37,12 @@ export async function uploadWithBrowserWallet(
   args: BrowserUploadArgs
 ): Promise<BrowserUploadResult> {
   try {
-    const apiKey = process.env.NEXT_PUBLIC_SHELBY_API_KEY;
+    const apiKey = args.apiKey || process.env.NEXT_PUBLIC_SHELBY_API_KEY;
     if (!apiKey) {
+      // Fallback: fetch from our own API endpoint (server has the key)
       throw new Error(
         "NEXT_PUBLIC_SHELBY_API_KEY is not configured. " +
-        "Add it to your .env file."
+        "Add it to your Vercel environment variables and redeploy."
       );
     }
 
