@@ -39,15 +39,15 @@ function parseSize(sizeStr?: string | number): number {
 
 /**
  * Loads wallet files via /api/shelby/list
- * (merges local upload index + Shelby Network indexer)
+ * Always queries BOTH testnet and shelbynet — no network param needed.
  */
-export async function loadWalletFilesFromShelby(wallet: string, network?: string): Promise<{
+export async function loadWalletFilesFromShelby(wallet: string, _network?: string): Promise<{
   items: ExplorerItem[];
   rawItems: (FileItemData | FolderItem)[];
 }> {
   try {
-    const networkParam = network ? `&network=${encodeURIComponent(network)}` : "";
-    const res = await fetch(`/api/shelby/list?wallet=${encodeURIComponent(wallet)}${networkParam}`);
+    // Never pass network param — always query both testnet + shelbynet
+    const res = await fetch(`/api/shelby/list?wallet=${encodeURIComponent(wallet)}`);
     if (!res.ok) throw new Error(`/api/shelby/list returned ${res.status}`);
 
     const data = await res.json();
@@ -57,12 +57,14 @@ export async function loadWalletFilesFromShelby(wallet: string, network?: string
       id: blob.id || blob.blob_id || `file-${i}`,
       type: "file" as const,
       name: blob.name || "unknown",
-      path: [],                          // all files are at root level
+      path: [],
       size: parseSize(blob.size),
       mimeType: getMimeType(blob.name || ""),
-      uploader: wallet,
+      uploader: blob.creator || wallet,
       uploadedAt: blob.created_at || new Date().toISOString(),
       expiresAt: blob.expires_at,
+      // Store which network this blob lives on for media proxy
+      blobId: blob.network || "testnet",
     }));
 
     const items: ExplorerItem[] = rawItems.map((f) => ({

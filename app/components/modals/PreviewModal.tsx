@@ -69,7 +69,9 @@ function formatSize(bytes: number | string): string {
 /* ── build proxy URL — all media goes through /api/media to avoid CORS ── */
 function buildProxyUrl(wallet: string, file: FileItemData, network?: string): string {
   const filePath = [...(file.path ?? []), file.name].filter(Boolean).join("/");
-  const networkParam = network ? `&network=${encodeURIComponent(network)}` : "";
+  // Use blobId as network hint (set by shelbyAdapter from indexer response)
+  const netHint = network || file.blobId || "";
+  const networkParam = netHint ? `&network=${encodeURIComponent(netHint)}` : "";
   return `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}${networkParam}`;
 }
 
@@ -337,7 +339,8 @@ export default function PreviewModal({
   function handleDownload() {
     if (isExpired) return;
     const filePath = [...(currentFile.path ?? []), currentFile.name].filter(Boolean).join("/");
-    const networkParam = network ? `&network=${encodeURIComponent(network)}` : "";
+    const netHint = network || currentFile.blobId || "";
+    const networkParam = netHint ? `&network=${encodeURIComponent(netHint)}` : "";
     const dlUrl = `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}&download=1${networkParam}`;
     const a = document.createElement("a");
     a.href = dlUrl;

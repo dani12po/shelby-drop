@@ -1,81 +1,91 @@
 // app/api/media/route.ts
 // Proxies blob content from Shelby storage nodes to avoid CORS issues.
-// Correct URL format: https://api.{network}.shelby.xyz/shelby/v1/blobs/{wallet}/{filename}
+// Tries both testnet and shelbynet if the first fails.
 
 import { NextResponse } from "next/server";
-import { getNetworkConfig } from "@/config/shelby";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Blob base URLs from @shelby-protocol/sdk NetworkToShelbyRPCBaseUrl
+const BLOB_BASE_URLS: Record<string, string> = {
+  testnet:   "https://api.testnet.shelby.xyz/shelby/v1/blobs",
+  shelbynet: "https://api.shelbynet.shelby.xyz/shelby/v1/blobs",
+};
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const wallet   = searchParams.get("wallet");
   const name     = searchParams.get("name");
   const download = searchParams.get("download") === "1";
-  const network  = searchParams.get("network") || process.env.SHELBY_NETWORK || "testnet";
+  const network  = searchParams.get("network"); // optional hint
 
   if (!wallet || !name) {
     return NextResponse.json({ error: "Missing wallet or name" }, { status: 400 });
   }
 
-  const cfg = getNetworkConfig(network);
-
-  // Correct Shelby blob URL: {blobBaseUrl}/{wallet}/{filename}
-  // Each segment encoded individually to handle spaces and special chars
+  // Encode each path segment individually
   const segments = name.split("/").map(encodeURIComponent);
-  const blobUrl = `${cfg.blobBaseUrl}/${encodeURIComponent(wallet)}/${segments.join("/")}`;
+  const filePath = `${encodeURIComponent(wallet)}/${segments.join("/")}`;
 
-  try {
-    const upstream = await fetch(blobUrl, {
-      headers: {
-        // Forward range requests for video/audio seeking
-        ...(req.headers.get("range")
-          ? { Range: req.headers.get("range")! }
-          : {}),
-      },
-    });
+  // Build ordered list of networks to try
+  // If a network hint is given, try it first; always fall back to the other
+  const networksToTry = network && BLOB_BASE_URLS[network]
+    ? [network, ...Object.keys(BLOB_BASE_URLS).filter(n => n !== network)]
+    : ["testnet", "shelbynet"];
 
-    if (!upstream.ok && upstream.status !== 206) {
-      console.error(`[media proxy] upstream ${upstream.status} for: ${blobUrl}`);
-      return NextResponse.json(
-        { error: `Storage returned ${upstream.status}` },
-        { status: upstream.status }
-      );
+  const rangeHeader = req.headers.get("range");
+
+  for (const net of networksToTry) {
+    const blobUrl = `${BLOB_BASE_URLS[net]}/${filePath}`;
+
+    try {
+      const upstream = await fetch(blobUrl, {
+        headers: rangeHeader ? { Range: rangeHeader } : {},
+      });
+
+      if (!upstream.ok && upstream.status !== 206) {
+        // Not found on this network — try next
+        continue;
+      }
+
+      const contentType =
+        upstream.headers.get("content-type") ||
+        inferContentType(name);
+
+      const filename = name.split("/").pop() ?? name;
+
+      const headers: Record<string, string> = {
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=3600",
+        "Access-Control-Allow-Origin": "*",
+        "X-Shelby-Network": net,
+      };
+
+      if (download) {
+        headers["Content-Disposition"] = `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`;
+      } else {
+        headers["Content-Disposition"] = `inline; filename*=UTF-8''${encodeURIComponent(filename)}`;
+      }
+
+      const contentLength = upstream.headers.get("content-length");
+      if (contentLength) headers["Content-Length"] = contentLength;
+
+      const contentRange = upstream.headers.get("content-range");
+      if (contentRange) headers["Content-Range"] = contentRange;
+
+      return new Response(upstream.body, { status: upstream.status, headers });
+    } catch {
+      // Network error — try next
+      continue;
     }
-
-    const contentType =
-      upstream.headers.get("content-type") ||
-      inferContentType(name);
-
-    const filename = name.split("/").pop() ?? name;
-
-    const headers: Record<string, string> = {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=3600",
-      "Access-Control-Allow-Origin": "*",
-    };
-
-    if (download) {
-      headers["Content-Disposition"] = `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`;
-    } else {
-      headers["Content-Disposition"] = `inline; filename*=UTF-8''${encodeURIComponent(filename)}`;
-    }
-
-    const contentLength = upstream.headers.get("content-length");
-    if (contentLength) headers["Content-Length"] = contentLength;
-
-    const contentRange = upstream.headers.get("content-range");
-    if (contentRange) headers["Content-Range"] = contentRange;
-
-    return new Response(upstream.body, { status: upstream.status, headers });
-  } catch (err) {
-    console.error("[media proxy] fetch failed:", err, "URL:", blobUrl);
-    return NextResponse.json(
-      { error: "Failed to fetch from storage" },
-      { status: 502 }
-    );
   }
+
+  // All networks failed
+  return NextResponse.json(
+    { error: "File not found on any Shelby network" },
+    { status: 404 }
+  );
 }
 
 function inferContentType(filename: string): string {
