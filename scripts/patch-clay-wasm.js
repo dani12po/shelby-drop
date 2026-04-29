@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
  * Patches @shelby-protocol/clay-codes/dist/index-node.js
- * to use an absolute path for clay.wasm instead of import.meta.url.
+ * to use absolute paths for clay.wasm that work on Vercel serverless.
  *
- * This fixes the "Unable to locate clay.wasm" error on Vercel serverless.
+ * The original code uses import.meta.url which resolves incorrectly
+ * after Vercel bundles the serverless function.
  */
 
 const fs = require("fs");
@@ -19,35 +20,12 @@ if (!fs.existsSync(indexNodePath)) {
   process.exit(0);
 }
 
-let content = fs.readFileSync(indexNodePath, "utf-8");
-
-// Check if already patched
-if (content.includes("PATCHED_BY_SHELBY_DROP")) {
-  console.log("[patch-clay-wasm] Already patched, skipping.");
-  process.exit(0);
-}
-
-// Replace the loadWasm function with one that uses require.resolve
-const originalLoadWasm = `async function loadWasm() {
-  const here = dirname(fileURLToPath(import.meta.url));
-  const paths = [
-    resolve(here, "clay.wasm"),
-    resolve(here, "../dist/clay.wasm")
-  ];
-  let bytes;
-  for (const path of paths) {
-    try {
-      bytes = await readFile(path);
-      break;
-    } catch {
-    }
-  }
-  if (!bytes) {
-    throw new Error(\`Unable to locate clay.wasm. Tried: \${paths.join(", ")}\`);
-  }`;
-
-const patchedLoadWasm = `async function loadWasm() {
-  // PATCHED_BY_SHELBY_DROP: use absolute paths that work on Vercel
+// The correct replacement for the entire loadWasm function
+const PATCHED_LOAD_WASM = `// PATCHED_BY_SHELBY_DROP
+import { readFile } from "fs/promises";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
+async function loadWasm() {
   const here = dirname(fileURLToPath(import.meta.url));
   const cwd = process.cwd();
   const paths = [
@@ -59,43 +37,105 @@ const patchedLoadWasm = `async function loadWasm() {
     resolve(cwd, "public/clay.wasm"),
   ];
   let bytes;
-  for (const path of paths) {
+  for (const wasmPath of paths) {
     try {
-      bytes = await readFile(path);
+      bytes = await readFile(wasmPath);
       break;
     } catch {
+      // try next path
     }
   }
   if (!bytes) {
     throw new Error(\`Unable to locate clay.wasm. Tried: \${paths.join(", ")}\`);
-  }`;
+  }
+  const defaultImports = {
+    env: {
+      abort: () => { throw new Error("WASM abort called"); },
+      js_msg: (i) => console.log(\`wasm msg: \${i}\`)
+    }
+  };
+  const module = await WebAssembly.compile(bytes);
+  return WebAssembly.instantiate(module, defaultImports);
+}`;
 
-if (content.includes("const here = dirname(fileURLToPath(import.meta.url))")) {
-  content = content.replace(
-    /async function loadWasm\(\) \{[\s\S]*?if \(!bytes\) \{[\s\S]*?throw new Error[\s\S]*?\}\s*\}/,
-    patchedLoadWasm + "\n  }"
-  );
+// Read current content
+let content = fs.readFileSync(indexNodePath, "utf-8");
+
+// Check if already correctly patched (has correct defaultImports)
+if (content.includes("PATCHED_BY_SHELBY_DROP") && content.includes("const defaultImports")) {
+  console.log("[patch-clay-wasm] Already correctly patched, skipping.");
+  process.exit(0);
+}
+
+// Remove any previous broken patch
+content = content.replace(/\/\/ PATCHED_BY_SHELBY_DROP[\s\S]*?(?=async function createEncoder)/, "");
+
+// Remove the original imports that we'll include in the patch
+content = content.replace(/\/\/ src\/index-node\.ts\nimport \{ readFile \} from "fs\/promises";\nimport \{ dirname, resolve \} from "path";\nimport \{ fileURLToPath \} from "url";\n/, "");
+
+// Remove the original loadWasm function (find it by its signature)
+// Match from "async function loadWasm" to the closing "}" of the function
+const loadWasmRegex = /async function loadWasm\(\) \{[\s\S]*?\nreturn WebAssembly\.instantiate\(module, defaultImports\);\n\}/;
+if (loadWasmRegex.test(content)) {
+  content = content.replace(loadWasmRegex, PATCHED_LOAD_WASM);
   fs.writeFileSync(indexNodePath, content, "utf-8");
   console.log("[patch-clay-wasm] Successfully patched index-node.js");
 } else {
-  console.log("[patch-clay-wasm] Pattern not found, trying direct replacement...");
+  // Fallback: rewrite the entire file with correct content
+  console.log("[patch-clay-wasm] Using full rewrite fallback...");
   
-  // Fallback: just prepend the extra paths to the existing array
-  const simpleReplace = `resolve(here, "clay.wasm"),
-    resolve(here, "../dist/clay.wasm")`;
-  const simpleWith = `resolve(here, "clay.wasm"),
-    resolve(here, "../dist/clay.wasm"),
-    resolve(process.cwd(), "node_modules/@shelby-protocol/clay-codes/dist/clay.wasm"),
-    "/vercel/path0/node_modules/@shelby-protocol/clay-codes/dist/clay.wasm",
-    resolve(process.cwd(), "public/clay.wasm")`;
-  
-  if (content.includes(simpleReplace)) {
-    content = content.replace(simpleReplace, simpleWith);
-    // Add PATCHED marker
-    content = "// PATCHED_BY_SHELBY_DROP\n" + content;
-    fs.writeFileSync(indexNodePath, content, "utf-8");
-    console.log("[patch-clay-wasm] Patched with simple replacement.");
-  } else {
-    console.log("[patch-clay-wasm] Could not find pattern to patch.");
-  }
+  const fullContent = `import "./chunk-E7TRDNBU.js";
+import {
+  FULL_WASM_MASK,
+  MAX_WASM_MASK_BITS,
+  convertToErasedMask,
+  makeDecoderAPI
+} from "./chunk-RXWC2ROY.js";
+import {
+  makeEncoderAPI
+} from "./chunk-BWTMZB33.js";
+import "./chunk-ST33RHQN.js";
+import {
+  flattenSystematic
+} from "./chunk-22OVODFS.js";
+import {
+  CLAY_PARAMS_BYTES,
+  DEFAULT_ALIGNMENT,
+  DEFAULT_ALIGN_MASK,
+  DEFAULT_PAGE_SIZE
+} from "./chunk-N26WXNR7.js";
+import {
+  DuplicateChunkIndexError,
+  InvalidChunkIndexError
+} from "./chunk-XAN62WH2.js";
+
+${PATCHED_LOAD_WASM}
+
+async function createEncoder(opts) {
+  const instance = await loadWasm();
+  return makeEncoderAPI(instance, opts);
+}
+async function createDecoder(opts) {
+  const instance = await loadWasm();
+  return makeDecoderAPI(instance, opts);
+}
+export {
+  CLAY_PARAMS_BYTES,
+  DEFAULT_ALIGNMENT,
+  DEFAULT_ALIGN_MASK,
+  DEFAULT_PAGE_SIZE,
+  DuplicateChunkIndexError,
+  FULL_WASM_MASK,
+  InvalidChunkIndexError,
+  MAX_WASM_MASK_BITS,
+  convertToErasedMask,
+  createDecoder,
+  createEncoder,
+  flattenSystematic,
+  makeDecoderAPI,
+  makeEncoderAPI
+};
+`;
+  fs.writeFileSync(indexNodePath, fullContent, "utf-8");
+  console.log("[patch-clay-wasm] Full rewrite complete.");
 }
