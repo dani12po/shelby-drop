@@ -10,69 +10,60 @@ import {
 /* ===============================
    TYPES
 ================================ */
-export type NotificationType =
-  | "success"
-  | "error"
-  | "info"
-  | "warning";
+export type NotificationType = "success" | "error" | "info" | "warning";
+
+export type NotificationMeta = {
+  /** Transaction hash — shown as a clickable short link */
+  txHash?: string;
+  /** Custom link URL (overrides auto-generated tx explorer URL) */
+  link?: string;
+  /** Link label text */
+  linkLabel?: string;
+  /** Auto-dismiss duration in ms (default 10000) */
+  duration?: number;
+};
 
 export type Notification = {
   id: string;
   type: NotificationType;
   message: string;
+  meta?: NotificationMeta;
 };
 
 type NotificationContextType = {
   notifications: Notification[];
-  notify: (type: NotificationType, message: string) => void;
+  notify: (type: NotificationType, message: string, meta?: NotificationMeta) => void;
   remove: (id: string) => void;
 };
 
 /* ===============================
    CONTEXT
 ================================ */
-const NotificationContext =
-  createContext<NotificationContextType | null>(null);
+const NotificationContext = createContext<NotificationContextType | null>(null);
 
 /* ===============================
    PROVIDER
 ================================ */
-export function NotificationProvider({
-  children,
-}: {
-  children: ReactNode;
-}): JSX.Element {
-  const [notifications, setNotifications] =
-    useState<Notification[]>([]);
+export function NotificationProvider({ children }: { children: ReactNode }): JSX.Element {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const notify = (
-    type: NotificationType,
-    message: string
-  ) => {
+  const notify = (type: NotificationType, message: string, meta?: NotificationMeta) => {
     const id = crypto.randomUUID();
+    const duration = meta?.duration ?? 10000;
 
-    setNotifications((prev) => [
-      ...prev,
-      { id, type, message },
-    ]);
+    setNotifications((prev) => [...prev, { id, type, message, meta }]);
 
     setTimeout(() => {
-      setNotifications((prev) =>
-        prev.filter((n) => n.id !== id)
-      );
-    }, 4000);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    }, duration);
   };
 
   const remove = (id: string) => {
-    setNotifications((prev) =>
-      prev.filter((n) => n.id !== id)
-    );
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   return (
-    <NotificationContext.Provider
-      value={{ notifications, notify, remove }}
-    >
+    <NotificationContext.Provider value={{ notifications, notify, remove }}>
       {children}
     </NotificationContext.Provider>
   );
@@ -83,12 +74,8 @@ export function NotificationProvider({
 ================================ */
 export function useNotifications() {
   const context = useContext(NotificationContext);
-
   if (!context) {
-    throw new Error(
-      "useNotifications must be used within NotificationProvider"
-    );
+    throw new Error("useNotifications must be used within NotificationProvider");
   }
-
   return context;
 }

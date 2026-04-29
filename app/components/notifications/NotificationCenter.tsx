@@ -2,124 +2,187 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
-import { useNotifications } from "./useNotifications";
-import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { useNotifications, type Notification } from "./useNotifications";
+import { CheckCircle2, AlertCircle, Info, X, ExternalLink } from "lucide-react";
 
-// Helper function for notification style
-function getNotifStyle(type?: string) {
-  switch(type) {
-    case 'success': return {
-      icon: <CheckCircle2 size={16} strokeWidth={2} color="var(--accent-green)" />,
-      accent: 'var(--accent-green)',
-      bg: 'rgba(16,185,129,0.08)',
-      border: 'rgba(16,185,129,0.2)'
-    }
-    case 'error': return {
-      icon: <AlertCircle size={16} strokeWidth={2} color="var(--accent-red)" />,
-      accent: 'var(--accent-red)',
-      bg: 'rgba(239,68,68,0.08)',
-      border: 'rgba(239,68,68,0.2)'
-    }
-    default: return {
-      icon: <Info size={16} strokeWidth={2} color="var(--accent-blue)" />,
-      accent: 'var(--accent-blue)',
-      bg: 'rgba(59,130,246,0.08)',
-      border: 'rgba(59,130,246,0.2)'
-    }
+/* ── helpers ── */
+function getStyle(type?: string) {
+  switch (type) {
+    case "success": return { accent: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)" };
+    case "error":   return { accent: "#ef4444", bg: "rgba(239,68,68,0.08)",  border: "rgba(239,68,68,0.2)"  };
+    default:        return { accent: "#3b82f6", bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.2)" };
   }
 }
 
-const variants = {
-  hidden: { opacity: 0, y: -10, scale: 0.95 },
-  visible: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: -10, scale: 0.95 },
-};
+function getIcon(type?: string, accent?: string) {
+  const props = { size: 16, strokeWidth: 2, color: accent };
+  if (type === "success") return <CheckCircle2 {...props} />;
+  if (type === "error")   return <AlertCircle  {...props} />;
+  return <Info {...props} />;
+}
 
+function shortenHash(hash: string) {
+  if (!hash || hash.length < 12) return hash;
+  return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
+}
+
+function buildTxUrl(txHash: string) {
+  // Use Aptos explorer — works for both testnet and shelbynet
+  return `https://explorer.aptoslabs.com/txn/${txHash}?network=testnet`;
+}
+
+/* ── single notification item with countdown bar ── */
+function NotifItem({ n, onRemove }: { n: Notification; onRemove: () => void }) {
+  const s = getStyle(n.type);
+  const duration = n.meta?.duration ?? 10000;
+
+  // Countdown bar: animate from 100% → 0% over `duration` ms
+  const [progress, setProgress] = useState(100);
+  const startRef = useRef(Date.now());
+  const rafRef   = useRef<number>(0);
+
+  useEffect(() => {
+    startRef.current = Date.now();
+
+    function tick() {
+      const elapsed = Date.now() - startRef.current;
+      const pct = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(pct);
+      if (pct > 0) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [duration]);
+
+  const txHash = n.meta?.txHash;
+  const link   = n.meta?.link || (txHash ? buildTxUrl(txHash) : undefined);
+  const label  = n.meta?.linkLabel || (txHash ? shortenHash(txHash) : "View");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0,  scale: 1    }}
+      exit={{    opacity: 0, y: 12, scale: 0.96 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+      style={{ pointerEvents: "auto", position: "relative", overflow: "hidden" }}
+    >
+      {/* Countdown bar — sits at the very top of the card */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0,
+        height: "3px",
+        background: "rgba(255,255,255,0.06)",
+        borderRadius: "11px 11px 0 0",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          height: "100%",
+          width: `${progress}%`,
+          background: s.accent,
+          transition: "width 0.1s linear",
+          borderRadius: "inherit",
+        }} />
+      </div>
+
+      {/* Card body */}
+      <div
+        onClick={onRemove}
+        style={{
+          paddingTop: "15px", // extra top padding to clear the bar
+          paddingBottom: "12px",
+          paddingLeft: "14px",
+          paddingRight: "14px",
+          borderRadius: "11px",
+          background: "var(--bg-modal)",
+          border: `1px solid ${s.border}`,
+          backdropFilter: "blur(20px)",
+          cursor: "pointer",
+          display: "flex", alignItems: "flex-start", gap: "10px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+        }}
+      >
+        {/* Left accent line */}
+        <div style={{
+          width: "3px", alignSelf: "stretch", minHeight: "20px",
+          borderRadius: "2px", flexShrink: 0,
+          background: s.accent,
+        }} />
+
+        {/* Icon */}
+        <div style={{ flexShrink: 0, marginTop: "1px" }}>
+          {getIcon(n.type, s.accent)}
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{
+            fontSize: "0.825rem", color: "var(--text-primary)",
+            margin: 0, lineHeight: 1.5,
+          }}>
+            {n.message}
+          </p>
+
+          {/* Tx / custom link */}
+          {link && (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "4px",
+                marginTop: "5px",
+                fontSize: "0.72rem", color: s.accent,
+                textDecoration: "none", fontFamily: "monospace",
+                opacity: 0.9,
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+              onMouseLeave={e => e.currentTarget.style.opacity = "0.9"}
+            >
+              {txHash ? "Tx: " : ""}{label}
+              <ExternalLink size={10} strokeWidth={2} />
+            </a>
+          )}
+        </div>
+
+        {/* Close */}
+        <button
+          onClick={e => { e.stopPropagation(); onRemove(); }}
+          style={{
+            flexShrink: 0, background: "none", border: "none",
+            color: "var(--text-muted)", cursor: "pointer", padding: "2px",
+            display: "flex", alignItems: "center",
+          }}
+        >
+          <X size={13} strokeWidth={2.5} />
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── main component ── */
 export default function NotificationCenter() {
   const { notifications, remove } = useNotifications();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // SSR-safe: don't Render anything on server
-  if (!mounted) {
-    return null;
-  }
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
 
   return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 70,
-        display: 'flex',
-        flexDirection: 'column-reverse',
-        gap: '8px',
-        width: '360px',
-        maxWidth: 'calc(100vw - 48px)',
-        pointerEvents: 'none'
-      }}
-    >
+    <div style={{
+      position: "fixed", bottom: "24px", right: "24px",
+      zIndex: 70,
+      display: "flex", flexDirection: "column-reverse", gap: "8px",
+      width: "360px", maxWidth: "calc(100vw - 48px)",
+      pointerEvents: "none",
+    }}>
       <AnimatePresence>
-        {notifications.slice(-3).map((n) => ( // Max 3 notifications
-          <motion.div
-            key={n.id}
-            variants={variants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            style={{ pointerEvents: 'auto' }}
-            onClick={() => remove(n.id)}
-          >
-            {/* NOTIFICATION BODY */}
-            <div style={{
-              padding: '12px 14px',
-              borderRadius: '11px',
-              background: 'var(--bg-modal)',
-              border: `1px solid ${getNotifStyle(n.type).border}`,
-              backdropFilter: 'blur(20px)',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'flex-start', gap: '10px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
-            }}>
-              {/* Accent line kiri */}
-              <div style={{
-                width: '3px', height: '100%', minHeight: '20px',
-                borderRadius: '2px', flexShrink: 0,
-                background: getNotifStyle(n.type).accent
-              }} />
-              
-              {/* Icon */}
-              <div style={{ flexShrink: 0, marginTop: '1px' }}>
-                {getNotifStyle(n.type).icon}
-              </div>
-              
-              {/* Message */}
-              <p style={{
-                flex: 1, fontSize: '0.825rem', color: 'var(--text-primary)',
-                margin: 0, lineHeight: 1.5
-              }}>
-                {n.message}
-              </p>
-              
-              {/* Close */}
-              <button
-                onClick={e => { e.stopPropagation(); remove(n.id) }}
-                style={{
-                  flexShrink: 0, background: 'none', border: 'none',
-                  color: 'var(--text-muted)', cursor: 'pointer', padding: '2px',
-                  display: 'flex', alignItems: 'center'
-                }}
-              >
-                <X size={13} strokeWidth={2.5} />
-              </button>
-            </div>
-          </motion.div>
+        {notifications.slice(-3).map((n) => (
+          <NotifItem key={n.id} n={n} onRemove={() => remove(n.id)} />
         ))}
       </AnimatePresence>
     </div>,

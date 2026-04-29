@@ -91,7 +91,10 @@ export default function UploadPanel({
         }),
       });
 
-      notify("success", "Upload successful");
+      notify("success", "Upload successful", {
+        txHash: metadata.hash || undefined,
+        duration: 10000,
+      });
 
       /* ===============================
          3️⃣ Notify parent (UI refresh)

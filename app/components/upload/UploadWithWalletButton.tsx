@@ -79,7 +79,10 @@ export default function UploadWithWalletButton({
     if (result.success && result.txHash) {
       setTxHash(result.txHash);
       setStep("done");
-      notify("success", "Upload berhasil! File tersimpan di blockchain.");
+      notify("success", "Upload berhasil! File tersimpan di blockchain.", {
+        txHash: result.txHash,
+        duration: 10000,
+      });
 
       // Record in local index so it shows up in explorer immediately
       try {
