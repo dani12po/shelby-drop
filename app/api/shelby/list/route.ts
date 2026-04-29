@@ -1,6 +1,6 @@
 // app/api/shelby/list/route.ts
-// Lists blobs for a wallet by querying the Shelby storage API directly.
-// This works on Vercel (no filesystem dependency).
+// Lists blobs for a wallet using the Shelby indexer (GraphQL).
+// Indexer URLs sourced directly from @shelby-protocol/sdk source.
 
 import { NextResponse } from "next/server";
 import { getNetworkConfig } from "@/config/shelby";
@@ -8,83 +8,101 @@ import { getNetworkConfig } from "@/config/shelby";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/* ── types ── */
+// Exact indexer URLs from @shelby-protocol/sdk dist/chunk-7OV5ZYW6.mjs
+const SHELBY_INDEXER_URLS: Record<string, string> = {
+  testnet:  "https://api.testnet.aptoslabs.com/nocode/v1/public/cmlfqs5wt00qrs601zt5s4kfj/v1/graphql",
+  shelbynet: "https://api.shelbynet.aptoslabs.com/nocode/v1/public/cmforrguw0042s601fn71f9l2/v1/graphql",
+};
+
+// GraphQL query — exact schema from @shelby-protocol/sdk
+// Fields: owner, blob_name, created_at, expires_at, size, is_deleted, is_written
+const GET_BLOBS_QUERY = `
+  query getBlobs($where: blobs_bool_exp, $orderBy: [blobs_order_by!], $limit: Int) {
+    blobs(where: $where, order_by: $orderBy, limit: $limit) {
+      owner
+      blob_name
+      created_at
+      expires_at
+      size
+      is_deleted
+      is_written
+    }
+  }
+`;
+
 interface BlobItem {
   id: string;
   name: string;
   blob_id: string;
   size: number;
   created_at: string;
+  expires_at?: string;
   creator: string;
 }
 
-/* ── helpers ── */
-function inferFileType(name: string): "PDF" | "IMG" | "VIDEO" | "AUDIO" | "TEXT" | "OTHER" {
-  const lower = name.toLowerCase();
-  if (lower.match(/\.(pdf)$/)) return "PDF";
-  if (lower.match(/\.(png|jpg|jpeg|gif|webp|svg|bmp|ico)$/)) return "IMG";
-  if (lower.match(/\.(mp4|webm|mov|avi|mkv)$/)) return "VIDEO";
-  if (lower.match(/\.(mp3|wav|ogg|flac|aac|m4a)$/)) return "AUDIO";
-  if (lower.match(/\.(txt|md|json|js|ts|tsx|jsx|css|html|xml|csv|yaml|yml)$/)) return "TEXT";
-  return "OTHER";
-}
-
-/* ── fetch blobs from Shelby REST API ── */
-async function fetchBlobsFromShelby(
+async function fetchBlobsFromIndexer(
   wallet: string,
-  blobBaseUrl: string
+  network: string
 ): Promise<BlobItem[]> {
+  const indexerUrl = SHELBY_INDEXER_URLS[network] ?? SHELBY_INDEXER_URLS.testnet;
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
-    // Shelby blob list endpoint: GET /shelby/v1/blobs/{account}
-    const url = `${blobBaseUrl}/${encodeURIComponent(wallet)}`;
-    console.log("[shelby/list] fetching:", url);
-
-    const res = await fetch(url, {
+    const res = await fetch(indexerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: GET_BLOBS_QUERY,
+        variables: {
+          where: {
+            owner: { _eq: wallet },
+            is_deleted: { _eq: false },
+          },
+          orderBy: [{ created_at: "desc" }],
+          limit: 200,
+        },
+      }),
       signal: controller.signal,
-      headers: { "Accept": "application/json" },
     });
 
     clearTimeout(timeout);
 
     if (!res.ok) {
-      console.warn(`[shelby/list] API returned ${res.status}`);
+      console.warn(`[shelby/list] indexer returned ${res.status}`);
       return [];
     }
 
-    const data = await res.json();
+    const json = await res.json();
 
-    // Handle array response or {blobs: [...]} shape
-    const blobs: any[] = Array.isArray(data)
-      ? data
-      : (data.blobs ?? data.data ?? data.items ?? []);
+    if (json.errors) {
+      console.warn("[shelby/list] GraphQL errors:", JSON.stringify(json.errors));
+      return [];
+    }
 
-    return blobs.map((b: any, i: number) => ({
-      id:         b.blob_id ?? b.id ?? `blob-${i}`,
-      name:       b.name ?? b.blob_name ?? `blob_${i}`,
-      blob_id:    b.blob_id ?? b.id ?? "",
+    const rows: any[] = json?.data?.blobs ?? [];
+
+    return rows.map((b: any, i: number) => ({
+      id:         `${b.owner}-${b.blob_name}-${i}`,
+      name:       b.blob_name ?? `blob_${i}`,
+      blob_id:    b.blob_name ?? "",
       size:       typeof b.size === "number" ? b.size : 0,
-      created_at: b.created_at ?? b.inserted_at ?? b.createdAt ?? new Date().toISOString(),
-      creator:    wallet,
+      created_at: b.created_at ?? new Date().toISOString(),
+      expires_at: b.expires_at ?? undefined,
+      creator:    b.owner ?? wallet,
     }));
   } catch (err: any) {
     clearTimeout(timeout);
-    if (err.name === "AbortError") {
-      console.warn("[shelby/list] request timed out");
-    } else {
-      console.warn("[shelby/list] fetch error:", err.message);
-    }
+    console.warn("[shelby/list] indexer error:", err.message);
     return [];
   }
 }
 
-/* ── GET /api/shelby/list ── */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const wallet  = searchParams.get("wallet");
-  const network = searchParams.get("network");
+  const network = searchParams.get("network") || process.env.SHELBY_NETWORK || "testnet";
 
   if (!wallet) {
     return NextResponse.json({ error: "Missing wallet parameter" }, { status: 400 });
@@ -93,19 +111,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Invalid wallet address" }, { status: 400 });
   }
 
-  const cfg = getNetworkConfig(network);
-
-  const blobs = await fetchBlobsFromShelby(wallet, cfg.blobBaseUrl);
-
-  // Sort newest first
-  blobs.sort((a, b) =>
-    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  const blobs = await fetchBlobsFromIndexer(wallet, network);
 
   return NextResponse.json({
     wallet,
     files: blobs,
     total: blobs.length,
-    network: cfg.aptosNetwork,
+    network,
   });
 }
