@@ -89,10 +89,19 @@ export async function uploadWithBrowserWallet(
     console.log("✅ Transaction submitted:", txHash);
 
     // Step 3.5: Wait for transaction to be confirmed on L1
-    // The RPC storage node checks L1 before accepting blob data
+    // IMPORTANT: Use the Shelby network node, not standard Aptos testnet
     console.log("⏳ Waiting for L1 confirmation...");
-    const { Aptos, AptosConfig } = await import("@aptos-labs/ts-sdk");
-    const aptosConfig = new AptosConfig({ network: sdkNetwork });
+    const { Aptos, AptosConfig, Network: AptosNetwork } = await import("@aptos-labs/ts-sdk");
+    
+    // Use the correct node URL for the network
+    const nodeUrl = args.network === "shelbynet"
+      ? "https://api.shelbynet.shelby.xyz/v1"
+      : "https://api.testnet.aptoslabs.com/v1";
+    
+    const aptosConfig = new AptosConfig({
+      network: AptosNetwork.CUSTOM,
+      fullnode: nodeUrl,
+    });
     const aptos = new Aptos(aptosConfig);
     
     await aptos.waitForTransaction({
