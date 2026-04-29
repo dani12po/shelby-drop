@@ -15,6 +15,8 @@ export interface NetworkConfig {
   aptosNetwork: string;
   aptosNodeUrl: string;
   aptosIndexerUrl: string;
+  /** Base URL for blob downloads: {blobBaseUrl}/{wallet}/{filename} */
+  blobBaseUrl: string;
   shelbyExplorerBase: string;
   aptosExplorerBase: string;
   aptosExplorerNetwork: string;
@@ -31,6 +33,7 @@ export const NETWORK_CONFIGS: Record<ShelbyNetwork, NetworkConfig> = {
     aptosNetwork:         "testnet",
     aptosNodeUrl:         "https://api.testnet.aptoslabs.com/v1",
     aptosIndexerUrl:      "https://api.testnet.aptoslabs.com/v1/graphql",
+    blobBaseUrl:          "https://api.testnet.shelby.xyz/shelby/v1/blobs",
     shelbyExplorerBase:   "https://explorer.shelby.xyz/testnet",
     aptosExplorerBase:    "https://explorer.aptoslabs.com",
     aptosExplorerNetwork: "testnet",
@@ -42,6 +45,7 @@ export const NETWORK_CONFIGS: Record<ShelbyNetwork, NetworkConfig> = {
     aptosNetwork:         "shelbynet",
     aptosNodeUrl:         "https://api.shelbynet.shelby.xyz/v1",
     aptosIndexerUrl:      "https://api.shelbynet.shelby.xyz/v1/graphql",
+    blobBaseUrl:          "https://api.shelbynet.shelby.xyz/shelby/v1/blobs",
     shelbyExplorerBase:   "https://explorer.shelby.xyz/shelbynet",
     aptosExplorerBase:    "https://explorer.aptoslabs.com",
     aptosExplorerNetwork: "shelbynet",

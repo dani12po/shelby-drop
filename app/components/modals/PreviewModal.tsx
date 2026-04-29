@@ -20,6 +20,7 @@ type Props = {
   open: boolean;
   allFiles?: FileItemData[];
   onShare?: (file: FileItemData) => void;
+  network?: string;
 };
 
 /* ── helpers ── */
@@ -66,9 +67,10 @@ function formatSize(bytes: number | string): string {
 }
 
 /* ── build proxy URL — all media goes through /api/media to avoid CORS ── */
-function buildProxyUrl(wallet: string, file: FileItemData): string {
+function buildProxyUrl(wallet: string, file: FileItemData, network?: string): string {
   const filePath = [...(file.path ?? []), file.name].filter(Boolean).join("/");
-  return `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}`;
+  const networkParam = network ? `&network=${encodeURIComponent(network)}` : "";
+  return `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}${networkParam}`;
 }
 
 /* ── preview content renderer ── */
@@ -297,7 +299,7 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
 
 /* ── main component ── */
 export default function PreviewModal({
-  file, wallet, onClose, open, allFiles = [], onShare,
+  file, wallet, onClose, open, allFiles = [], onShare, network,
 }: Props) {
   const [mounted, setMounted]         = useState(false);
   const [currentFile, setCurrentFile] = useState<FileItemData>(file);
@@ -330,12 +332,13 @@ export default function PreviewModal({
   const hasNext   = fileIdx < allFiles.length - 1;
 
   // All media goes through our proxy to avoid CORS
-  const proxyUrl = buildProxyUrl(wallet, currentFile);
+  const proxyUrl = buildProxyUrl(wallet, currentFile, network);
 
   function handleDownload() {
     if (isExpired) return;
     const filePath = [...(currentFile.path ?? []), currentFile.name].filter(Boolean).join("/");
-    const dlUrl = `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}&download=1`;
+    const networkParam = network ? `&network=${encodeURIComponent(network)}` : "";
+    const dlUrl = `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}&download=1${networkParam}`;
     const a = document.createElement("a");
     a.href = dlUrl;
     a.download = currentFile.name;

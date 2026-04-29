@@ -312,6 +312,7 @@ export default function ExplorerModal({
               onClose={() => setPreviewFile(null)}
               allFiles={rawItems.filter((i): i is FileItemData => i.type === "file")}
               onShare={(f) => onShare?.(buildShareUrl(wallet, f.name))}
+              network={network}
             />
           )}
 
