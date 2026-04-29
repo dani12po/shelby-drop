@@ -39,7 +39,10 @@ export async function GET(req: Request) {
   try {
     const r = await fetch(indexerUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(process.env.SHELBY_API_KEY ? { "Authorization": `Bearer ${process.env.SHELBY_API_KEY}` } : {}),
+      },
       body: JSON.stringify({
         query,
         variables: {
@@ -58,7 +61,10 @@ export async function GET(req: Request) {
   try {
     const r = await fetch(indexerUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(process.env.SHELBY_API_KEY ? { "Authorization": `Bearer ${process.env.SHELBY_API_KEY}` } : {}),
+      },
       body: JSON.stringify({
         query,
         variables: {
@@ -77,7 +83,10 @@ export async function GET(req: Request) {
   try {
     const r = await fetch(indexerUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(process.env.SHELBY_API_KEY ? { "Authorization": `Bearer ${process.env.SHELBY_API_KEY}` } : {}),
+      },
       body: JSON.stringify({
         query: `query { blobs(limit: 5, order_by: {created_at: desc}) { owner blob_name size created_at } }`,
         variables: {},
@@ -91,6 +100,8 @@ export async function GET(req: Request) {
     network,
     indexerUrl,
     envShelbyNetwork: process.env.SHELBY_NETWORK,
+    hasApiKey: !!process.env.SHELBY_API_KEY,
+    apiKeyPrefix: process.env.SHELBY_API_KEY?.slice(0, 12) + "...",
     withIsDeletedFilter: { result: res1, error: err1 },
     withoutIsDeletedFilter: { result: res2, error: err2 },
     noFilter: { result: res3, error: err3 },

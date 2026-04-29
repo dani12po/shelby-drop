@@ -50,7 +50,13 @@ async function fetchFromIndexer(
   try {
     const res = await fetch(indexerUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // Shelby indexer requires API key authentication
+        ...(process.env.SHELBY_API_KEY
+          ? { "Authorization": `Bearer ${process.env.SHELBY_API_KEY}` }
+          : {}),
+      },
       body: JSON.stringify({
         query: GET_BLOBS_QUERY,
         variables: {
