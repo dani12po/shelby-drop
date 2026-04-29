@@ -154,10 +154,8 @@ export default function ExplorerModal({
     const file = resolveFileByItem(item);
     if (!file) return;
     const filePath = [...(file.path ?? []), file.name].filter(Boolean).join("/");
-    // Use blobId as network hint (set by shelbyAdapter)
-    const netHint = file.blobId || "";
-    const networkParam = netHint ? `&network=${encodeURIComponent(netHint)}` : "";
-    const url = `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}&download=1${networkParam}`;
+    const blobrefParam = file.blobId ? `&blobref=${encodeURIComponent(file.blobId)}` : "";
+    const url = `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}&download=1${blobrefParam}`;
     const a = document.createElement("a");
     a.href = url; a.download = file.name;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);

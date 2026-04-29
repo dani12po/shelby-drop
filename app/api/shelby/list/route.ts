@@ -13,7 +13,8 @@ const SHELBY_INDEXER_URLS: Record<string, string> = {
   shelbynet: "https://api.shelbynet.aptoslabs.com/nocode/v1/public/cmforrguw0042s601fn71f9l2/v1/graphql",
 };
 
-// GraphQL query — exact schema from @shelby-protocol/sdk
+// GraphQL query — no is_deleted filter (field is "0"/"1" string, not boolean)
+// We filter client-side instead
 const GET_BLOBS_QUERY = `
   query getBlobs($where: blobs_bool_exp, $orderBy: [blobs_order_by!], $limit: Int) {
     blobs(where: $where, order_by: $orderBy, limit: $limit) {
@@ -30,13 +31,30 @@ const GET_BLOBS_QUERY = `
 
 interface BlobItem {
   id: string;
-  name: string;
+  name: string;       // display name (stripped of @wallet/ prefix)
+  blob_name: string;  // raw blob_name from indexer (used for media URL)
   blob_id: string;
   size: number;
   created_at: string;
   expires_at?: string;
   creator: string;
   network: string;
+}
+
+/**
+ * blob_name from indexer has format: @{wallet}/{filename}
+ * Strip the @{wallet}/ prefix to get the actual filename for display + download.
+ */
+function stripBlobNamePrefix(blobName: string, wallet: string): string {
+  // Format: @50093856...bb/1777457761802-file.jpg
+  const prefix1 = `@${wallet}/`;
+  const prefix2 = `@${wallet.replace(/^0x/, "")}/`;
+  if (blobName.startsWith(prefix1)) return blobName.slice(prefix1.length);
+  if (blobName.startsWith(prefix2)) return blobName.slice(prefix2.length);
+  // Fallback: strip any @.../  prefix
+  const atSlash = blobName.indexOf("/");
+  if (blobName.startsWith("@") && atSlash !== -1) return blobName.slice(atSlash + 1);
+  return blobName;
 }
 
 async function fetchFromIndexer(
@@ -52,7 +70,6 @@ async function fetchFromIndexer(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // Shelby indexer requires API key authentication
         ...(process.env.SHELBY_API_KEY
           ? { "Authorization": `Bearer ${process.env.SHELBY_API_KEY}` }
           : {}),
@@ -86,17 +103,24 @@ async function fetchFromIndexer(
     console.log(`[shelby/list:${network}] got ${rows.length} blobs`);
 
     return rows
-      .filter((b: any) => !b.is_deleted)
-      .map((b: any, i: number) => ({
-        id:         `${network}-${b.blob_name}-${i}`,
-        name:       b.blob_name ?? `blob_${i}`,
-        blob_id:    b.blob_name ?? "",
-        size:       typeof b.size === "number" ? b.size : 0,
-        created_at: b.created_at ?? new Date().toISOString(),
-        expires_at: b.expires_at ?? undefined,
-        creator:    b.owner ?? wallet,
-        network,
-      }));
+      // Filter deleted: is_deleted is "0" (not deleted) or "1" (deleted)
+      .filter((b: any) => b.is_deleted === "0" || b.is_deleted === 0 || b.is_deleted === false)
+      .map((b: any, i: number) => {
+        const rawBlobName: string = b.blob_name ?? `blob_${i}`;
+        const displayName = stripBlobNamePrefix(rawBlobName, wallet);
+        return {
+          id:         `${network}-${rawBlobName}-${i}`,
+          name:       displayName,
+          blob_name:  rawBlobName,
+          blob_id:    rawBlobName,
+          size:       typeof b.size === "string" ? parseInt(b.size, 10) || 0
+                    : typeof b.size === "number" ? b.size : 0,
+          created_at: b.created_at ?? new Date().toISOString(),
+          expires_at: b.expires_at ?? undefined,
+          creator:    b.owner ?? wallet,
+          network,
+        };
+      });
   } catch (err: any) {
     clearTimeout(timeout);
     if (err.name !== "AbortError") {
@@ -108,8 +132,8 @@ async function fetchFromIndexer(
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const wallet         = searchParams.get("wallet");
-  const requestedNet   = searchParams.get("network");
+  const wallet       = searchParams.get("wallet");
+  const requestedNet = searchParams.get("network");
 
   if (!wallet) {
     return NextResponse.json({ error: "Missing wallet parameter" }, { status: 400 });
@@ -121,16 +145,15 @@ export async function GET(req: Request) {
   let blobs: BlobItem[] = [];
 
   if (requestedNet && SHELBY_INDEXER_URLS[requestedNet]) {
-    // Specific network requested — query only that one
     blobs = await fetchFromIndexer(wallet, requestedNet, SHELBY_INDEXER_URLS[requestedNet]);
   } else {
-    // No specific network — query BOTH and merge (handles network mismatch)
+    // Query BOTH networks in parallel — handles files on either network
     const [testnetBlobs, shelbynetBlobs] = await Promise.all([
       fetchFromIndexer(wallet, "testnet",   SHELBY_INDEXER_URLS.testnet),
       fetchFromIndexer(wallet, "shelbynet", SHELBY_INDEXER_URLS.shelbynet),
     ]);
 
-    // Deduplicate by blob_name
+    // Deduplicate by display name
     const seen = new Set<string>();
     for (const b of [...testnetBlobs, ...shelbynetBlobs]) {
       if (!seen.has(b.name)) {

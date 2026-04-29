@@ -63,8 +63,9 @@ export async function loadWalletFilesFromShelby(wallet: string, _network?: strin
       uploader: blob.creator || wallet,
       uploadedAt: blob.created_at || new Date().toISOString(),
       expiresAt: blob.expires_at,
-      // Store which network this blob lives on for media proxy
-      blobId: blob.network || "testnet",
+      // blobId stores "network|rawBlobName" so the media proxy can build the correct URL
+      // rawBlobName = blob_name from indexer (e.g. "@wallet/filename.jpg")
+      blobId: `${blob.network || "testnet"}|${blob.blob_name || blob.name || ""}`,
     }));
 
     const items: ExplorerItem[] = rawItems.map((f) => ({
