@@ -6,7 +6,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "build": "next build",
+    "postinstall": "node scripts/patch-clay-wasm.js",
+    "build": "node scripts/patch-clay-wasm.js && next build && node scripts/copy-wasm.js",
     "start": "next start",
     "lint": "eslint"
   },
