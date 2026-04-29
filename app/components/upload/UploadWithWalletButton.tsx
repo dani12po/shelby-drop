@@ -115,9 +115,6 @@ export default function UploadWithWalletButton({
 
     setStep("generating");
 
-    // Save the resolved network to state so JSX can use it
-    setResolvedNetwork(actualNetwork);
-
     const result = await uploadWithBrowserWallet({
       file,
       blobName,
@@ -134,11 +131,14 @@ export default function UploadWithWalletButton({
     });
 
     if (result.success && result.txHash) {
+      // Use the network confirmed by waitForTransaction — ground truth
+      const confirmedNet = result.confirmedNetwork ?? actualNetwork;
       setTxHash(result.txHash);
+      setResolvedNetwork(confirmedNet);
       setStep("done");
       notify("success", "Upload berhasil! File tersimpan di blockchain.", {
         txHash: result.txHash,
-        network: resolvedNetwork,
+        network: confirmedNet,
         duration: 10000,
       });
 

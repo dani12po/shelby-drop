@@ -27,6 +27,8 @@ export interface BrowserUploadResult {
   txHash?: string;
   blobName?: string;
   uploadedAt?: string;
+  /** The network where the transaction was actually confirmed */
+  confirmedNetwork?: "testnet" | "shelbynet";
   error?: string;
 }
 
@@ -159,6 +161,7 @@ export async function uploadWithBrowserWallet(
       txHash,
       blobName: args.blobName,
       uploadedAt: new Date().toISOString(),
+      confirmedNetwork: confirmedNetwork as "testnet" | "shelbynet",
     };
   } catch (error) {
     console.error("[browserUploader] Upload failed:", error);
