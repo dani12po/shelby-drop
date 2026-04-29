@@ -113,9 +113,9 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
           right: 0,
           zIndex: 50,
           height: '64px',
-          background: scrolled ? (isDark ? 'rgba(5,5,8,0.95)' : 'rgba(255,255,255,0.95)') : 'transparent',
-          backdropFilter: 'blur(20px)',
-          boxShadow: scrolled ? (isDark ? '0 4px 30px rgba(139,92,246,0.15)' : '0 4px 30px rgba(59,130,246,0.1)') : 'none',
+          background: scrolled ? 'var(--bg-navbar)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(20px)' : 'none',
+          boxShadow: scrolled ? '0 4px 30px var(--glow)' : 'none',
           borderBottom: scrolled ? '1px solid var(--border)' : 'none',
           transition: 'all 0.3s ease'
         }}
@@ -351,7 +351,7 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
                 </div>
               ) : (
                 <button
-                  onClick={onConnect}
+                  onClick={onConnect || (() => {})}
                   style={{
                     display: 'flex',
                     alignItems: 'center',

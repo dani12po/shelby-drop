@@ -42,7 +42,7 @@ export default function ShareModal({ url, onClose }: Props) {
         {/* BACKDROP */}
         <motion.div
           style={{
-            position: 'fixed', inset: 0, zIndex: 40,
+            position: 'fixed', inset: 0, zIndex: 200,
             background: 'rgba(0,0,0,0.6)'
           }}
           initial={{ opacity: 0 }}
@@ -51,17 +51,20 @@ export default function ShareModal({ url, onClose }: Props) {
           onClick={onClose}
         />
 
-        {/* GRADIENT BORDER */}
+        {/* GRADIENT BORDER — sama seperti ExplorerModal */}
         <motion.div
           style={{
             position: 'fixed',
-            zIndex: 50,
+            zIndex: 210,
             top: '50%',
             left: '50%',
             x: '-50%',
             y: '-50%',
             borderRadius: '28px',
-            padding: '2px'
+            padding: '2px',
+            background: 'linear-gradient(90deg, #7dd3fc, #a78bfa, #f472b6, #34d399, #fbbf24, #60a5fa, #a78bfa)',
+            backgroundSize: '400% 100%',
+            animation: 'walletBorder 4s linear infinite',
           }}
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}

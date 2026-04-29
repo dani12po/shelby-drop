@@ -1,8 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import WalletModal from "../components/wallet/WalletModal";
 import { Wallet, Link2, Upload, FolderOpen, Share2, Download, Check } from 'lucide-react';
 
 const stepIcons = [
@@ -53,9 +56,24 @@ const steps = [
 ];
 
 export default function GuidePage() {
+  const { wallets, connect } = useWallet();
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+
+  const handleConnect = () => setWalletModalOpen(true);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1 }}>
-      <Header />
+      <Header connected={false} onConnect={handleConnect} onDisconnect={() => {}} />
+      
+      <WalletModal
+        open={walletModalOpen}
+        wallets={wallets.map((w) => w.name)}
+        onSelectWallet={(name) => {
+          connect(name);
+          setWalletModalOpen(false);
+        }}
+        onClose={() => setWalletModalOpen(false)}
+      />
       
       <main style={{ flex: 1, paddingTop: '64px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px' }}>

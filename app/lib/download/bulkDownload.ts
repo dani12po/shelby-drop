@@ -41,15 +41,20 @@ export async function bulkDownload(
     }
 
     try {
-      const url = buildShelbyDownloadUrl(wallet, file);
+      // Use proxy route — cross-origin <a download> is blocked by browsers
+      // /api/media?download=1 adds Content-Disposition: attachment header
+      const filePath = [
+        ...(Array.isArray(file.path) ? file.path : [file.path]),
+        file.name,
+      ].filter(Boolean).join("/");
+
+      const proxyUrl = `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}&download=1`;
 
       // SSR-safe: only use document APIs on client
       if (typeof window !== "undefined" && document) {
         const a = document.createElement("a");
-        a.href = url;
+        a.href = proxyUrl;
         a.download = file.name;
-        a.rel = "noopener noreferrer";
-        a.target = "_blank";
 
         document.body.appendChild(a);
         a.click();

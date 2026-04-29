@@ -1,136 +1,98 @@
 /**
  * Shelby Explorer Data Adapter
- * 
- * This adapter converts Shelby Explorer data to the ExplorerItem format
- * used by the Explorer component.
+ *
+ * Loads wallet files from /api/shelby/list (our own API route)
+ * which merges the local upload index + Shelby Network indexer.
  */
 
 import type { ExplorerItem, ExplorerFileItem } from "@/types/explorer";
 import type { FileItemData, FolderItem } from "@/lib/data";
-import { searchWalletFilesClient } from "@/lib/shelby/explorerClientService";
 
-/**
- * Gets MIME type from filename
- */
+/* ── MIME helper ── */
 function getMimeType(filename: string): string {
-  const ext = filename.split('.').pop()?.toLowerCase();
-  
-  const mimeTypes: Record<string, string> = {
-    // Images
-    'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'gif': 'image/gif', 'svg': 'image/svg+xml', 'webp': 'image/webp',
-    // Videos
-    'mp4': 'video/mp4', 'webm': 'video/webm', 'mov': 'video/quicktime', 'avi': 'video/x-msvideo',
-    // Audio
-    'mp3': 'audio/mpeg', 'wav': 'audio/wav', 'ogg': 'audio/ogg', 'flac': 'audio/flac',
-    // Documents
-    'pdf': 'application/pdf', 'doc': 'application/msword', 'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'txt': 'text/plain', 'md': 'text/markdown',
-    // Code
-    'js': 'text/javascript', 'ts': 'text/typescript', 'jsx': 'text/jsx', 'tsx': 'text/tsx', 'py': 'text/x-python', 'rs': 'text/x-rust', 'go': 'text/x-go',
-    // Archives
-    'zip': 'application/zip', 'tar': 'application/x-tar', 'gz': 'application/gzip', 'rar': 'application/x-rar-compressed',
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  const map: Record<string, string> = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+    gif: "image/gif", svg: "image/svg+xml", webp: "image/webp",
+    mp4: "video/mp4", webm: "video/webm", mov: "video/quicktime", avi: "video/x-msvideo",
+    mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", flac: "audio/flac",
+    pdf: "application/pdf", doc: "application/msword",
+    txt: "text/plain", md: "text/markdown",
+    js: "text/javascript", ts: "text/typescript",
+    jsx: "text/jsx", tsx: "text/tsx",
+    json: "application/json", css: "text/css", html: "text/html",
+    zip: "application/zip", tar: "application/x-tar",
+    gz: "application/gzip", rar: "application/x-rar-compressed",
   };
-  
-  return mimeTypes[ext || ''] || 'application/octet-stream';
+  return map[ext] || "application/octet-stream";
+}
+
+/* ── size parser ── */
+function parseSize(sizeStr?: string | number): number {
+  if (typeof sizeStr === "number") return sizeStr;
+  if (!sizeStr) return 0;
+  const units: Record<string, number> = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3 };
+  const m = String(sizeStr).match(/^([\d.]+)\s*(B|KB|MB|GB)$/i);
+  if (!m) return parseFloat(String(sizeStr)) || 0;
+  return Math.floor(parseFloat(m[1]) * (units[m[2].toUpperCase()] ?? 1));
 }
 
 /**
- * Converts Shelby files to ExplorerItem format
- */
-export function adaptShelbyFilesToExplorerItems(
-  wallet: string,
-  shelbyFiles: Array<{ name: string; size?: string; type?: string }>
-): ExplorerItem[] {
-  return shelbyFiles.map((file, index) => {
-    // Create FileItemData structure
-    const fileData: FileItemData = {
-      id: `shelby-${index}`,
-      type: "file",
-      name: file.name,
-      path: [], // Shelby files are in root
-      size: parseSize(file.size) || 0,
-      mimeType: getMimeType(file.name),
-      uploader: wallet,
-      expiresAt: undefined, // Shelby files don't expire
-      uploadedAt: new Date().toISOString(),
-    };
-
-    // Convert to ExplorerFileItem
-    const explorerItem: ExplorerFileItem = {
-      id: fileData.id,
-      kind: "file",
-      name: fileData.name,
-      path: fileData.name, // Use filename as path since Shelby files are in root
-      size: fileData.size,
-      mimeType: fileData.mimeType || "application/octet-stream",
-    };
-
-    return explorerItem;
-  });
-}
-
-/**
- * Parses size string to bytes
- */
-function parseSize(sizeStr?: string): number | undefined {
-  if (!sizeStr) return undefined;
-
-  const units: Record<string, number> = {
-    'B': 1,
-    'KB': 1024,
-    'MB': 1024 * 1024,
-    'GB': 1024 * 1024 * 1024,
-  };
-
-  const match = sizeStr.match(/^([\d.]+)\s*(B|KB|MB|GB)$/i);
-  if (!match) return undefined;
-
-  const [, value, unit] = match;
-  return Math.floor(parseFloat(value) * (units[unit.toUpperCase()] || 1));
-}
-
-/**
- * Loads wallet files from Shelby Explorer
+ * Loads wallet files via /api/shelby/list
+ * (merges local upload index + Shelby Network indexer)
  */
 export async function loadWalletFilesFromShelby(wallet: string): Promise<{
   items: ExplorerItem[];
   rawItems: (FileItemData | FolderItem)[];
 }> {
   try {
-    // Search for files in Shelby Explorer via client API
-    const searchResult = await searchWalletFilesClient(wallet);
-    
-    // Convert to ExplorerItem format
-    const explorerItems = adaptShelbyFilesToExplorerItems(wallet, searchResult.files);
-    
-    // Create raw items for compatibility - convert ExplorerFileItem back to FileItemData
-    const rawItems: FileItemData[] = explorerItems.map((item) => {
-      if (item.kind === 'file') {
-        const fileItem: FileItemData = {
-          id: item.id,
-          type: "file",
-          name: item.name,
-          path: [], // Shelby files are in root
-          size: item.size,
-          mimeType: item.mimeType,
-          uploader: wallet,
-          uploadedAt: new Date().toISOString(),
-        };
-        return fileItem;
-      }
-      // This should never happen since we only create file items
-      throw new Error('Unexpected folder item in Shelby adapter');
-    });
-    
-    return {
-      items: explorerItems,
-      rawItems,
-    };
-  } catch (error) {
-    console.error("Failed to load wallet files from Shelby:", error);
-    // Return empty result on error
-    return {
-      items: [],
-      rawItems: [],
-    };
+    const res = await fetch(`/api/shelby/list?wallet=${encodeURIComponent(wallet)}`);
+    if (!res.ok) throw new Error(`/api/shelby/list returned ${res.status}`);
+
+    const data = await res.json();
+    const blobs: any[] = data.files ?? [];
+
+    const rawItems: FileItemData[] = blobs.map((blob, i) => ({
+      id: blob.id || blob.blob_id || `file-${i}`,
+      type: "file" as const,
+      name: blob.name || "unknown",
+      path: [],                          // all files are at root level
+      size: parseSize(blob.size),
+      mimeType: getMimeType(blob.name || ""),
+      uploader: wallet,
+      uploadedAt: blob.created_at || new Date().toISOString(),
+      expiresAt: blob.expires_at,
+    }));
+
+    const items: ExplorerItem[] = rawItems.map((f) => ({
+      id: f.id,
+      kind: "file" as const,
+      name: f.name,
+      path: f.name,                      // flat path = filename
+      size: f.size,
+      mimeType: f.mimeType ?? "application/octet-stream",
+    } satisfies ExplorerFileItem));
+
+    return { items, rawItems };
+  } catch (err) {
+    console.warn("[shelbyAdapter] Failed to load files:", err);
+    return { items: [], rawItems: [] };
   }
+}
+
+/**
+ * Kept for backward compatibility — not used by useExplorerData anymore
+ */
+export function adaptShelbyFilesToExplorerItems(
+  wallet: string,
+  shelbyFiles: Array<{ name: string; size?: string; type?: string }>
+): ExplorerItem[] {
+  return shelbyFiles.map((file, i) => ({
+    id: `shelby-${i}`,
+    kind: "file" as const,
+    name: file.name,
+    path: file.name,
+    size: parseSize(file.size),
+    mimeType: getMimeType(file.name),
+  } satisfies ExplorerFileItem));
 }

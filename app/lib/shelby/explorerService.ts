@@ -40,8 +40,10 @@ export async function searchWalletFiles(wallet: string): Promise<ExplorerSearchR
   }
 
   try {
-    // Build Shelby Explorer URL
-    const explorerUrl = `${shelbyConfig.origin}/${shelbyConfig.shelbyNetwork}/account/${wallet}/blobs`;
+    // BUG #5 FIX: Use shelbyExplorerBase which already includes the network path
+    // shelbyConfig.origin = https://explorer.shelby.xyz (no network)
+    // shelbyConfig.shelbyExplorerBase = https://explorer.shelby.xyz/testnet (correct)
+    const explorerUrl = `${shelbyConfig.shelbyExplorerBase}/account/${wallet}/blobs`;
     
     const response = await fetch(explorerUrl, {
       headers: {
@@ -148,7 +150,9 @@ function getFileType(filename: string): string {
 
 /**
  * Constructs Shelby Gateway URL for a file
+ * BUG #4 FIX: Use S3 Gateway, not the blob API endpoint
  */
 export function getShelbyFileUrl(wallet: string, filename: string): string {
-  return `https://api.shelbynet.shelby.xyz/shelby/v1/blobs/${wallet}/files/${filename}`;
+  const gateway = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || 'https://gateway.shelby.xyz';
+  return `${gateway}/${wallet}/${filename}`;
 }

@@ -10,10 +10,11 @@ export const dynamic = "force-dynamic";
    ENV (STRICT & CORRECT)
 ================================ */
 
-// Public Shelby blob endpoint (READ)
-const SHELBY_BLOB_ENDPOINT =
-  process.env.SHELBY_S3_ENDPOINT ??
-  "https://api.shelbynet.shelby.xyz/shelby/v1/blobs";
+// BUG #3 FIX: Use S3 Gateway endpoint, not the blob API endpoint
+// Format: https://gateway.shelby.xyz/{wallet}/{objectKey}?expires=...&sig=...
+const SHELBY_GATEWAY_ENDPOINT =
+  process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN ??
+  "https://gateway.shelby.xyz";
 
 // ⚠️ INTERNAL SIGNING SECRET (NOT API KEY)
 const SIGNING_SECRET_RAW =
@@ -45,7 +46,7 @@ function signUrl(params: {
     .update(payload)
     .digest("hex");
 
-  return `${SHELBY_BLOB_ENDPOINT}/${params.wallet}/${params.objectKey}?expires=${params.expires}&sig=${signature}`;
+  return `${SHELBY_GATEWAY_ENDPOINT}/${params.wallet}/${params.objectKey}?expires=${params.expires}&sig=${signature}`;
 }
 
 /* ===============================

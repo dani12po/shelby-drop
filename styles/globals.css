@@ -1,164 +1,126 @@
 @import "tailwindcss";
 
 /* ===============================
-   DARK THEME — Deep Space Nebula
-   Nuansa: ungu gelap, biru midnight, aksen cyan
+   DARK MODE — default
 =============================== */
-:root {
-  --bg-primary:    #05050f;
-  --bg-secondary:  #08081a;
-  --bg-card:       #0d0d20;
-  --bg-card-hover: #12122a;
-  --bg-navbar:     rgba(5,5,15,0.88);
-  --bg-modal:      #08081a;
-  --bg-dropdown:   rgba(10,10,26,0.98);
+:root,
+:root[data-theme="dark"] {
+  --bg-primary:    #020b18;
+  --bg-secondary:  #030f22;
+  --bg-card:       rgba(4,18,42,0.85);
+  --bg-card-hover: rgba(6,24,55,0.9);
+  --bg-navbar:     rgba(2,11,24,0.92);
+  --bg-modal:      rgba(3,15,34,0.96);
+  --bg-dropdown:   rgba(4,18,42,0.98);
 
-  --border:        rgba(139,92,246,0.12);
-  --border-hover:  rgba(139,92,246,0.45);
+  --border:        rgba(100,150,255,0.12);
+  --border-hover:  rgba(100,150,255,0.35);
 
-  --accent:        #8b5cf6;
+  --accent:        #6366f1;
   --accent-blue:   #3b82f6;
   --accent-cyan:   #06b6d4;
   --accent-green:  #10b981;
   --accent-red:    #ef4444;
   --accent-pink:   #ec4899;
 
-  /* Teks utama — putih soft */
-  --text-primary:   #f1f5f9;
-  /* Teks sekunder — abu biru */
-  --text-secondary: #94a3b8;
-  /* Teks muted — abu gelap */
-  --text-muted:     #64748b;
-  /* Teks accent — ungu terang */
-  --text-accent:    #a78bfa;
-  /* Teks link */
-  --text-link:      #818cf8;
-  /* Teks link hover */
-  --text-link-hover: #c4b5fd;
-  /* Teks success */
-  --text-success:   #34d399;
-  /* Teks error */
-  --text-error:     #f87171;
-  /* Teks warning */
-  --text-warning:   #fbbf24;
-  /* Teks pada button primary */
-  --text-on-accent: #ffffff;
-  /* Heading gradient start */
-  --heading-from:   #c4b5fd;
-  /* Heading gradient end */
-  --heading-to:     #67e8f9;
-  /* Label/caption */
-  --text-label:     #475569;
-  /* Placeholder input */
-  --text-placeholder: #334155;
-  /* Nav link normal */
-  --text-nav:       #94a3b8;
-  /* Nav link hover/active */
-  --text-nav-active: #f1f5f9;
-  /* Footer teks */
-  --text-footer:    #64748b;
-  /* Footer heading */
+  --text-primary:      #e8f0ff;
+  --text-secondary:    #94a3b8;
+  --text-muted:        #4a6080;
+  --text-accent:       #93c5fd;
+  --text-link:         #818cf8;
+  --text-link-hover:   #c4b5fd;
+  --text-success:      #34d399;
+  --text-error:        #f87171;
+  --text-warning:      #fbbf24;
+  --text-on-accent:    #ffffff;
+  --heading-from:      #93c5fd;
+  --heading-to:        #c4b5fd;
+  --text-label:        #64748b;
+  --text-placeholder:  #475569;
+  --text-nav:          #8ba8d0;
+  --text-nav-active:   #e8f0ff;
+  --text-footer:       #64748b;
   --text-footer-heading: #94a3b8;
-  /* Badge teks */
-  --text-badge:     #a78bfa;
-  /* Stats value */
-  --text-stats:     #f1f5f9;
-  /* Stats label */
-  --text-stats-label: #64748b;
+  --text-badge:        #a78bfa;
+  --text-stats:        #e8f0ff;
+  --text-stats-label:  #64748b;
 
-  --glow:          rgba(139,92,246,0.2);
-  --glow-blue:     rgba(59,130,246,0.15);
-  --glow-cyan:     rgba(6,182,212,0.1);
+  --glow:       rgba(100,150,255,0.15);
+  --glow-blue:  rgba(59,130,246,0.12);
+  --glow-cyan:  rgba(6,182,212,0.1);
 
-  --orb1: rgba(139,92,246,0.18);
-  --orb2: rgba(59,130,246,0.14);
-  --orb3: rgba(6,182,212,0.10);
+  --orb1: rgba(100,150,255,0.18);
+  --orb2: rgba(99,102,241,0.14);
+  --orb3: rgba(139,92,246,0.10);
   --orb4: rgba(236,72,153,0.08);
-  --grid-color: rgba(139,92,246,0.05);
+  --grid-color: rgba(100,150,255,0.05);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
   --radius-full: 9999px;
 }
 
 /* ===============================
-   LIGHT THEME — Aurora Borealis
-   Nuansa: lavender hangat, rose gold, mint
-   Bukan putih polos — penuh warna lembut
+   LIGHT MODE
 =============================== */
 :root[data-theme="light"] {
-  --bg-primary:    #fdf8ff;
-  --bg-secondary:  #f5eeff;
-  --bg-card:       rgba(255,255,255,0.9);
-  --bg-card-hover: rgba(255,255,255,0.98);
-  --bg-navbar:     rgba(253,248,255,0.9);
-  --bg-modal:      rgba(255,255,255,0.95);
-  --bg-dropdown:   rgba(253,250,255,0.98);
+  --bg-primary:    #f0f4ff;
+  --bg-secondary:  #e4eaf8;
+  --bg-card:       rgba(255,255,255,0.85);
+  --bg-card-hover: rgba(255,255,255,0.95);
+  --bg-navbar:     rgba(240,244,255,0.92);
+  --bg-modal:      rgba(255,255,255,0.97);
+  --bg-dropdown:   rgba(255,255,255,0.98);
 
-  --border:        rgba(167,139,250,0.2);
-  --border-hover:  rgba(139,92,246,0.45);
+  --border:        rgba(80,100,180,0.15);
+  --border-hover:  rgba(80,100,180,0.4);
 
-  --accent:        #7c3aed;
+  --accent:        #4f46e5;
   --accent-blue:   #2563eb;
   --accent-cyan:   #0891b2;
   --accent-green:  #059669;
   --accent-red:    #dc2626;
   --accent-pink:   #db2777;
 
-  /* Teks utama — indigo sangat gelap */
-  --text-primary:   #1e1033;
-  /* Teks sekunder — indigo medium */
-  --text-secondary: #3730a3;
-  /* Teks muted — violet medium */
-  --text-muted:     #6d28d9;
-  /* Teks accent — violet terang */
-  --text-accent:    #7c3aed;
-  /* Teks link */
-  --text-link:      #4f46e5;
-  /* Teks link hover */
-  --text-link-hover: #7c3aed;
-  /* Teks success */
-  --text-success:   #065f46;
-  /* Teks error */
-  --text-error:     #991b1b;
-  /* Teks warning */
-  --text-warning:   #92400e;
-  /* Teks pada button primary */
-  --text-on-accent: #ffffff;
-  /* Heading gradient start */
-  --heading-from:   #7c3aed;
-  /* Heading gradient end */
-  --heading-to:     #0891b2;
-  /* Label/caption */
-  --text-label:     #4338ca;
-  /* Placeholder input */
-  --text-placeholder: #a5b4fc;
-  /* Nav link normal */
-  --text-nav:       #4338ca;
-  /* Nav link hover/active */
-  --text-nav-active: #1e1033;
-  /* Footer teks */
-  --text-footer:    #4338ca;
-  /* Footer heading */
-  --text-footer-heading: #1e1033;
-  /* Badge teks */
-  --text-badge:     #6d28d9;
-  /* Stats value */
-  --text-stats:     #1e1033;
-  /* Stats label */
-  --text-stats-label: #4338ca;
+  --text-primary:      #0f172a;
+  --text-secondary:    #334155;
+  --text-muted:        #64748b;
+  --text-accent:       #4f46e5;
+  --text-link:         #4338ca;
+  --text-link-hover:   #3730a3;
+  --text-success:      #059669;
+  --text-error:        #dc2626;
+  --text-warning:      #d97706;
+  --text-on-accent:    #ffffff;
+  --heading-from:      #4f46e5;
+  --heading-to:        #7c3aed;
+  --text-label:        #475569;
+  --text-placeholder:  #94a3b8;
+  --text-nav:          #475569;
+  --text-nav-active:   #0f172a;
+  --text-footer:       #64748b;
+  --text-footer-heading: #334155;
+  --text-badge:        #6d28d9;
+  --text-stats:        #0f172a;
+  --text-stats-label:  #64748b;
 
-  --glow:          rgba(167,139,250,0.25);
-  --glow-blue:     rgba(99,102,241,0.15);
-  --glow-cyan:     rgba(6,182,212,0.12);
+  --glow:       rgba(79,70,229,0.12);
+  --glow-blue:  rgba(37,99,235,0.1);
+  --glow-cyan:  rgba(8,145,178,0.08);
 
-  --orb1: rgba(167,139,250,0.2);
-  --orb2: rgba(251,113,133,0.15);
-  --orb3: rgba(52,211,153,0.12);
-  --orb4: rgba(251,191,36,0.1);
-  --grid-color: rgba(139,92,246,0.06);
+  --orb1: rgba(79,70,229,0.08);
+  --orb2: rgba(37,99,235,0.06);
+  --orb3: rgba(124,58,237,0.06);
+  --orb4: rgba(219,39,119,0.04);
+  --grid-color: rgba(79,70,229,0.04);
+
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
 }
 
 /* ===============================
@@ -211,7 +173,7 @@ body {
               color 0.35s ease;
 }
 
-/* Grid pattern background - disabled, now handled by AnimatedBackground */
+/* Grid pattern background - disabled, now handled by AuroraBackground */
 body::before {
   display: none;
 }
@@ -232,90 +194,14 @@ code, pre, .font-mono {
 /* ===============================
    ANIMATIONS
 =============================== */
-@keyframes orbFloat1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25%       { transform: translate(20px, -30px) scale(1.04); }
-  50%       { transform: translate(-15px, 20px) scale(0.97); }
-  75%       { transform: translate(25px, 10px) scale(1.02); }
-}
-
-@keyframes orbFloat2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(-30px, 25px) scale(1.05); }
-  66%       { transform: translate(20px, -20px) scale(0.96); }
-}
-
-@keyframes orbFloat3 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1) rotate(0deg);
-  }
-  20% {
-    transform: translate(20px, -30px) scale(1.04) rotate(2deg);
-  }
-  40% {
-    transform: translate(-15px, 20px) scale(0.97) rotate(-1deg);
-  }
-  60% {
-    transform: translate(25px, 10px) scale(1.03) rotate(1.5deg);
-  }
-  80% {
-    transform: translate(-10px, -15px) scale(0.98) rotate(-0.5deg);
-  }
-}
-
-@keyframes auroraShift {
-  0%   {
-    opacity: 0.4;
-    background-position: 0% 50%;
-    filter: hue-rotate(0deg);
-  }
-  50%  {
-    opacity: 0.8;
-    background-position: 100% 50%;
-    filter: hue-rotate(15deg);
-  }
-  100% {
-    opacity: 0.4;
-    background-position: 0% 50%;
-    filter: hue-rotate(0deg);
-  }
-}
-
 @keyframes gradient-shift {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px var(--glow); }
-  50% { box-shadow: 0 0 40px var(--glow), 0 0 60px var(--glow); }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(1.12);
-  }
-}
-
-@keyframes nebulaDrift {
-  0%, 100% { transform: translate(0,0) rotate(0deg); opacity: 0.4; }
-  33%  { transform: translate(20px,-15px) rotate(3deg); opacity: 0.7; }
-  66%  { transform: translate(-15px,20px) rotate(-2deg); opacity: 0.5; }
-}
-
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
 }
 
 @keyframes fade-in-up {
@@ -338,11 +224,6 @@ code, pre, .font-mono {
     opacity: 1;
     transform: scale(1);
   }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 /* ===============================

@@ -154,24 +154,48 @@ export async function POST(req: Request) {
         shelbyExplorer: result.shelbyExplorer,
       });
 
+      const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+      // BUG #2 FIX: Return both `metadata` (for uploadService.ts) and `data` (for direct consumers)
       return NextResponse.json({
         success: true,
         message: "File uploaded successfully to Shelby network",
+        // metadata shape expected by uploadService.ts
+        metadata: {
+          wallet: userWallet,
+          originalName: file!.name,
+          storedName: result.blobName,
+          blob_name: result.blobName,
+          size: file!.size,
+          mime: file!.type || 'application/octet-stream',
+          hash: result.txHash || '',
+          retentionDays: days,
+          expiresAt,
+          uploadedAt: result.uploadedAt || new Date().toISOString(),
+          txHash: result.txHash,
+          explorerUrls: {
+            aptos: result.aptosExplorer,
+            shelby: result.shelbyExplorer,
+          },
+        },
+        // data shape for other consumers
         data: {
           blobName: result.blobName,
           txHash: result.txHash,
           uploadedAt: result.uploadedAt,
           userWallet,
           retentionDays: days,
-          expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
+          expiresAt,
           explorerUrls: {
             aptos: result.aptosExplorer,
             shelby: result.shelbyExplorer,
           },
           verification: {
             aptosVerified: true,
-            shelbyIndexed: true,
-            message: "Transaction confirmed and indexed in both explorers"
+            shelbyIndexed: result.shelbyIndexed ?? false,
+            message: result.shelbyIndexed
+              ? "Transaction confirmed and indexed in both explorers"
+              : "Transaction confirmed on Aptos. Shelby indexing in progress."
           }
         },
       });

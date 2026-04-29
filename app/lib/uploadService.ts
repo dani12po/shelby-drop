@@ -106,7 +106,7 @@ export async function uploadToShelby({
    */
   const metadata = data.metadata;
 
-  return {
+  const result: UploadMetadata = {
     wallet: metadata.wallet,
     originalName: metadata.originalName,
     storedName: metadata.storedName,
@@ -118,4 +118,28 @@ export async function uploadToShelby({
     expiresAt: metadata.expiresAt ?? null,
     uploadedAt: metadata.uploadedAt,
   };
+
+  /* ===============================
+     RECORD IN LOCAL INDEX
+     (so /api/shelby/list can find it
+      immediately, before Shelby indexer
+      catches up)
+  ================================ */
+  try {
+    await fetch("/api/upload/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        wallet: result.wallet,
+        blob_name: result.blob_name,
+        size: result.size,
+        contentType: result.mime,
+        createdAt: result.uploadedAt,
+      }),
+    });
+  } catch {
+    // Non-critical — search will still work via Shelby indexer eventually
+  }
+
+  return result;
 }

@@ -2,7 +2,8 @@ import "../styles/globals.css";
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import Providers from "./providers";
 import ThemeProvider from "@/components/ui/ThemeProvider";
-import AnimatedBackground from "@/components/effects/AnimatedBackground";
+import AnimatedBackground from "@/components/effects/AuroraBackground";
+import ThemeTransition from "@/components/effects/ThemeTransition";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -60,10 +61,15 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('shelby-theme');
-                  if (theme) {
-                    document.documentElement.setAttribute('data-theme', theme);
-                  }
+                  var saved = localStorage.getItem('shelby-theme');
+                  // Map old theme keys to new ones
+                  var map = { 'space': 'dark', 'aurora': 'light' };
+                  var theme = map[saved] || saved;
+                  // Validate: only 'dark' or 'light' are valid
+                  if (theme !== 'dark' && theme !== 'light') theme = 'dark';
+                  // Fix stale value in localStorage
+                  if (saved !== theme) localStorage.setItem('shelby-theme', theme);
+                  document.documentElement.setAttribute('data-theme', theme);
                 } catch(e) {}
               })();
             `,
@@ -74,6 +80,7 @@ export default function RootLayout({
         <ThemeProvider>
           {/* Layer 1: Background — z-index 0 */}
           <AnimatedBackground />
+          <ThemeTransition />
 
           {/* Layer 2: Content — z-index 10 */}
           <Providers>

@@ -16,7 +16,6 @@ import {
   AptosConfig, 
   Network,
   Ed25519PrivateKey,
-  type UserTransactionResponse,
   type WaitForTransactionOptions
 } from "@aptos-labs/ts-sdk";
 import { ShelbyNodeClient } from "@shelby-protocol/sdk/node";
@@ -35,6 +34,7 @@ export interface UploadResult {
   uploadedAt?: string;
   aptosExplorer?: string;
   shelbyExplorer?: string;
+  shelbyIndexed?: boolean;
   error?: string;
   stage?: string;
 }
@@ -59,7 +59,7 @@ export class AptosShelbyUploader {
     console.log("🔧 INITIALIZING APTOS-SHELBY UPLOADER");
     this.validateConfiguration();
 
-    // Aptos client dengan custom Shelby endpoint
+    // Aptos client with custom Shelby endpoint
     const aptosConfig = new AptosConfig({
       network: Network.CUSTOM,
       fullnode: process.env.APTOS_NODE_URL || 'https://api.testnet.shelby.xyz/v1',
@@ -81,10 +81,20 @@ export class AptosShelbyUploader {
 
     this.accountAddress = this.account.accountAddress.toString();
 
-    // ✅ ShelbyNodeClient support "testnet"
+    // BUG #7 FIX: Use proper ShelbyClientConfig with network + aptos + indexer
+    // ShelbyNetwork accepts: Network.TESTNET, Network.LOCAL, Network.SHELBYNET
     this.shelbyClient = new ShelbyNodeClient({
-      network: 'testnet' as any,
+      network: Network.TESTNET,
       apiKey: process.env.SHELBY_API_KEY!,
+      aptos: {
+        fullnode: process.env.APTOS_NODE_URL || 'https://api.testnet.shelby.xyz/v1',
+        indexer: process.env.APTOS_INDEXER_URL || 'https://api.testnet.shelby.xyz/v1/graphql',
+        network: Network.CUSTOM,
+      },
+      indexer: {
+        baseUrl: process.env.APTOS_INDEXER_URL || 'https://api.testnet.shelby.xyz/v1/graphql',
+        apiKey: process.env.SHELBY_API_KEY!,
+      },
     });
 
     console.log("✅ UPLOADER INITIALIZED:", {
@@ -141,13 +151,18 @@ export class AptosShelbyUploader {
 
       // Step 2: Upload to Shelby (this creates the blob)
       console.log("📤 STEP 1: UPLOADING TO SHELBY...");
-      // Convert bigint to number if needed
-      const expirationMicros = Number(args.expirationMicros);
+
+      // BUG #8 FIX: expirationMicros as BigInt — Date.now() * 1000 stays within safe integer range
+      // Date.now() ≈ 1.7e12 ms → * 1000 = 1.7e15 (within Number.MAX_SAFE_INTEGER = 9e15)
+      const expirationMicros = typeof args.expirationMicros === 'bigint'
+        ? Number(args.expirationMicros)
+        : args.expirationMicros;
+
       await this.shelbyClient.upload({
         blobData: fileBuffer,
         signer: this.account,
         blobName: args.blobName,
-        expirationMicros: expirationMicros as number,
+        expirationMicros: expirationMicros,
       });
       
       console.log("✅ SHELBY UPLOAD COMPLETED");
@@ -168,12 +183,17 @@ export class AptosShelbyUploader {
       
       console.log("✅ TRANSACTION CONFIRMED ON-CHAIN");
 
-      // Step 5: Verify in both explorers
+      // Step 5: Verify in explorers (non-blocking for Shelby indexing)
       console.log("🔍 STEP 4: VERIFYING IN EXPLORERS...");
       const verification = await this.verifyInExplorers(txHash, args.blobName);
       
+      // BUG #6 FIX: Only require Aptos verification — Shelby indexing is best-effort
       if (!verification.aptosVerified) {
         throw new Error(`Transaction not found in Aptos Explorer: ${verification.details}`);
+      }
+      
+      if (!verification.shelbyIndexed) {
+        console.log("⚠️ Shelby indexing pending — upload is confirmed on-chain, blob will appear shortly");
       }
       
       console.log("✅ VERIFICATION COMPLETE:", verification);
@@ -186,6 +206,7 @@ export class AptosShelbyUploader {
         uploadedAt: new Date().toISOString(),
         aptosExplorer: shelbyConfig.getTransactionUrl(txHash),
         shelbyExplorer: `${shelbyConfig.getExplorerUrl(this.accountAddress)}/blobs`,
+        shelbyIndexed: verification.shelbyIndexed,
       };
 
       console.log("🎉 UPLOAD SUCCESS:", result);
@@ -209,25 +230,34 @@ export class AptosShelbyUploader {
     console.log("🔍 SEARCHING FOR RECENT TRANSACTIONS...");
     
     try {
-      // Get recent transactions from the account
       const transactions = await this.aptos.getAccountTransactions({
         accountAddress: this.accountAddress,
         options: {
-          limit: 5, // Check last 5 transactions
+          limit: 5,
         },
       });
 
       console.log(`📋 FOUND ${transactions.length} RECENT TRANSACTIONS`);
 
-      // Find the most recent transaction (within last 60 seconds)
+      // Find the most recent SUCCESSFUL transaction (within last 60 seconds)
+      // Aptos timestamps are in MICROSECONDS — divide by 1000 to get ms
       const now = Date.now();
       const recentTx = transactions.find(tx => {
+        // Skip failed transactions
+        if (!(tx as any).success) {
+          console.log(`⏭️ SKIPPING FAILED TX: ${tx.hash}`);
+          return false;
+        }
+
         const timestamp = (tx as any).timestamp || (tx as any).transaction_timestamp || 0;
-        const timestampMs = typeof timestamp === 'string' ? parseInt(timestamp) * 1000 : timestamp;
+        // Aptos returns microseconds — convert to ms by dividing by 1000
+        const timestampMs = typeof timestamp === 'string'
+          ? Math.floor(parseInt(timestamp) / 1000)
+          : Math.floor(Number(timestamp) / 1000);
         const ageMs = now - timestampMs;
         
-        console.log(`🔍 TX: ${tx.hash}, Age: ${ageMs}ms`);
-        return ageMs < 60000; // Within last 60 seconds
+        console.log(`🔍 TX: ${tx.hash}, Age: ${ageMs}ms, Success: ${(tx as any).success}`);
+        return ageMs >= 0 && ageMs < 60000; // Within last 60 seconds
       });
 
       if (recentTx) {
@@ -251,7 +281,7 @@ export class AptosShelbyUploader {
     console.log("⏳ WAITING FOR TRANSACTION CONFIRMATION:", txHash);
     
     const options: WaitForTransactionOptions = {
-      timeoutSecs: 60, // Wait up to 60 seconds
+      timeoutSecs: 60,
     };
 
     try {
@@ -272,6 +302,17 @@ export class AptosShelbyUploader {
 
     } catch (error) {
       console.error("❌ TRANSACTION CONFIRMATION FAILED:", error);
+      
+      // Provide a clearer error for insufficient funds
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes('E_INSUFFICIENT_FUNDS') || msg.includes('INSUFFICIENT_FUNDS')) {
+        throw new Error(
+          'Insufficient WAL/APT balance on the Shelby storage account. ' +
+          'Please top up the account at address ' + this.accountAddress + ' on Aptos testnet. ' +
+          'You can get testnet tokens from the Aptos faucet: https://aptos.dev/en/network/faucet'
+        );
+      }
+      
       throw error;
     }
   }
@@ -293,27 +334,24 @@ export class AptosShelbyUploader {
       console.log(`🔄 VERIFICATION ATTEMPT ${attempts}/${maxAttempts}`);
 
       try {
-        // Verify Aptos Explorer
         if (!aptosVerified) {
           aptosVerified = await this.verifyAptosExplorer(txHash);
           console.log("📊 APTOS EXPLORER:", aptosVerified ? "✅ VERIFIED" : "❌ NOT FOUND");
         }
 
-        // Verify Shelby Explorer  
         if (!shelbyIndexed) {
           shelbyIndexed = await this.verifyShelbyExplorer(blobName);
-          console.log("🌐 SHELBY EXPLORER:", shelbyIndexed ? "✅ INDEXED" : "❌ NOT FOUND");
+          console.log("🌐 SHELBY EXPLORER:", shelbyIndexed ? "✅ INDEXED" : "⏳ NOT YET INDEXED");
         }
 
-        // If both verified, break
         if (aptosVerified && shelbyIndexed) {
           details = 'Fully verified in both explorers';
           break;
         }
 
-        // Wait before retry
-        if (i < maxAttempts - 1) {
-          console.log("⏳ WAITING 5 SECONDS BEFORE RETRY...");
+        // If Aptos is verified, no need to keep retrying just for Shelby indexing
+        if (aptosVerified && i < maxAttempts - 1) {
+          console.log("⏳ WAITING 5 SECONDS FOR SHELBY INDEXING...");
           await new Promise(resolve => setTimeout(resolve, 5000));
         }
 
@@ -321,6 +359,10 @@ export class AptosShelbyUploader {
         console.error(`❌ VERIFICATION ATTEMPT ${attempts} FAILED:`, error);
         details = `Error during verification: ${error instanceof Error ? error.message : 'Unknown'}`;
       }
+    }
+
+    if (aptosVerified && !shelbyIndexed) {
+      details = 'Transaction confirmed on Aptos. Shelby indexing may take a few minutes.';
     }
 
     const result: VerificationResult = {
@@ -335,14 +377,10 @@ export class AptosShelbyUploader {
   }
 
   /**
-   * Verify transaction in Aptos Explorer
+   * Verify transaction in Aptos (via SDK, not scraping)
    */
   private async verifyAptosExplorer(txHash: string): Promise<boolean> {
     try {
-      const explorerUrl = shelbyConfig.getTransactionUrl(txHash);
-      console.log("🔍 CHECKING APTOS EXPLORER:", explorerUrl);
-
-      // Try to get transaction details from Aptos
       const transactions = await this.aptos.getAccountTransactions({
         accountAddress: this.accountAddress,
         options: { limit: 10 }
@@ -358,35 +396,33 @@ export class AptosShelbyUploader {
       return false;
 
     } catch (error) {
-      console.error("❌ TRANSACTION NOT FOUND IN APTOS:", error);
+      console.error("❌ APTOS VERIFICATION ERROR:", error);
       return false;
     }
   }
 
   /**
-   * Verify blob appears in Shelby Explorer
+   * Verify blob appears in Shelby Explorer (best-effort, non-blocking)
    */
   private async verifyShelbyExplorer(blobName: string): Promise<boolean> {
     try {
       const explorerUrl = `${shelbyConfig.getExplorerUrl(this.accountAddress)}/blobs`;
       console.log("🔍 CHECKING SHELBY EXPLORER:", explorerUrl);
 
-      // Fetch the blobs page
       const response = await fetch(explorerUrl);
       if (!response.ok) {
-        throw new Error(`Failed to fetch Shelby Explorer: ${response.status}`);
+        console.log(`⚠️ Shelby Explorer returned ${response.status} — skipping`);
+        return false;
       }
 
       const html = await response.text();
-      
-      // Check if blob name appears in the page
       const found = html.includes(blobName);
-      console.log(`📊 BLOB "${blobName}" IN SHELBY EXPLORER:`, found ? "✅ FOUND" : "❌ NOT FOUND");
+      console.log(`📊 BLOB "${blobName}" IN SHELBY EXPLORER:`, found ? "✅ FOUND" : "⏳ NOT YET");
       
       return found;
 
     } catch (error) {
-      console.error("❌ ERROR CHECKING SHELBY EXPLORER:", error);
+      console.error("⚠️ SHELBY EXPLORER CHECK FAILED (non-blocking):", error);
       return false;
     }
   }

@@ -1,47 +1,34 @@
 "use client";
 
-import { useCallback } from "react";
-
-import WalletSearchModal from "@/components/modals/WalletSearchModal";
-
+import { useEffect } from "react";
 import { useExplorerModalController } from "./core/useExplorerModalController";
-
-/* ======================================================
-   TYPES
-====================================================== */
 
 type Props = {
   wallet: string;
   onClose: () => void;
 };
 
-/* ======================================================
-   COMPONENT
-====================================================== */
-
-export default function WalletSearchController({
-  wallet,
-  onClose,
-}: Props) {
+/**
+ * WalletSearchController
+ *
+ * Langsung buka ExplorerModal saat wallet di-search.
+ * Tidak perlu WalletSearchModal sebagai perantara.
+ */
+export default function WalletSearchController({ wallet, onClose }: Props) {
   const { openExplorer } = useExplorerModalController();
 
-  // Validate wallet before rendering modal
-  if (!wallet || wallet.length < 10) {
-    return null;
-  }
+  useEffect(() => {
+    if (!wallet || wallet.length < 10) {
+      onClose();
+      return;
+    }
 
-  const handleViewFile = useCallback((file: any) => {
-    // For now, just open Explorer with the file selected
-    // In the future, this could open a preview modal
     openExplorer({ wallet });
+    // Tutup controller setelah buka explorer
+    // (controller tidak render UI apapun)
     onClose();
-  }, [wallet, openExplorer, onClose]);
+  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return (
-    <WalletSearchModal
-      wallet={wallet}
-      onClose={onClose}
-      onViewFile={handleViewFile}
-    />
-  );
+  // Tidak render apapun — hanya trigger openExplorer
+  return null;
 }

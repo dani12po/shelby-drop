@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import WalletModal from "../components/wallet/WalletModal";
 
 const faqs = [
   {
@@ -50,10 +52,24 @@ const faqs = [
 
 export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { wallets, connect } = useWallet();
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+
+  const handleConnect = () => setWalletModalOpen(true);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1 }}>
-      <Header />
+      <Header connected={false} onConnect={handleConnect} onDisconnect={() => {}} />
+      
+      <WalletModal
+        open={walletModalOpen}
+        wallets={wallets.map((w) => w.name)}
+        onSelectWallet={(name) => {
+          connect(name);
+          setWalletModalOpen(false);
+        }}
+        onClose={() => setWalletModalOpen(false)}
+      />
       
       <main style={{ flex: 1, paddingTop: '64px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px' }}>
@@ -68,7 +84,6 @@ export default function FAQPage() {
               <h1 style={{
                 fontSize: 'clamp(28px, 5vw, 48px)',
                 fontWeight: 700,
-                color: 'white',
                 marginBottom: '24px',
                 background: 'linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4)',
                 WebkitBackgroundClip: 'text',
@@ -154,7 +169,7 @@ export default function FAQPage() {
               viewport={{ once: true }}
               style={{ maxWidth: '500px', margin: '0 auto', padding: '0 24px' }}
             >
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'white', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>
                 Masih ada pertanyaan?
               </h2>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
@@ -182,9 +197,9 @@ export default function FAQPage() {
                   rel="noopener noreferrer"
                   style={{
                     padding: '12px 24px',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: 'white',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-primary)',
                     borderRadius: '8px',
                     fontWeight: 500,
                     textDecoration: 'none'

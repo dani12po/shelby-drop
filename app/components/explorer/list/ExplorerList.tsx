@@ -36,6 +36,7 @@ type Props = {
   onMeta: (file: ExplorerItem) => void;
   onDownload?: (file: ExplorerItem) => void;
   onShare?: (file: ExplorerItem) => void;
+  onPreview?: (file: ExplorerItem) => void;
 
   /** optional – for auto-scroll */
   itemRefs?: React.MutableRefObject<
@@ -56,6 +57,7 @@ export default function ExplorerList({
   onMeta,
   onDownload,
   onShare,
+  onPreview,
   itemRefs,
 }: Props) {
   const [sortKey, setSortKey] =
@@ -237,6 +239,7 @@ export default function ExplorerList({
                 onMeta={onMeta}
                 onDownload={onDownload}
                 onShare={onShare}
+                onPreview={onPreview}
               />
             </div>
           );

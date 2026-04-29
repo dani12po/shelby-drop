@@ -6,9 +6,9 @@
  */
 
 export const shelbyConfig = {
-  // Network configuration - Use SHELBYNET for Shelby Network
-  aptosNetwork: process.env.APTOS_NETWORK || 'shelbynet',
-  shelbyNetwork: process.env.SHELBY_NETWORK || 'shelbynet',
+  // Network configuration — use testnet (not shelbynet)
+  aptosNetwork: process.env.APTOS_NETWORK || 'testnet',
+  shelbyNetwork: process.env.SHELBY_NETWORK || 'testnet',
   
   // Account configuration (server-side only)
   accountAddress: process.env.SHELBY_ACCOUNT_ADDRESS || '',
@@ -17,7 +17,7 @@ export const shelbyConfig = {
   // API configuration
   apiKey: process.env.SHELBY_API_KEY || '',
   
-  // Aptos API endpoints - Use Shelby testnet endpoints
+  // Aptos API endpoints — Shelby testnet
   aptosNodeUrl: process.env.APTOS_NODE_URL || 'https://api.testnet.shelby.xyz/v1',
   aptosIndexerUrl: process.env.APTOS_INDEXER_URL || 'https://api.testnet.shelby.xyz/v1/graphql',
   
@@ -34,11 +34,12 @@ export const shelbyConfig = {
   // Helper methods
   getTransactionUrl: (txHash: string) => {
     const baseUrl = process.env.APTOS_EXPLORER_BASE || 'https://explorer.aptoslabs.com';
-    const network = process.env.APTOS_NETWORK || 'shelbynet';
+    const network = process.env.APTOS_NETWORK || 'testnet';
     return `${baseUrl}/txn/${txHash}?network=${network}`;
   },
   
   getExplorerUrl: (walletAddress: string) => {
+    // shelbyExplorerBase already includes the network path (e.g. /testnet)
     const baseUrl = process.env.SHELBY_EXPLORER_BASE || 'https://explorer.shelby.xyz/testnet';
     return `${baseUrl}/account/${walletAddress}`;
   },

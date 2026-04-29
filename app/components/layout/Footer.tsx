@@ -209,7 +209,7 @@ export default function Footer() {
               <li><a href="https://developers.shelby.xyz" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Developer Portal</a></li>
               <li><a href="https://github.com/shelby/shelby-quickstart" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Quick Start</a></li>
               <li><a href="https://explorer.shelby.xyz/shelbynet" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Shelby Explorer</a></li>
-              <li><a href="https://github.com/shelby/feedback/issues/new/choose" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Bug Report</a></li>
+              <li><a href="https://github.com/dani12po/shelby-drop/issues" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Bug Report</a></li>
             </ul>
           </div>
 

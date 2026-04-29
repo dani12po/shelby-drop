@@ -1,6 +1,8 @@
 // app/api/shelby/list/route.ts
 
 import { NextResponse } from "next/server";
+import fs from "fs/promises";
+import path from "path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,11 +12,11 @@ export const dynamic = "force-dynamic";
 =============================== */
 const APTOS_NODE_URL = 
   process.env.APTOS_NODE_URL ?? 
-  "https://api.shelbynet.shelby.xyz/v1";
+  "https://api.testnet.shelby.xyz/v1";
 
 const APTOS_INDEXER_URL = 
   process.env.APTOS_INDEXER_URL ?? 
-  "https://api.shelbynet.shelby.xyz/v1/graphql";
+  "https://api.testnet.shelby.xyz/v1/graphql";
 
 /* ===============================
    TYPES
@@ -65,8 +67,55 @@ function formatSize(bytes: number): string {
 }
 
 /* ===============================
-   FETCH FROM SHELBY NETWORK
+   READ LOCAL UPLOAD INDEX
+   (written by /api/upload/complete)
 =============================== */
+async function readLocalIndex(wallet: string): Promise<BlobItem[]> {
+  try {
+    const indexPath = path.join(
+      process.cwd(),
+      "public/uploads",
+      wallet,
+      "index.json"
+    );
+    const raw = await fs.readFile(indexPath, "utf-8");
+    const entries: any[] = JSON.parse(raw);
+
+    return entries.map((entry) => ({
+      id: entry.blob_name ?? entry.id ?? Math.random().toString(36).slice(2),
+      name: entry.blob_name ?? "unknown",
+      blob_id: entry.blob_name ?? "",
+      size: typeof entry.size === "number" ? entry.size : 0,
+      created_at: entry.createdAt ?? new Date().toISOString(),
+      creator: wallet,
+      file_type: inferFileType(entry.blob_name ?? ""),
+    }));
+  } catch {
+    // File doesn't exist yet — that's fine
+    return [];
+  }
+}
+
+/* ===============================
+   MERGE & DEDUPLICATE
+=============================== */
+function mergeBlobs(local: BlobItem[], remote: BlobItem[]): BlobItem[] {
+  const seen = new Set<string>();
+  const result: BlobItem[] = [];
+
+  for (const blob of [...local, ...remote]) {
+    const key = blob.name || blob.blob_id || blob.id;
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(blob);
+    }
+  }
+
+  // Sort newest first
+  return result.sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
 async function fetchBlobsFromShelbyNetwork(wallet: string): Promise<BlobItem[]> {
   const blobs: BlobItem[] = [];
   
@@ -75,20 +124,22 @@ async function fetchBlobsFromShelbyNetwork(wallet: string): Promise<BlobItem[]> 
   const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
   
   try {
-    // Try GraphQL endpoint first (more efficient for querying)
+    // BUG #9 FIX: Use Shelby-specific GraphQL schema (not standard Aptos ledger_objects)
+    // Shelby indexer uses `blobs` table with `creator_address` field
     const query = `
       query GetAccountBlobs($address: String!) {
-        ledger_objects(
+        blobs(
           where: {
             creator_address: { _eq: $address }
           },
           order_by: { inserted_at: desc },
           limit: 100
         ) {
-          guid_id
-          object_type
-          owner_address
+          blob_id
+          name
+          size
           inserted_at
+          creator_address
         }
       }
     `;
@@ -109,17 +160,21 @@ async function fetchBlobsFromShelbyNetwork(wallet: string): Promise<BlobItem[]> 
 
     if (response.ok) {
       const data = await response.json();
-      const ledgerObjects = data?.data?.ledger_objects ?? [];
       
-      return ledgerObjects.map((obj: any) => ({
-        id: obj.guid_id?.toString() ?? "",
-        name: `blob_${obj.guid_id ?? "unknown"}`,
-        blob_id: obj.guid_id?.toString() ?? "",
-        size: 0,
-        created_at: obj.inserted_at ?? new Date().toISOString(),
-        creator: wallet,
-        file_type: inferFileType(`blob_${obj.guid_id ?? "unknown"}`),
-      }));
+      // Handle both Shelby `blobs` schema and graceful empty response
+      const blobRows = data?.data?.blobs ?? [];
+      
+      if (blobRows.length > 0) {
+        return blobRows.map((obj: any) => ({
+          id: obj.blob_id?.toString() ?? "",
+          name: obj.name ?? `blob_${obj.blob_id ?? "unknown"}`,
+          blob_id: obj.blob_id?.toString() ?? "",
+          size: obj.size ?? 0,
+          created_at: obj.inserted_at ?? new Date().toISOString(),
+          creator: wallet,
+          file_type: inferFileType(obj.name ?? ""),
+        }));
+      }
     }
   } catch (graphqlError: any) {
     clearTimeout(timeout);
@@ -241,8 +296,14 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Fetch blobs from Shelby Network
-    const blobs = await fetchBlobsFromShelbyNetwork(wallet);
+    // Fetch from both sources in parallel
+    const [localBlobs, remoteBlobs] = await Promise.all([
+      readLocalIndex(wallet),
+      fetchBlobsFromShelbyNetwork(wallet),
+    ]);
+
+    // Merge: local index takes priority (always up-to-date after upload)
+    const blobs = mergeBlobs(localBlobs, remoteBlobs);
     
     // Convert to folder structure
     const folders = groupBlobsIntoFolders(blobs);
@@ -252,13 +313,16 @@ export async function GET(req: Request) {
       files: blobs,
       folders,
       total: blobs.length,
+      sources: {
+        local: localBlobs.length,
+        remote: remoteBlobs.length,
+      },
       message: blobs.length === 0 
         ? 'No files found or network unavailable' 
         : undefined,
     });
   } catch (error) {
     console.error("Error fetching blobs:", error);
-    // Return empty result instead of error - network might be unavailable
     return NextResponse.json({
       wallet,
       files: [],

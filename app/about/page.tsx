@@ -1,8 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import WalletModal from "../components/wallet/WalletModal";
 import { Shield, Infinity, Zap, Lock } from 'lucide-react';
 
 type Feature = {
@@ -35,9 +38,24 @@ const features: Feature[] = [
 ];
 
 export default function AboutPage() {
+  const { wallets, connect } = useWallet();
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+
+  const handleConnect = () => setWalletModalOpen(true);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1 }}>
-      <Header />
+      <Header connected={false} onConnect={handleConnect} onDisconnect={() => {}} />
+      
+      <WalletModal
+        open={walletModalOpen}
+        wallets={wallets.map((w) => w.name)}
+        onSelectWallet={(name) => {
+          connect(name);
+          setWalletModalOpen(false);
+        }}
+        onClose={() => setWalletModalOpen(false)}
+      />
       
       <main style={{ flex: 1, paddingTop: '64px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px' }}>
@@ -53,7 +71,6 @@ export default function AboutPage() {
               <h1 style={{
                 fontSize: 'clamp(32px, 5vw, 48px)',
                 fontWeight: 700,
-                color: 'white',
                 marginBottom: '24px',
                 background: 'linear-gradient(135deg, var(--heading-from), var(--heading-to))',
                 WebkitBackgroundClip: 'text',
@@ -84,7 +101,7 @@ export default function AboutPage() {
               style={{
                 fontSize: '28px',
                 fontWeight: 700,
-                color: 'white',
+                color: 'var(--text-primary)',
                 textAlign: 'center',
                 marginBottom: '48px'
               }}
@@ -141,7 +158,7 @@ export default function AboutPage() {
                 style={{
                   fontSize: '24px',
                   fontWeight: 700,
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   marginBottom: '24px'
                 }}
               >
@@ -183,7 +200,7 @@ export default function AboutPage() {
               style={{
                 fontSize: '24px',
                 fontWeight: 700,
-                color: 'white',
+                color: 'var(--text-primary)',
                 marginBottom: '32px'
               }}
             >
@@ -214,9 +231,9 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
                 style={{
                   padding: '12px 24px',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  color: 'white',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-primary)',
                   borderRadius: '8px',
                   fontWeight: 500,
                   textDecoration: 'none',
@@ -233,9 +250,9 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
                 style={{
                   padding: '12px 24px',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  color: 'white',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-primary)',
                   borderRadius: '8px',
                   fontWeight: 500,
                   textDecoration: 'none',
@@ -264,7 +281,7 @@ export default function AboutPage() {
                 fontSize: '1.8rem'
               }}>👨‍💻</div>
               <h3 style={{ color: 'var(--text-primary)', fontWeight: 700, marginBottom: '8px' }}>
-                Dibuat oleh Dani
+                Dibuat oleh Imam Qolandani
               </h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
                 Web3 developer yang passionate tentang decentralized technology
