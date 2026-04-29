@@ -18,6 +18,7 @@ interface Props {
 type UploadStep =
   | "idle"
   | "preparing"
+  | "switching_network"
   | "generating"
   | "waiting_signature"
   | "confirming"
@@ -28,6 +29,7 @@ type UploadStep =
 const STEP_LABELS: Record<UploadStep, string> = {
   idle:              "Upload dengan Wallet",
   preparing:         "Menyiapkan file...",
+  switching_network: "Mengganti network wallet...",
   generating:        "Menghitung commitments...",
   waiting_signature: "Menunggu konfirmasi di wallet...",
   confirming:        "Menunggu konfirmasi L1...",
@@ -75,7 +77,29 @@ export default function UploadWithWalletButton({
     const expirationMicros =
       Date.now() * 1000 + retentionDays * 24 * 60 * 60 * 1_000_000;
 
+    setStep("switching_network");
+
     setStep("generating");
+
+    // Auto-switch wallet to the correct Shelby network before signing
+    // Petra wallet exposes window.aptos.changeNetwork()
+    try {
+      if (typeof window !== "undefined" && (window as any).aptos?.changeNetwork) {
+        const isShelbnet = (network === "shelbynet");
+        const targetNet = isShelbnet
+          ? { name: "Shelbynet", chainId: "0x4", url: "https://api.shelbynet.shelby.xyz/v1" }
+          : { name: "Testnet",   chainId: "0x2", url: "https://api.testnet.aptoslabs.com/v1" };
+        try {
+          await (window as any).aptos.changeNetwork(targetNet);
+          console.log("✅ Wallet switched to:", targetNet.name);
+        } catch (e: any) {
+          // User rejected or already on correct network — continue
+          console.warn("⚠️ Network switch skipped:", e?.message || e);
+        }
+      }
+    } catch {
+      // Non-critical
+    }
 
     const result = await uploadWithBrowserWallet({
       file,
@@ -137,6 +161,21 @@ export default function UploadWithWalletButton({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      {/* Network info */}
+      {step === "idle" && (
+        <div style={{
+          padding: "8px 12px", borderRadius: "8px",
+          background: "rgba(139,92,246,0.06)",
+          border: "1px solid rgba(139,92,246,0.15)",
+          fontSize: "0.72rem", color: "#94a3b8",
+          display: "flex", alignItems: "center", gap: "6px",
+        }}>
+          <span style={{ color: "#a78bfa" }}>ℹ</span>
+          Wallet akan otomatis pindah ke <strong style={{ color: "#a78bfa" }}>
+            {network === "shelbynet" ? "Shelbynet" : "Testnet"}
+          </strong> sebelum transaksi.
+        </div>
+      )}
       {/* Wallet confirmation info */}
       {step === "waiting_signature" && (
         <div style={{
