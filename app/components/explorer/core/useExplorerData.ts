@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import type { ExplorerItem } from "@/types/explorer";
 import type { FolderItem, FileItemData } from "@/lib/data";
-import { adaptApiItemToExplorerItem } from "../adapters/apiToExplorerItem";
 import { loadWalletFilesFromShelby } from "../adapters/shelbyAdapter";
 
 /* ===============================
@@ -14,16 +13,6 @@ type State = {
   error: string | null;
   items: ExplorerItem[];
   rawItems: (FileItemData | FolderItem)[];
-};
-
-/* ===============================
-   INDEX METADATA SHAPE
-   (source: public/uploads/<wallet>/index.json)
-================================ */
-type IndexedFile = {
-  blob_name: string; // path relatif file
-  size?: number;
-  createdAt?: string;
 };
 
 /* ===============================

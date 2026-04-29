@@ -251,16 +251,17 @@ export default function PreviewModal({ file, wallet, onClose, open, allFiles = [
 
   return createPortal(
     <AnimatePresence>
-      <>
-        {/* BACKDROP */}
-        <motion.div
-          style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }}
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={onClose}
-        />
+      {/* BACKDROP */}
+      <motion.div
+        key="preview-backdrop"
+        style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
 
-        {/* MODAL */}
-        <motion.div
+      {/* MODAL */}
+      <motion.div
+        key="preview-modal"
           style={{
             position: "fixed", top: "50%", left: "50%",
             x: "-50%", y: "-50%", zIndex: 80,
@@ -447,7 +448,6 @@ export default function PreviewModal({ file, wallet, onClose, open, allFiles = [
 
           </div>
         </motion.div>
-      </>
     </AnimatePresence>,
     document.body
   );

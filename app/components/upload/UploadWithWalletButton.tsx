@@ -159,6 +159,11 @@ export default function UploadWithWalletButton({
         // Non-critical
       }
 
+      // Trigger explorer refresh so new file appears immediately
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("explorer:refresh"));
+      }
+
       onSuccess({
         wallet: account.address.toString(),
         originalName: file.name,

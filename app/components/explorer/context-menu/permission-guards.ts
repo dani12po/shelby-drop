@@ -12,9 +12,10 @@ export function singleSelection(ctx: ContextMenuContext): boolean {
 }
 
 export function allFiles(ctx: ContextMenuContext): boolean {
-  return ctx.items.every((i: any) => i.type === "file");
+  // ExplorerItem uses `kind`, legacy items may use `type`
+  return ctx.items.every((i: any) => i.kind === "file" || i.type === "file");
 }
 
 export function allFolders(ctx: ContextMenuContext): boolean {
-  return ctx.items.every((i: any) => i.type === "folder");
+  return ctx.items.every((i: any) => i.kind === "folder" || i.type === "folder");
 }

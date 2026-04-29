@@ -18,7 +18,6 @@ import { useBulkDownloadController } from "@/lib/download/useBulkDownloadControl
 import DownloadProgressPanel from "@/lib/download/DownloadProgressPanel";
 import { useNetwork } from "@/hooks/useNetwork";
 import { buildShareUrl } from "@/lib/share/buildShareUrl";
-import { useNotifications } from "@/components/notifications/useNotifications";
 import type { FileItemData } from "@/lib/data";
 import type { ExplorerItem } from "@/types/explorer";
 
@@ -55,8 +54,6 @@ export default function ExplorerModal({
   const { state: downloadState, start: startBulkDownload,
           cancel: cancelBulkDownload, retryFailed: retryBulkDownload } =
     useBulkDownloadController(wallet);
-
-  const { notify } = useNotifications();
 
   /* initial open */
   useEffect(() => {
@@ -119,6 +116,21 @@ export default function ExplorerModal({
   const contextMenuCtx = itemMenu && getContextMenuContext({
     items: items.filter((i) => selectedIds.has(i.id)),
     permissions: resolveEffectivePermission("editor"),
+    onPreview: (item) => { const f = resolveFileByItem(item); if (f) setPreviewFile(f); },
+    onDownload: (item) => handleDownloadItem(item),
+    onShare: (item) => handleShareItem(item),
+    onMeta: (item) => handleMeta(item),
+  });
+
+  const bulkMenuCtx = bulkMenu && getContextMenuContext({
+    items: items.filter((i) => selectedIds.has(i.id)),
+    permissions: resolveEffectivePermission("editor"),
+    onBulkDownload: (bulkItems) => {
+      const files = bulkItems
+        .map((item) => rawItems.find((r) => r.id === item.id && r.type === "file"))
+        .filter((f): f is FileItemData => !!f);
+      if (files.length) startBulkDownload(files);
+    },
   });
 
   /* actions */
@@ -282,8 +294,8 @@ export default function ExplorerModal({
           {itemMenu && contextMenuCtx && (
             <ExplorerItemContextMenu x={itemMenu.x} y={itemMenu.y} ctx={contextMenuCtx} onClose={() => setItemMenu(null)} />
           )}
-          {bulkMenu && contextMenuCtx && (
-            <ExplorerBulkContextMenu x={bulkMenu.x} y={bulkMenu.y} ctx={contextMenuCtx} onClose={() => setBulkMenu(null)} />
+          {bulkMenu && bulkMenuCtx && (
+            <ExplorerBulkContextMenu x={bulkMenu.x} y={bulkMenu.y} ctx={bulkMenuCtx} onClose={() => setBulkMenu(null)} />
           )}
 
           {/* Metadata modal */}

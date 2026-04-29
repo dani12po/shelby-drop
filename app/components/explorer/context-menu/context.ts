@@ -9,6 +9,12 @@ export type ContextMenuContext = {
   target?: ContextMenuItem;
   isSingle: boolean;
   isMulti: boolean;
+  /** Optional action callbacks — wired up by ExplorerModal */
+  onPreview?: (item: ContextMenuItem) => void;
+  onDownload?: (item: ContextMenuItem) => void;
+  onShare?: (item: ContextMenuItem) => void;
+  onMeta?: (item: ContextMenuItem) => void;
+  onBulkDownload?: (items: ContextMenuItem[]) => void;
 };
 
 export function createContext(

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Download, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
 
 import type { BulkDownloadState } from "./useBulkDownloadController";
@@ -12,7 +14,11 @@ type Props = {
 };
 
 export default function DownloadProgressPanel({ state, onCancel, onRetry }: Props) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   if (state.status === "idle") return null;
+  if (!mounted) return null;
 
   const progress = getProgressPercent(state);
   const canRetry = hasRetryableFailed(state);
@@ -24,20 +30,11 @@ export default function DownloadProgressPanel({ state, onCancel, onRetry }: Prop
     isCancelled         ? "#ef4444" :
     "#a78bfa";
 
-  const bg =
-    isDone && !canRetry ? "rgba(16,185,129,0.08)" :
-    isCancelled         ? "rgba(239,68,68,0.08)" :
-    "rgba(139,92,246,0.08)";
-
-  const border =
-    isDone && !canRetry ? "rgba(16,185,129,0.2)" :
-    isCancelled         ? "rgba(239,68,68,0.2)" :
-    "rgba(139,92,246,0.2)";
-
-  return (
+  const panel = (
     <div style={{
       position: "fixed", bottom: "24px", right: "24px",
-      zIndex: 100, width: "320px",
+      /* z-index 200 — above ExplorerModal (60), notifications (70), and all overlays */
+      zIndex: 200, width: "320px",
       borderRadius: "14px", padding: "2px",
       background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
       backgroundSize: "400% 100%",
@@ -51,7 +48,7 @@ export default function DownloadProgressPanel({ state, onCancel, onRetry }: Prop
         overflow: "hidden",
         position: "relative",
       }}>
-        {/* countdown/progress bar at top */}
+        {/* progress bar at top */}
         <div style={{
           height: "3px",
           background: "rgba(255,255,255,0.06)",
@@ -137,4 +134,8 @@ export default function DownloadProgressPanel({ state, onCancel, onRetry }: Prop
       </div>
     </div>
   );
+
+  // Portal to document.body so z-index is relative to root stacking context
+  // This ensures the panel always appears above ExplorerModal and all other overlays
+  return createPortal(panel, document.body);
 }

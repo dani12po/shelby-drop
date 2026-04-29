@@ -97,7 +97,7 @@ export default function BaseModal({
           style={{
             background: GRADIENT,
             backgroundSize: "400% 100%",
-            animation: "walletBorder 36s linear infinite",
+            animation: "walletBorder 4s linear infinite",
           }}
           onClick={(e) => e.stopPropagation()}
         >

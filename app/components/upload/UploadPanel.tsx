@@ -3,10 +3,9 @@
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Upload, FileText, Clock } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useNotifications } from "@/components/notifications/useNotifications";
-import { useNetwork } from "@/hooks/useNetwork";
 import type { UploadMetadata } from "@/lib/uploadService";
 import UploadWithWalletButton from "./UploadWithWalletButton";
 
@@ -14,20 +13,22 @@ type UploadPanelProps = {
   open: boolean;
   onClose: () => void;
   onUploaded?: (metadata: UploadMetadata) => void;
-  path: string[];
+  path?: string[];
 };
 
-export default function UploadPanel({ open, onClose, onUploaded, path }: UploadPanelProps) {
+export default function UploadPanel({ open, onClose, onUploaded }: UploadPanelProps) {
   const { notify } = useNotifications();
-  const { network } = useNetwork();
   const { account } = useWallet();
+  const [mounted, setMounted] = useState(false);
 
   const [file, setFile] = useState<File | null>(null);
   const [days, setDays] = useState<number>(7);
 
+  useEffect(() => { setMounted(true); }, []);
+
   const wallet = account?.address.toString() || "";
 
-  if (typeof document === "undefined") return null;
+  if (!mounted) return null;
 
   return createPortal(
     <AnimatePresence>
