@@ -49,6 +49,7 @@ export default function UploadWithWalletButton({
   const { notify } = useNotifications();
   const [step, setStep] = useState<UploadStep>("idle");
   const [txHash, setTxHash] = useState("");
+  const [resolvedNetwork, setResolvedNetwork] = useState<"testnet" | "shelbynet">("testnet");
 
   const isActive = step !== "idle" && step !== "done" && step !== "error";
 
@@ -79,34 +80,50 @@ export default function UploadWithWalletButton({
 
     setStep("switching_network");
 
-    setStep("generating");
-
     // Auto-switch wallet to the correct Shelby network before signing
     // Petra wallet exposes window.aptos.changeNetwork()
+    // Also detect the actual wallet network after switch for use in waitForTransaction
+    let actualNetwork: "testnet" | "shelbynet" = network as "testnet" | "shelbynet";
+
     try {
       if (typeof window !== "undefined" && (window as any).aptos?.changeNetwork) {
-        const isShelbnet = (network === "shelbynet");
-        const targetNet = isShelbnet
+        const isShelbynet = (network === "shelbynet");
+        const targetNet = isShelbynet
           ? { name: "Shelbynet", chainId: "0x4", url: "https://api.shelbynet.shelby.xyz/v1" }
           : { name: "Testnet",   chainId: "0x2", url: "https://api.testnet.aptoslabs.com/v1" };
         try {
           await (window as any).aptos.changeNetwork(targetNet);
           console.log("✅ Wallet switched to:", targetNet.name);
+          actualNetwork = isShelbynet ? "shelbynet" : "testnet";
         } catch (e: any) {
-          // User rejected or already on correct network — continue
+          // User rejected or already on correct network — detect current network
           console.warn("⚠️ Network switch skipped:", e?.message || e);
+          // Try to read current network from wallet
+          try {
+            const walletNet = await (window as any).aptos.getNetwork?.();
+            if (walletNet?.name?.toLowerCase().includes("shelby")) {
+              actualNetwork = "shelbynet";
+            } else if (walletNet?.chainId === "0x4" || walletNet?.chainId === 4) {
+              actualNetwork = "shelbynet";
+            }
+          } catch { /* ignore */ }
         }
       }
     } catch {
       // Non-critical
     }
 
+    setStep("generating");
+
+    // Save the resolved network to state so JSX can use it
+    setResolvedNetwork(actualNetwork);
+
     const result = await uploadWithBrowserWallet({
       file,
       blobName,
       expirationMicros,
       accountAddress: account.address.toString(),
-      network: network as "testnet" | "shelbynet",
+      network: actualNetwork,
       apiKey,
       signAndSubmitTransaction: async (tx) => {
         setStep("waiting_signature");
@@ -216,7 +233,7 @@ export default function UploadWithWalletButton({
           <CheckCircle2 size={13} />
           <span>Upload berhasil!</span>
           <a
-            href={`https://explorer.aptoslabs.com/txn/${txHash}?network=${network}`}
+            href={`https://explorer.aptoslabs.com/txn/${txHash}?network=${resolvedNetwork}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: "#34d399", marginLeft: "auto", display: "flex", alignItems: "center", gap: "3px" }}

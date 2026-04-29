@@ -89,33 +89,60 @@ export async function uploadWithBrowserWallet(
     console.log("✅ Transaction submitted:", txHash);
 
     // Step 3.5: Wait for transaction to be confirmed on L1
-    // IMPORTANT: Use the Shelby network node, not standard Aptos testnet
+    // IMPORTANT: The wallet may be on a different network than the app's selected network.
+    // Strategy: try the app's selected network first, then try the other one as fallback.
+    // This handles the case where the wallet is on Shelbynet but the app shows Testnet.
     console.log("⏳ Waiting for L1 confirmation...");
     const { Aptos, AptosConfig, Network: AptosNetwork } = await import("@aptos-labs/ts-sdk");
-    
-    // Use the correct node URL for the network
-    const nodeUrl = args.network === "shelbynet"
-      ? "https://api.shelbynet.shelby.xyz/v1"
-      : "https://api.testnet.aptoslabs.com/v1";
-    
-    const aptosConfig = new AptosConfig({
-      network: AptosNetwork.CUSTOM,
-      fullnode: nodeUrl,
-    });
-    const aptos = new Aptos(aptosConfig);
-    
-    await aptos.waitForTransaction({
-      transactionHash: txHash,
-      options: { timeoutSecs: 60 },
-    });
-    console.log("✅ Transaction confirmed on L1");
+
+    const SHELBYNET_URL = "https://api.shelbynet.shelby.xyz/v1";
+    const TESTNET_URL   = "https://api.testnet.aptoslabs.com/v1";
+
+    // Ordered list: try the app-selected network first, then the other
+    const nodeUrls = args.network === "shelbynet"
+      ? [SHELBYNET_URL, TESTNET_URL]
+      : [TESTNET_URL, SHELBYNET_URL];
+
+    let confirmed = false;
+    let confirmedNetwork = args.network ?? "testnet";
+
+    for (const nodeUrl of nodeUrls) {
+      try {
+        console.log(`⏳ Trying node: ${nodeUrl}`);
+        const aptosConfig = new AptosConfig({
+          network: AptosNetwork.CUSTOM,
+          fullnode: nodeUrl,
+        });
+        const aptos = new Aptos(aptosConfig);
+        await aptos.waitForTransaction({
+          transactionHash: txHash,
+          options: { timeoutSecs: 30 },
+        });
+        confirmedNetwork = nodeUrl.includes("shelbynet") ? "shelbynet" : "testnet";
+        confirmed = true;
+        console.log(`✅ Transaction confirmed on ${confirmedNetwork} (${nodeUrl})`);
+        break;
+      } catch (e) {
+        console.warn(`⚠️ Not found on ${nodeUrl}, trying next...`);
+      }
+    }
+
+    if (!confirmed) {
+      throw new Error(
+        `Transaction ${txHash} not found on either Shelbynet or Testnet after 60s. ` +
+        `Check: https://explorer.aptoslabs.com/txn/${txHash}`
+      );
+    }
+
+    // Use the confirmed network for putBlob (override sdkNetwork if needed)
+    const resolvedSdkNetwork = confirmedNetwork === "shelbynet"
+      ? Network.SHELBYNET
+      : Network.TESTNET;
 
     // Step 4: Upload actual blob data to RPC storage nodes
     console.log("📤 Uploading blob data to storage nodes...");
-    // Signal to UI that we're now uploading
-    // (the signAndSubmitTransaction callback already set step to "confirming")
     const rpcClient = new ShelbyRPCClient({
-      network: sdkNetwork,
+      network: resolvedSdkNetwork,
       apiKey,
     });
 
