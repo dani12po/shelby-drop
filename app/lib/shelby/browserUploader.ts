@@ -88,8 +88,23 @@ export async function uploadWithBrowserWallet(
     const txHash = txResult.hash;
     console.log("✅ Transaction submitted:", txHash);
 
+    // Step 3.5: Wait for transaction to be confirmed on L1
+    // The RPC storage node checks L1 before accepting blob data
+    console.log("⏳ Waiting for L1 confirmation...");
+    const { Aptos, AptosConfig } = await import("@aptos-labs/ts-sdk");
+    const aptosConfig = new AptosConfig({ network: sdkNetwork });
+    const aptos = new Aptos(aptosConfig);
+    
+    await aptos.waitForTransaction({
+      transactionHash: txHash,
+      options: { timeoutSecs: 60 },
+    });
+    console.log("✅ Transaction confirmed on L1");
+
     // Step 4: Upload actual blob data to RPC storage nodes
     console.log("📤 Uploading blob data to storage nodes...");
+    // Signal to UI that we're now uploading
+    // (the signAndSubmitTransaction callback already set step to "confirming")
     const rpcClient = new ShelbyRPCClient({
       network: sdkNetwork,
       apiKey,

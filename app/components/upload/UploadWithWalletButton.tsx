@@ -20,6 +20,7 @@ type UploadStep =
   | "preparing"
   | "generating"
   | "waiting_signature"
+  | "confirming"
   | "uploading"
   | "done"
   | "error";
@@ -29,6 +30,7 @@ const STEP_LABELS: Record<UploadStep, string> = {
   preparing:         "Menyiapkan file...",
   generating:        "Menghitung commitments...",
   waiting_signature: "Menunggu konfirmasi di wallet...",
+  confirming:        "Menunggu konfirmasi L1...",
   uploading:         "Mengupload ke Shelby...",
   done:              "Upload berhasil!",
   error:             "Coba lagi",
@@ -84,9 +86,8 @@ export default function UploadWithWalletButton({
       apiKey,
       signAndSubmitTransaction: async (tx) => {
         setStep("waiting_signature");
-        // This triggers the Petra wallet popup
         const response = await signAndSubmitTransaction(tx as any);
-        setStep("uploading");
+        setStep("confirming");
         return response as { hash: string };
       },
     });
