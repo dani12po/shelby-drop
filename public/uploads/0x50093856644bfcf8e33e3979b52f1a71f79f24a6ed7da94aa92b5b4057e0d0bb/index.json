@@ -1,17 +1,5 @@
 [
   {
-    "blob_name": "videos/demo.mp4",
-    "size": 10485760,
-    "contentType": "video/mp4",
-    "createdAt": "2026-01-20T10:00:00Z"
-  },
-  {
-    "blob_name": "images/cover.png",
-    "size": 34567,
-    "contentType": "image/png",
-    "createdAt": "2026-01-18T09:12:00Z"
-  },
-  {
     "blob_name": "4da950cc7a91ed9fd7a9febd73412b78e38ed881c8842c32c812ba82b012f0c6_OBIE MESAKH LAGU PALING ENAK (1).mp3",
     "size": 28647612,
     "contentType": "audio/mpeg",
