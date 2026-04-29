@@ -14,6 +14,9 @@ import { AptosShelbyUploader, type UploadArgs } from "@/lib/shelby/aptosUploader
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Vercel serverless body limit is 4.5 MB on Hobby plan.
+// Files larger than this must use the browser wallet upload path.
+const MAX_SERVER_UPLOAD_BYTES = 4 * 1024 * 1024; // 4 MB safe limit
 
 export async function POST(req: Request) {
   console.log("🚀 STARTING REAL UPLOAD API REQUEST");
@@ -103,6 +106,19 @@ export async function POST(req: Request) {
           stage: "validation"
         },
         { status: 400 }
+      );
+    }
+
+    // Check file size — Vercel serverless has a 4.5 MB body limit
+    if (file.size > MAX_SERVER_UPLOAD_BYTES) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `File terlalu besar untuk server upload (${(file.size / 1024 / 1024).toFixed(1)} MB). Maksimal 4 MB. Gunakan "Upload dengan Wallet" untuk file lebih besar.`,
+          stage: "validation",
+          hint: "use_browser_upload",
+        },
+        { status: 413 }
       );
     }
 

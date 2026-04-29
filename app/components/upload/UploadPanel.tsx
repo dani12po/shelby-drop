@@ -39,6 +39,8 @@ export default function UploadPanel({
   const [days, setDays] = useState<number>(7);
 
   const wallet = account?.address.toString() || "";
+  const MAX_SERVER_MB = 4;
+  const fileTooLarge = file ? file.size > MAX_SERVER_MB * 1024 * 1024 : false;
 
   const handleUpload = async () => {
     if (isUploading) return;
@@ -357,27 +359,40 @@ export default function UploadPanel({
                 </div>
               )}
 
+              {/* File size warning */}
+              {fileTooLarge && (
+                <div style={{
+                  padding: "10px 14px", borderRadius: "10px",
+                  background: "rgba(251,191,36,0.08)",
+                  border: "1px solid rgba(251,191,36,0.25)",
+                  fontSize: "0.78rem", color: "#fbbf24",
+                  marginBottom: "4px",
+                }}>
+                  ⚠️ File lebih dari {MAX_SERVER_MB} MB. Gunakan <strong>"Upload dengan Wallet"</strong> di bawah untuk file besar.
+                </div>
+              )}
+
               {/* Actions */}
               <button
-                disabled={isUploading || !file}
+                disabled={isUploading || !file || fileTooLarge}
                 onClick={handleUpload}
                 style={{
                   width: '100%',
                   padding: '14px',
                   borderRadius: '12px',
                   border: 'none',
-                  background: (!file || isUploading)
+                  background: (!file || isUploading || fileTooLarge)
                     ? 'rgba(255,255,255,0.06)'
                     : 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-                  color: (!file || isUploading) ? '#475569' : 'white',
+                  color: (!file || isUploading || fileTooLarge) ? '#475569' : 'white',
                   fontSize: '0.9rem',
                   fontWeight: 600,
-                  cursor: (!file || isUploading) ? 'not-allowed' : 'pointer',
+                  cursor: (!file || isUploading || fileTooLarge) ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s',
                   marginBottom: '12px'
                 }}
               >
-                {isUploading ? 'Uploading...' : 'Upload to Shelby Network'}
+                {isUploading ? 'Uploading...' : fileTooLarge ? 'File terlalu besar (maks 4 MB)' : 'Upload to Shelby Network'}
               </button>
 
               {/* Divider */}
