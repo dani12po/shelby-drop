@@ -11,6 +11,7 @@ import {
   uploadToShelby,
   type UploadMetadata,
 } from "@/lib/uploadService";
+import UploadWithWalletButton from "./UploadWithWalletButton";
 
 type UploadPanelProps = {
   open: boolean;
@@ -375,6 +376,33 @@ export default function UploadPanel({
               >
                 {isUploading ? 'Uploading...' : 'Upload to Shelby Network'}
               </button>
+
+              {/* Divider */}
+              {file && account && !isUploading && (
+                <>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    margin: '4px 0',
+                  }}>
+                    <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+                    <span style={{ fontSize: '0.72rem', color: '#475569' }}>atau</span>
+                    <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+                  </div>
+
+                  {/* Upload with user wallet */}
+                  <UploadWithWalletButton
+                    file={file}
+                    retentionDays={days}
+                    onSuccess={(metadata) => {
+                      if (onUploaded) onUploaded(metadata);
+                      onClose();
+                      setFile(null);
+                      setDays(7);
+                    }}
+                    onError={(err) => notify("error", err)}
+                  />
+                </>
+              )}
 
               <button
                 onClick={onClose}

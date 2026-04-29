@@ -34,6 +34,8 @@ async function loadWasm() {
     resolve(cwd, "node_modules/@shelby-protocol/clay-codes/dist/clay.wasm"),
     "/vercel/path0/node_modules/@shelby-protocol/clay-codes/dist/clay.wasm",
     resolve(cwd, ".next/server/clay.wasm"),
+    resolve(cwd, ".next/server/static/wasm/clay.wasm"),
+    resolve(cwd, ".next/static/wasm/clay.wasm"),
     resolve(cwd, "public/clay.wasm"),
   ];
   let bytes;

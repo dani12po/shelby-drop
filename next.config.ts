@@ -7,35 +7,35 @@ const nextConfig: NextConfig = {
   eslint:     { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
 
-  // Tell Vercel's file tracer to include the WASM binary
-  // in the serverless function bundle for /api/upload
+  // Include clay.wasm and all Shelby SDK files in the serverless bundle
   outputFileTracingIncludes: {
     "/api/upload": [
-      "./node_modules/@shelby-protocol/clay-codes/dist/clay.wasm",
       "./node_modules/@shelby-protocol/clay-codes/dist/**",
+      "./node_modules/@shelby-protocol/sdk/**",
+      "./public/clay.wasm",
     ],
   },
 
   webpack: (config, { isServer }) => {
-    // Path alias
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname, "app"),
     };
 
-    // Enable WebAssembly support
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
       layers: true,
     };
 
-    // For server bundles: treat .wasm as asset/resource
-    // so webpack doesn't try to inline it
     if (isServer) {
+      // Output wasm to a predictable static path so patch script can find it
       config.module.rules.push({
         test: /\.wasm$/,
         type: "asset/resource",
+        generator: {
+          filename: "static/wasm/[name][ext]",
+        },
       });
     }
 
