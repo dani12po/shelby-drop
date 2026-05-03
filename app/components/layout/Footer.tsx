@@ -75,7 +75,7 @@ export default function Footer() {
               <li><a href="https://docs.shelby.xyz" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--text-secondary)] no-underline hover:text-[var(--accent)] transition-colors">Docs</a></li>
               <li><a href="https://developers.shelby.xyz" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--text-secondary)] no-underline hover:text-[var(--accent)] transition-colors">Developer Portal</a></li>
               <li><a href="https://github.com/shelby/shelby-quickstart" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--text-secondary)] no-underline hover:text-[var(--accent)] transition-colors">Quick Start</a></li>
-              <li><a href="https://explorer.shelby.xyz/shelbynet" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--text-secondary)] no-underline hover:text-[var(--accent)] transition-colors">Shelby Explorer</a></li>
+              <li><a href="https://explorer.shelby.xyz/testnet" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--text-secondary)] no-underline hover:text-[var(--accent)] transition-colors">Shelby Explorer</a></li>
               <li><a href="https://github.com/dani12po/shelby-drop/issues" target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--text-secondary)] no-underline hover:text-[var(--accent)] transition-colors">Bug Report</a></li>
             </ul>
           </div>

@@ -178,7 +178,7 @@ export default function AboutPage() {
                 Dokumentasi <ExternalLink size={16} />
               </a>
               <a
-                href="https://explorer.shelby.xyz/shelbynet"
+                href="https://explorer.shelby.xyz/testnet"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-6 py-3 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl font-semibold hover:border-[var(--text-accent)] transition-all"
