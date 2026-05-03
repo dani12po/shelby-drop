@@ -20,6 +20,7 @@ export type Notification = {
   type: NotificationType;
   txHash?: string;
   shelbyTxUrl?: string;
+  aptosTxUrl?: string;
   wallet?: string;
   error?: string;
 };
@@ -32,6 +33,7 @@ type NotificationContextValue = {
     type?: NotificationType;
     txHash?: string;
     shelbyTxUrl?: string;
+    aptosTxUrl?: string;
     wallet?: string;
     error?: string;
   }) => void;
@@ -64,6 +66,7 @@ export function NotificationProvider({
       type?: NotificationType;
       txHash?: string;
       shelbyTxUrl?: string;
+      aptosTxUrl?: string;
       wallet?: string;
       error?: string;
     }) => {
@@ -78,6 +81,7 @@ export function NotificationProvider({
           type: options.type || "info",
           txHash: options.txHash,
           shelbyTxUrl: options.shelbyTxUrl,
+          aptosTxUrl: options.aptosTxUrl,
           wallet: options.wallet,
           error: options.error,
         },

@@ -17,6 +17,10 @@ export type NotificationMeta = {
   txHash?: string;
   /** Network the transaction was confirmed on — used to build the correct explorer URL */
   network?: "testnet" | "shelbynet";
+  /** Shelby Explorer URL */
+  shelbyTxUrl?: string;
+  /** Aptos Explorer URL */
+  aptosTxUrl?: string;
   /** Custom link URL (overrides auto-generated tx explorer URL) */
   link?: string;
   /** Link label text */

@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from "react";
 import { useNotificationContext } from "@/components/notifications/NotificationProvider";
+import { buildAptosTxUrl, buildShelbyTxUrl } from "@/lib/blockchain/formatTx";
 
 export type UploadNotificationState = {
   id: string;
@@ -71,7 +72,6 @@ export function useUploadNotification() {
     
     if (!upload) return;
 
-    const { buildAptosTxUrl, buildShelbyTxUrl } = require("@/lib/blockchain/formatTx");
     const shelbyTxUrl = buildShelbyTxUrl(txHash);
     const aptosTxUrl = buildAptosTxUrl(txHash);
 
@@ -94,6 +94,7 @@ export function useUploadNotification() {
       type: "success",
       txHash,
       shelbyTxUrl,
+      aptosTxUrl,
       wallet,
     });
 

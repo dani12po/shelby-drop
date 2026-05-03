@@ -60,7 +60,9 @@ function NotifItem({ n, onRemove }: { n: Notification; onRemove: () => void }) {
   }, [duration]);
 
   const txHash = n.meta?.txHash;
-  const link   = n.meta?.link || (txHash ? buildTxUrl(txHash, n.meta?.network) : undefined);
+  const shelbyTxUrl = n.meta?.shelbyTxUrl;
+  const aptosTxUrl = n.meta?.aptosTxUrl || (txHash ? buildTxUrl(txHash, n.meta?.network) : undefined);
+  const link   = n.meta?.link;
   const label  = n.meta?.linkLabel || (txHash ? shortenHash(txHash) : "View");
 
   return (
@@ -126,27 +128,73 @@ function NotifItem({ n, onRemove }: { n: Notification; onRemove: () => void }) {
             {n.message}
           </p>
 
-          {/* Tx / custom link */}
-          {link && (
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={e => e.stopPropagation()}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: "4px",
-                marginTop: "5px",
-                fontSize: "0.72rem", color: s.accent,
-                textDecoration: "none", fontFamily: "monospace",
-                opacity: 0.9,
-              }}
-              onMouseEnter={e => e.currentTarget.style.opacity = "1"}
-              onMouseLeave={e => e.currentTarget.style.opacity = "0.9"}
-            >
-              {txHash ? "Tx: " : ""}{label}
-              <ExternalLink size={10} strokeWidth={2} />
-            </a>
-          )}
+          {/* Explorer Links */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '5px' }}>
+            {/* Aptos Explorer link */}
+            {aptosTxUrl && (
+              <a
+                href={aptosTxUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "4px",
+                  fontSize: "0.72rem", color: s.accent,
+                  textDecoration: "none", fontFamily: "monospace",
+                  opacity: 0.9,
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+                onMouseLeave={e => e.currentTarget.style.opacity = "0.9"}
+              >
+                <span style={{ minWidth: '45px', opacity: 0.7 }}>Aptos:</span>
+                {txHash ? shortenHash(txHash) : label}
+                <ExternalLink size={10} strokeWidth={2} />
+              </a>
+            )}
+
+            {/* Shelby Explorer link */}
+            {shelbyTxUrl && (
+              <a
+                href={shelbyTxUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "4px",
+                  fontSize: "0.72rem", color: s.accent,
+                  textDecoration: "none", fontFamily: "monospace",
+                  opacity: 0.9,
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+                onMouseLeave={e => e.currentTarget.style.opacity = "0.9"}
+              >
+                <span style={{ minWidth: '45px', opacity: 0.7 }}>Shelby:</span>
+                View on Shelby Explorer
+                <ExternalLink size={10} strokeWidth={2} />
+              </a>
+            )}
+
+            {/* Custom link */}
+            {link && !aptosTxUrl && !shelbyTxUrl && (
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "4px",
+                  fontSize: "0.72rem", color: s.accent,
+                  textDecoration: "none", fontFamily: "monospace",
+                  opacity: 0.9,
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+                onMouseLeave={e => e.currentTarget.style.opacity = "0.9"}
+              >
+                {label}
+                <ExternalLink size={10} strokeWidth={2} />
+              </a>
+            )}
+          </div>
         </div>
 
         {/* Close */}
