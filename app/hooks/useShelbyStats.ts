@@ -23,7 +23,7 @@ export function useShelbyStats() {
           setStats({
             totalBlobs: data.total_blobs?.toLocaleString() || '0',
             totalStorage: data.total_storage || '0 GB',
-            network: network === 'testnet' ? 'Testnet' : 'Shelbynet'
+            network: 'Testnet'
           })
         } else {
           throw new Error('Failed to fetch stats')
@@ -34,7 +34,7 @@ export function useShelbyStats() {
         setStats({
           totalBlobs: '0',
           totalStorage: '0 GB',
-          network: network === 'testnet' ? 'Testnet' : 'Shelbynet'
+          network: 'Testnet'
         })
       }
     }

@@ -28,21 +28,23 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
 
     const headers = new Headers();
     
-    // Copy essential headers from original request
-    const essentialHeaders = [
-      "authorization",
-      "content-type",
-      "x-api-key",
-      "accept",
-      "x-shelby-micropayment",
-      "user-agent"
-    ];
-    
+    // Copy ALL headers from original request to ensure we don't miss any API keys or auth tokens
+    // The Shelby SDK might use different header names (x-api-key, authorization, etc.)
     req.headers.forEach((value, key) => {
-      if (essentialHeaders.includes(key.toLowerCase())) {
+      // Skip host and origin as we override them below
+      if (!["host", "origin", "referer", "connection", "content-length"].includes(key.toLowerCase())) {
         headers.set(key, value);
       }
     });
+
+    // FALLBACK: If x-api-key is missing, inject the server-side RPC key
+    // This ensures that even if the client-side SDK fails to send the key, the proxy will provide it.
+    if (!headers.has("x-api-key")) {
+      const apiKey = process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY;
+      if (apiKey) {
+        headers.set("x-api-key", apiKey);
+      }
+    }
 
     // CRITICAL: Override the Origin and Referer headers to match what the Shelby RPC expects.
     // We use a "safe" origin that is known to be allowed by most Shelby API keys.

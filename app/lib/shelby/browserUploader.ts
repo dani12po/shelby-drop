@@ -142,22 +142,16 @@ export async function uploadWithBrowserWallet(
     // Step 4: Upload actual blob data to RPC storage nodes
     console.log("📤 Uploading blob data to storage nodes...");
 
-    // PROXY FIX: In development (localhost), the Shelby RPC server rejects requests with 401
-    // because the browser's Origin header (localhost) doesn't match the API key's allowed origin.
-    // We use a local proxy to override the Origin header.
-    const isLocal = typeof window !== "undefined" &&
-      (window.location.hostname === "localhost" ||
-       window.location.hostname === "127.0.0.1" ||
-       window.location.hostname.startsWith("192.168.") ||
-       window.location.hostname.startsWith("10."));
-       
+    // PROXY FIX: We use a server-side proxy to ensure the Origin and Referer headers
+    // match what the Shelby RPC server expects, and to securely inject the API key if needed.
     const proxyNetwork = confirmedNetwork === "shelbynet" ? "shelbynet" : "testnet";
-    // IMPORTANT: Must end with a slash so the SDK's URL joining works correctly
-    const proxyBaseUrl = isLocal ? `${window.location.origin}/api/shelby/proxy/${proxyNetwork}/` : undefined;
+    
+    // Use the proxy in ALL environments to prevent 401/CORS issues with Shelby RPC nodes
+    const proxyBaseUrl = typeof window !== "undefined"
+      ? `${window.location.origin}/api/shelby/proxy/${proxyNetwork}/`
+      : undefined;
 
-    if (isLocal) {
-      console.log("🛠️ Local development detected, using Shelby Proxy:", proxyBaseUrl);
-    }
+    console.log("🛠️ Using Shelby Proxy:", proxyBaseUrl);
 
     const rpcClient = new ShelbyRPCClient({
       network: resolvedSdkNetwork,
