@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Shelby RPC Proxy
+ * Shelby RPC Proxy - Robust Version
  * 
  * This proxy is used to bypass Origin header restrictions and inject API keys.
  * It forwards requests to the real Shelby RPC nodes.
@@ -38,7 +38,7 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     for (const [key, value] of req.headers.entries()) {
       const k = key.toLowerCase();
       // We skip auth-related headers from the client to ensure we use the server-side ones
-      if (!["host", "connection", "content-length", "origin", "referer", "x-api-key", "authorization", "cookie", "x-api-token"].includes(k)) {
+      if (!["host", "connection", "content-length", "origin", "referer", "x-api-key", "authorization", "cookie", "x-api-token", "x-authorization"].includes(k)) {
         targetHeaders.set(key, value);
       }
     }
@@ -71,17 +71,20 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     }
     
     if (serverApiKey) {
-      // Inject into ALL possible header variations
+      // Inject into ALL possible header variations to be absolutely sure
       targetHeaders.set("x-api-key", serverApiKey);
-      targetHeaders.set("Authorization", `Bearer ${serverApiKey}`);
+      targetHeaders.set("authorization", `Bearer ${serverApiKey}`);
       targetHeaders.set("x-api-token", serverApiKey);
+      targetHeaders.set("x-authorization", serverApiKey);
+      targetHeaders.set("api-key", serverApiKey);
       
-      console.log(`[Shelby Proxy ${requestId}] Injected API Key from ${keySource} (prefix: ${serverApiKey.substring(0, 5)}..., len: ${serverApiKey.length})`);
+      const isAgKey = serverApiKey.startsWith("AG-");
+      console.log(`[Shelby Proxy ${requestId}] Injected API Key from ${keySource} (prefix: ${serverApiKey.substring(0, 5)}..., len: ${serverApiKey.length}, isAG: ${isAgKey})`);
     } else {
       console.warn(`[Shelby Proxy ${requestId}] WARNING: No API key found in environment!`);
       return NextResponse.json({ 
         error: "Proxy Configuration Error", 
-        details: "No Shelby API key found in server environment variables. Please check Vercel settings." 
+        details: "No Shelby API key found in server environment variables. Please check Vercel settings and ensure you have redeployed." 
       }, { 
         status: 500,
         headers: { "X-Proxy-Error": "Missing API Key" }
@@ -89,11 +92,11 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     }
 
     // 3. Force Origin/Referer (CRITICAL for Shelby RPC)
-    // We use the official explorer origin as it's most likely to be whitelisted
-    const allowedOrigin = "https://explorer.shelby.xyz";
+    const allowedOrigin = process.env.SHELBY_ORIGIN || "https://explorer.shelby.xyz";
     targetHeaders.set("Origin", allowedOrigin);
     targetHeaders.set("Referer", allowedOrigin + "/");
-    targetHeaders.set("User-Agent", "ShelbyDrop/1.0 (Next.js Proxy)");
+    targetHeaders.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+    targetHeaders.set("Accept", "*/*");
     
     // Handle CORS preflight
     if (req.method === "OPTIONS") {
@@ -123,15 +126,19 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
       finalHeaders[k] = v;
     });
     
-    // Explicitly set common casings just in case
+    // Explicitly set common casings just in case the target is case-sensitive
+    finalHeaders["x-api-key"] = serverApiKey;
     finalHeaders["X-API-KEY"] = serverApiKey;
     finalHeaders["X-Api-Key"] = serverApiKey;
+    finalHeaders["Authorization"] = `Bearer ${serverApiKey}`;
+    finalHeaders["authorization"] = `Bearer ${serverApiKey}`;
 
     const fetchOptions: RequestInit = {
       method: req.method,
       headers: finalHeaders,
       body,
       cache: "no-store",
+      credentials: 'omit',
     };
 
     if (body) {
@@ -161,6 +168,8 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     // Add debug info to response headers
     responseHeaders.set("X-Proxy-Key-Source", keySource);
     responseHeaders.set("X-Proxy-Id", requestId);
+    responseHeaders.set("X-Proxy-Target", url);
+    responseHeaders.set("X-Proxy-Key-Prefix", serverApiKey.substring(0, 5));
 
     if (res.status === 401 || res.status === 403) {
       const errorBody = await res.clone().text();
