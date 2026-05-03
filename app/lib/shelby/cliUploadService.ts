@@ -123,12 +123,12 @@ export function isCliCompatibleUpload(metadata: UploadMetadata): boolean {
  * Get Explorer URL for uploaded file
  */
 export function getExplorerUrl(wallet: string, blobName: string): string {
-  return `https://explorer.shelby.xyz/shelbynet/account/${wallet}`;
+  return `https://explorer.shelby.xyz/testnet/account/${wallet}`;
 }
 
 /**
  * Get Aptos transaction URL
  */
 export function getAptosExplorerUrl(txHash: string): string {
-  return `https://explorer.aptoslabs.com/txn/${txHash}?network=shelbynet`;
+  return `https://explorer.aptoslabs.com/txn/${txHash}?network=testnet`;
 }
