@@ -94,43 +94,46 @@ export default function NotificationItem({
         </div>
       )}
 
-      {/* Tx hash link */}
-      {notification.txHash && isValidHash(notification.txHash) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Tx:</span>
-          <a
-            href={buildTxExplorerUrl(notification.txHash)}
-            target="_blank" rel="noopener noreferrer"
-            style={{
-              fontSize: '0.72rem', color: 'var(--accent-cyan)',
-              textDecoration: 'none', fontFamily: 'monospace',
-              display: 'flex', alignItems: 'center', gap: '4px'
-            }}
-          >
-            {shortenTxHash(notification.txHash)}
-            <ExternalLink size={10} strokeWidth={2} />
-          </a>
-        </div>
-      )}
+      {/* Explorer Links */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+        {/* Aptos Explorer link */}
+        {notification.txHash && isValidHash(notification.txHash) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', minWidth: '45px' }}>Aptos:</span>
+            <a
+              href={`https://explorer.aptoslabs.com/txn/${notification.txHash}?network=testnet`}
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                fontSize: '0.72rem', color: 'var(--accent-cyan)',
+                textDecoration: 'none', fontFamily: 'monospace',
+                display: 'flex', alignItems: 'center', gap: '4px'
+              }}
+            >
+              {shortenTxHash(notification.txHash)}
+              <ExternalLink size={10} strokeWidth={2} />
+            </a>
+          </div>
+        )}
 
-      {/* Shelby Explorer link */}
-      {notification.shelbyTxUrl && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Shelby:</span>
-          <a
-            href={notification.shelbyTxUrl}
-            target="_blank" rel="noopener noreferrer"
-            style={{
-              fontSize: '0.72rem', color: 'var(--accent-cyan)',
-              textDecoration: 'none', fontFamily: 'monospace',
-              display: 'flex', alignItems: 'center', gap: '4px'
-            }}
-          >
-            View on Shelby Explorer
-            <ExternalLink size={10} strokeWidth={2} />
-          </a>
-        </div>
-      )}
+        {/* Shelby Explorer link */}
+        {notification.shelbyTxUrl && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', minWidth: '45px' }}>Shelby:</span>
+            <a
+              href={notification.shelbyTxUrl}
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                fontSize: '0.72rem', color: 'var(--accent-cyan)',
+                textDecoration: 'none', fontFamily: 'monospace',
+                display: 'flex', alignItems: 'center', gap: '4px'
+              }}
+            >
+              View on Shelby Explorer
+              <ExternalLink size={10} strokeWidth={2} />
+            </a>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
