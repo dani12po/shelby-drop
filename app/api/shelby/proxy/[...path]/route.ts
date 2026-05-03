@@ -38,7 +38,7 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     for (const [key, value] of req.headers.entries()) {
       const k = key.toLowerCase();
       // We skip auth-related headers from the client to ensure we use the server-side ones
-      if (!["host", "connection", "content-length", "origin", "referer", "x-api-key", "authorization", "cookie", "x-api-token", "x-authorization"].includes(k)) {
+      if (!["host", "connection", "content-length", "origin", "referer", "x-api-key", "authorization", "cookie", "x-api-token", "x-authorization", "api-key"].includes(k)) {
         targetHeaders.set(key, value);
       }
     }
@@ -130,6 +130,8 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     finalHeaders["x-api-key"] = serverApiKey;
     finalHeaders["X-API-KEY"] = serverApiKey;
     finalHeaders["X-Api-Key"] = serverApiKey;
+    finalHeaders["api-key"] = serverApiKey;
+    finalHeaders["API-KEY"] = serverApiKey;
     finalHeaders["Authorization"] = `Bearer ${serverApiKey}`;
     finalHeaders["authorization"] = `Bearer ${serverApiKey}`;
 
