@@ -45,7 +45,6 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
 
     // 2. Inject the API key from environment
     let keySource = "none";
-    // Try to find ANY key that looks like a Shelby API key
     const possibleKeys = [
       { name: "SHELBY_RPC_API_KEY", val: process.env.SHELBY_RPC_API_KEY },
       { name: "SHELBY_API_KEY", val: process.env.SHELBY_API_KEY },
@@ -56,22 +55,23 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     let serverApiKey = "";
     for (const k of possibleKeys) {
       if (k.val && k.val.trim().length > 0) {
+        const trimmed = k.val.trim();
         // Prioritize AG- keys for RPC operations
-        if (k.val.trim().startsWith("AG-")) {
-          serverApiKey = k.val.trim();
+        if (trimmed.startsWith("AG-")) {
+          serverApiKey = trimmed;
           keySource = k.name;
           break;
         }
         // Fallback to first non-empty key if no AG- key found yet
         if (!serverApiKey) {
-          serverApiKey = k.val.trim();
+          serverApiKey = trimmed;
           keySource = k.name;
         }
       }
     }
     
     if (serverApiKey) {
-      // Inject into ALL possible header variations to be absolutely sure
+      // Inject into ALL possible header variations
       targetHeaders.set("x-api-key", serverApiKey);
       targetHeaders.set("Authorization", `Bearer ${serverApiKey}`);
       targetHeaders.set("x-api-token", serverApiKey);
@@ -89,8 +89,10 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     }
 
     // 3. Force Origin/Referer (CRITICAL for Shelby RPC)
-    targetHeaders.set("Origin", "https://explorer.shelby.xyz");
-    targetHeaders.set("Referer", "https://explorer.shelby.xyz/");
+    // We use the official explorer origin as it's most likely to be whitelisted
+    const allowedOrigin = "https://explorer.shelby.xyz";
+    targetHeaders.set("Origin", allowedOrigin);
+    targetHeaders.set("Referer", allowedOrigin + "/");
     targetHeaders.set("User-Agent", "ShelbyDrop/1.0 (Next.js Proxy)");
     
     // Handle CORS preflight
@@ -121,18 +123,23 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
       finalHeaders[k] = v;
     });
     
-    // Manually add some variations just in case the target is case-sensitive
+    // Explicitly set common casings just in case
     finalHeaders["X-API-KEY"] = serverApiKey;
     finalHeaders["X-Api-Key"] = serverApiKey;
 
-    const res = await fetch(url, {
+    const fetchOptions: RequestInit = {
       method: req.method,
       headers: finalHeaders,
       body,
       cache: "no-store",
+    };
+
+    if (body) {
       // @ts-ignore
-      duplex: 'half'
-    });
+      fetchOptions.duplex = 'half';
+    }
+
+    const res = await fetch(url, fetchOptions);
 
     console.log(`[Shelby Proxy ${requestId}] Target Response: ${res.status}`);
 
@@ -154,7 +161,6 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     // Add debug info to response headers
     responseHeaders.set("X-Proxy-Key-Source", keySource);
     responseHeaders.set("X-Proxy-Id", requestId);
-    responseHeaders.set("X-Proxy-Key-Len", serverApiKey ? serverApiKey.length.toString() : "0");
 
     if (res.status === 401 || res.status === 403) {
       const errorBody = await res.clone().text();
