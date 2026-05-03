@@ -5,12 +5,19 @@ import { createPortal } from "react-dom";
 import { useEffect, useState, useRef } from "react";
 import { useNotifications, type Notification } from "./useNotifications";
 import { CheckCircle2, AlertCircle, Info, X, ExternalLink } from "lucide-react";
+import { 
+  buildAptosTxUrl, 
+  buildShelbyTxUrl, 
+  shortenTxHash,
+  isValidHash
+} from "@/lib/blockchain/formatTx";
 
 /* ── helpers ── */
 function getStyle(type?: string) {
   switch (type) {
     case "success": return { accent: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)" };
     case "error":   return { accent: "#ef4444", bg: "rgba(239,68,68,0.08)",  border: "rgba(239,68,68,0.2)"  };
+    case "warning": return { accent: "#f59e0b", bg: "rgba(245,158,11,0.08)",  border: "rgba(245,158,11,0.2)"  };
     default:        return { accent: "#3b82f6", bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.2)" };
   }
 }
@@ -19,18 +26,8 @@ function getIcon(type?: string, accent?: string) {
   const props = { size: 16, strokeWidth: 2, color: accent };
   if (type === "success") return <CheckCircle2 {...props} />;
   if (type === "error")   return <AlertCircle  {...props} />;
+  if (type === "warning") return <AlertCircle  {...props} />;
   return <Info {...props} />;
-}
-
-function shortenHash(hash: string) {
-  if (!hash || hash.length < 12) return hash;
-  return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
-}
-
-function buildTxUrl(txHash: string, network?: string) {
-  // Default to testnet as per production requirements
-  const net = network === "shelbynet" ? "shelbynet" : "testnet";
-  return `https://explorer.aptoslabs.com/txn/${txHash}?network=${net}`;
 }
 
 /* ── single notification item with countdown bar ── */
@@ -60,10 +57,10 @@ function NotifItem({ n, onRemove }: { n: Notification; onRemove: () => void }) {
   }, [duration]);
 
   const txHash = n.meta?.txHash;
-  const shelbyTxUrl = n.meta?.shelbyTxUrl;
-  const aptosTxUrl = n.meta?.aptosTxUrl || (txHash ? buildTxUrl(txHash, n.meta?.network) : undefined);
+  const shelbyTxUrl = n.meta?.shelbyTxUrl || (txHash && isValidHash(txHash) ? buildShelbyTxUrl(txHash) : undefined);
+  const aptosTxUrl = n.meta?.aptosTxUrl || (txHash && isValidHash(txHash) ? buildAptosTxUrl(txHash) : undefined);
   const link   = n.meta?.link;
-  const label  = n.meta?.linkLabel || (txHash ? shortenHash(txHash) : "View");
+  const label  = n.meta?.linkLabel || (txHash ? shortenTxHash(txHash) : "View");
 
   return (
     <motion.div
@@ -99,7 +96,7 @@ function NotifItem({ n, onRemove }: { n: Notification; onRemove: () => void }) {
           paddingLeft: "14px",
           paddingRight: "14px",
           borderRadius: "11px",
-          background: "var(--bg-modal)",
+          background: "var(--bg-modal, #0b0f14)",
           border: `1px solid ${s.border}`,
           backdropFilter: "blur(20px)",
           cursor: "pointer",
@@ -121,15 +118,25 @@ function NotifItem({ n, onRemove }: { n: Notification; onRemove: () => void }) {
 
         {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
+          {n.meta?.title && (
+            <div style={{ 
+              fontSize: "0.825rem", 
+              fontWeight: 600, 
+              color: "var(--text-primary)",
+              marginBottom: "2px"
+            }}>
+              {n.meta.title}
+            </div>
+          )}
           <p style={{
-            fontSize: "0.825rem", color: "var(--text-primary)",
+            fontSize: "0.775rem", color: "var(--text-secondary)",
             margin: 0, lineHeight: 1.5,
           }}>
             {n.message}
           </p>
 
           {/* Explorer Links */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '5px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
             {/* Aptos Explorer link */}
             {aptosTxUrl && (
               <a
@@ -147,7 +154,7 @@ function NotifItem({ n, onRemove }: { n: Notification; onRemove: () => void }) {
                 onMouseLeave={e => e.currentTarget.style.opacity = "0.9"}
               >
                 <span style={{ minWidth: '45px', opacity: 0.7 }}>Aptos:</span>
-                {txHash ? shortenHash(txHash) : label}
+                {txHash ? shortenTxHash(txHash) : label}
                 <ExternalLink size={10} strokeWidth={2} />
               </a>
             )}

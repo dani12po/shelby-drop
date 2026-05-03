@@ -5,6 +5,8 @@
  * with consistent styling and proper explorer links.
  */
 
+import { getNetworkConfig } from "@/config/shelby";
+
 /**
  * Shortens a hash/address for display
  * Example: 0x1234567890abcdef -> 0x1234...cdef
@@ -38,7 +40,8 @@ export function shortenTxHash(txHash: string): string {
  */
 export function buildAptosTxUrl(txHash: string, network: string = "testnet"): string {
   if (!txHash) return '';
-  return `https://explorer.aptoslabs.com/txn/${txHash}?network=${network}`;
+  const cfg = getNetworkConfig(network);
+  return `${cfg.aptosExplorerBase}/txn/${txHash}?network=${cfg.aptosExplorerNetwork}`;
 }
 
 /**
@@ -46,7 +49,8 @@ export function buildAptosTxUrl(txHash: string, network: string = "testnet"): st
  */
 export function buildShelbyTxUrl(txHash: string, network: string = "testnet"): string {
   if (!txHash) return '';
-  return `https://explorer.shelby.xyz/${network}/tx/${txHash}`;
+  const cfg = getNetworkConfig(network);
+  return `${cfg.shelbyExplorerBase}/tx/${txHash}`;
 }
 
 /**
@@ -61,8 +65,8 @@ export function buildTxExplorerUrl(txHash: string, network: string = "testnet"):
  */
 export function buildWalletExplorerUrl(wallet: string, network: string = "testnet"): string {
   if (!wallet) return '';
-  
-  return `https://explorer.shelby.xyz/${network}/account/${wallet}`;
+  const cfg = getNetworkConfig(network);
+  return `${cfg.shelbyExplorerBase}/account/${wallet}`;
 }
 
 /**

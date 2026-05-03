@@ -13,6 +13,8 @@ import {
 export type NotificationType = "success" | "error" | "info" | "warning";
 
 export type NotificationMeta = {
+  /** Optional title for the notification */
+  title?: string;
   /** Transaction hash — shown as a clickable short link */
   txHash?: string;
   /** Network the transaction was confirmed on — used to build the correct explorer URL */
@@ -27,6 +29,10 @@ export type NotificationMeta = {
   linkLabel?: string;
   /** Auto-dismiss duration in ms (default 10000) */
   duration?: number;
+  /** Wallet address associated with the notification */
+  wallet?: string;
+  /** Error message if applicable */
+  error?: string;
 };
 
 export type Notification = {

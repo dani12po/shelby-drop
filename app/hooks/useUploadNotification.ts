@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback } from "react";
-import { useNotificationContext } from "@/components/notifications/NotificationProvider";
+import { useNotifications } from "@/components/notifications/useNotifications";
 import { buildAptosTxUrl, buildShelbyTxUrl } from "@/lib/blockchain/formatTx";
 
 export type UploadNotificationState = {
@@ -23,7 +23,7 @@ export type UploadNotificationState = {
 };
 
 export function useUploadNotification() {
-  const { notify, remove } = useNotificationContext();
+  const { notify } = useNotifications();
   const [activeUploads, setActiveUploads] = useState<Map<string, UploadNotificationState>>(new Map());
 
   // Start upload notification
@@ -42,10 +42,8 @@ export function useUploadNotification() {
     setActiveUploads(prev => new Map(prev.set(id, uploadState)));
 
     // Show initial notification
-    notify({
+    notify("info", `Sedang mengupload ${fileName} ke Shelby network`, {
       title: "📤 Mengupload ke Shelby...",
-      message: `Sedang mengupload ${fileName} ke Shelby network`,
-      type: "info",
       wallet,
     });
 
@@ -88,10 +86,8 @@ export function useUploadNotification() {
     setActiveUploads(prev => new Map(prev.set(id, completedState)));
 
     // Show success notification with transaction info
-    notify({
+    notify("success", `File ${upload.fileName} berhasil diupload ke Shelby network`, {
       title: "✅ Upload Berhasil",
-      message: `File ${upload.fileName} berhasil diupload ke Shelby network`,
-      type: "success",
       txHash,
       shelbyTxUrl,
       aptosTxUrl,
@@ -126,10 +122,8 @@ export function useUploadNotification() {
     setActiveUploads(prev => new Map(prev.set(id, failedState)));
 
     // Show error notification
-    notify({
+    notify("error", error || "Terjadi kesalahan saat upload", {
       title: "❌ Upload Gagal",
-      message: error || "Terjadi kesalahan saat upload",
-      type: "error",
       txHash,
       wallet,
       error,
