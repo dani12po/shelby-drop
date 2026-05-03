@@ -34,20 +34,26 @@ export function shortenTxHash(txHash: string): string {
 }
 
 /**
- * Builds transaction explorer URL
- * Priority: Shelby Explorer -> Aptos Explorer
+ * Builds Aptos transaction explorer URL
+ */
+export function buildAptosTxUrl(txHash: string, network: string = "testnet"): string {
+  if (!txHash) return '';
+  return `https://explorer.aptoslabs.com/txn/${txHash}?network=${network}`;
+}
+
+/**
+ * Builds Shelby transaction explorer URL
+ */
+export function buildShelbyTxUrl(txHash: string, network: string = "testnet"): string {
+  if (!txHash) return '';
+  return `https://explorer.shelby.xyz/${network}/tx/${txHash}`;
+}
+
+/**
+ * Builds transaction explorer URL (Legacy, defaults to Shelby)
  */
 export function buildTxExplorerUrl(txHash: string, network: string = "testnet"): string {
-  if (!txHash) return '';
-  
-  // Priority 1: Shelby Explorer (preferred)
-  const shelbyExplorer = `https://explorer.shelby.xyz/${network}/tx/${txHash}`;
-  
-  // Priority 2: Aptos Explorer (fallback)
-  const aptosExplorer = `https://explorer.aptoslabs.com/txn/${txHash}?network=${network}`;
-  
-  // Return Shelby Explorer by default
-  return shelbyExplorer;
+  return buildShelbyTxUrl(txHash, network);
 }
 
 /**

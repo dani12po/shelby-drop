@@ -15,6 +15,8 @@ export type UploadNotificationState = {
   fileSize?: string;
   wallet?: string;
   txHash?: string;
+  shelbyTxUrl?: string;
+  aptosTxUrl?: string;
   error?: string;
   progress?: number;
 };
@@ -69,11 +71,17 @@ export function useUploadNotification() {
     
     if (!upload) return;
 
+    const { buildAptosTxUrl, buildShelbyTxUrl } = require("@/lib/blockchain/formatTx");
+    const shelbyTxUrl = buildShelbyTxUrl(txHash);
+    const aptosTxUrl = buildAptosTxUrl(txHash);
+
     // Update state
     const completedState: UploadNotificationState = {
       ...upload,
       type: "success",
       txHash,
+      shelbyTxUrl,
+      aptosTxUrl,
       progress: 100,
     };
 
@@ -85,6 +93,7 @@ export function useUploadNotification() {
       message: `File ${upload.fileName} berhasil diupload ke Shelby network`,
       type: "success",
       txHash,
+      shelbyTxUrl,
       wallet,
     });
 
