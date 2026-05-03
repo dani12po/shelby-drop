@@ -37,13 +37,14 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
       }
     });
 
-    // FALLBACK: If x-api-key is missing, inject the server-side RPC key
-    // This ensures that even if the client-side SDK fails to send the key, the proxy will provide it.
-    if (!headers.has("x-api-key")) {
-      const apiKey = process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY;
-      if (apiKey) {
-        headers.set("x-api-key", apiKey);
-      }
+    // ALWAYS inject/override the API key from environment variables
+    // This ensures the proxy uses the correct key regardless of what the client sends.
+    const apiKey = process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY;
+    if (apiKey) {
+      headers.set("x-api-key", apiKey);
+      console.log(`[Shelby Proxy] Injected API Key: ${apiKey.substring(0, 5)}...`);
+    } else {
+      console.warn(`[Shelby Proxy] WARNING: No API key found in environment variables!`);
     }
 
     // CRITICAL: Override the Origin and Referer headers to match what the Shelby RPC expects.
