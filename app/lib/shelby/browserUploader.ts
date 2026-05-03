@@ -155,8 +155,10 @@ export async function uploadWithBrowserWallet(
 
     const rpcClient = new ShelbyRPCClient({
       network: resolvedSdkNetwork,
-      apiKey,
-      // @ts-ignore - custom baseUrl to use our proxy in development
+      // We pass a dummy key because the proxy will inject the real server-side key.
+      // This prevents the SDK from complaining about a missing key on the client.
+      apiKey: apiKey || "proxy-auth",
+      // @ts-ignore - custom baseUrl to use our proxy
       rpc: proxyBaseUrl ? { baseUrl: proxyBaseUrl } : undefined,
     });
 

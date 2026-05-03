@@ -32,14 +32,14 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     const url = `${baseUrl}${remainingPath}${search}`;
 
     // 1. Prepare headers for the target request
-    const targetHeaders: Record<string, string> = {};
+    const targetHeaders = new Headers();
     
-    // Copy headers from original request, but skip restricted ones
+    // Copy headers from original request, but skip restricted or sensitive ones
     for (const [key, value] of req.headers.entries()) {
       const k = key.toLowerCase();
       // We skip auth-related headers from the client to ensure we use the server-side ones
       if (!["host", "connection", "content-length", "origin", "referer", "x-api-key", "authorization", "cookie", "x-api-token"].includes(k)) {
-        targetHeaders[key] = value;
+        targetHeaders.set(key, value);
       }
     }
 
@@ -72,22 +72,26 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     
     if (serverApiKey) {
       // Inject into ALL possible header variations to be absolutely sure
-      targetHeaders["x-api-key"] = serverApiKey;
-      targetHeaders["X-API-KEY"] = serverApiKey;
-      targetHeaders["Authorization"] = `Bearer ${serverApiKey}`;
-      targetHeaders["x-api-token"] = serverApiKey;
-      targetHeaders["api-key"] = serverApiKey;
-      targetHeaders["X-Shelby-API-Key"] = serverApiKey;
+      targetHeaders.set("x-api-key", serverApiKey);
+      targetHeaders.set("Authorization", `Bearer ${serverApiKey}`);
+      targetHeaders.set("x-api-token", serverApiKey);
       
       console.log(`[Shelby Proxy ${requestId}] Injected API Key from ${keySource} (prefix: ${serverApiKey.substring(0, 5)}..., len: ${serverApiKey.length})`);
     } else {
       console.warn(`[Shelby Proxy ${requestId}] WARNING: No API key found in environment!`);
+      return NextResponse.json({ 
+        error: "Proxy Configuration Error", 
+        details: "No Shelby API key found in server environment variables. Please check Vercel settings." 
+      }, { 
+        status: 500,
+        headers: { "X-Proxy-Error": "Missing API Key" }
+      });
     }
 
     // 3. Force Origin/Referer (CRITICAL for Shelby RPC)
-    targetHeaders["Origin"] = "https://explorer.shelby.xyz";
-    targetHeaders["Referer"] = "https://explorer.shelby.xyz/";
-    targetHeaders["User-Agent"] = "ShelbyDrop/1.0 (Next.js Proxy)";
+    targetHeaders.set("Origin", "https://explorer.shelby.xyz");
+    targetHeaders.set("Referer", "https://explorer.shelby.xyz/");
+    targetHeaders.set("User-Agent", "ShelbyDrop/1.0 (Next.js Proxy)");
     
     // Handle CORS preflight
     if (req.method === "OPTIONS") {
@@ -111,9 +115,19 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
       console.log(`[Shelby Proxy ${requestId}] Body size: ${body.byteLength} bytes`);
     }
 
+    // Convert Headers to plain object for maximum compatibility
+    const finalHeaders: Record<string, string> = {};
+    targetHeaders.forEach((v, k) => {
+      finalHeaders[k] = v;
+    });
+    
+    // Manually add some variations just in case the target is case-sensitive
+    finalHeaders["X-API-KEY"] = serverApiKey;
+    finalHeaders["X-Api-Key"] = serverApiKey;
+
     const res = await fetch(url, {
       method: req.method,
-      headers: targetHeaders,
+      headers: finalHeaders,
       body,
       cache: "no-store",
       // @ts-ignore
@@ -148,7 +162,7 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
       
       // Log headers for debugging (redacted)
       const debugHeaders: Record<string, string> = {};
-      Object.entries(targetHeaders).forEach(([k, v]) => {
+      Object.entries(finalHeaders).forEach(([k, v]) => {
         const lowK = k.toLowerCase();
         if (lowK.includes("key") || lowK.includes("auth") || lowK.includes("token")) {
           debugHeaders[k] = `PRESENT (len: ${v.length}, starts: ${v.substring(0, 4)}...)`;
