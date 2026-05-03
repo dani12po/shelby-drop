@@ -10,6 +10,9 @@ export const dynamic = "force-dynamic";
  * It forwards requests to the real Shelby RPC nodes.
  */
 async function handleProxy(req: Request, { params }: { params: { path: string[] } }) {
+  const requestId = Math.random().toString(36).substring(7);
+  console.log(`[Shelby Proxy ${requestId}] Incoming request: ${req.method} ${req.url}`);
+
   try {
     const pathParts = params.path;
     if (!pathParts || pathParts.length < 1) {
@@ -29,73 +32,98 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     const { search } = new URL(req.url);
     const url = `${baseUrl}${remainingPath}${search}`;
 
-    // Use a plain object for headers to ensure total control and compatibility with fetch
-    const headerMap: Record<string, string> = {};
+    // Use Headers object for better compatibility and case-insensitivity
+    const headers = new Headers();
     
-    // Copy headers from original request
+    // 1. Copy headers from original request
     req.headers.forEach((value, key) => {
       const k = key.toLowerCase();
-      // Skip restricted headers that we will override
-      if (!["host", "origin", "referer", "connection", "content-length", "x-api-key", "authorization"].includes(k)) {
-        headerMap[key] = value;
+      // Skip headers that we will override or that are restricted by fetch
+      // We also skip x-api-key and authorization to ensure we use the server-side ones
+      if (!["host", "connection", "content-length", "origin", "referer", "x-api-key", "authorization"].includes(k)) {
+        headers.set(key, value);
       }
     });
 
-    // ALWAYS inject/override the API key from environment
-    const rpcKey = process.env.SHELBY_RPC_API_KEY;
-    const signingSecret = process.env.SHELBY_SIGNING_SECRET;
-    const generalKey = process.env.SHELBY_API_KEY;
-    const publicKey = process.env.NEXT_PUBLIC_SHELBY_API_KEY;
-    
-    const apiKey = rpcKey || 
-                   (signingSecret?.startsWith("AG-") ? signingSecret : undefined) || 
-                   generalKey ||
-                   publicKey;
+    // 2. ALWAYS inject/override the API key from environment
+    // We check multiple possible environment variable names, prioritizing the RPC-specific one
+    const serverApiKey = process.env.SHELBY_RPC_API_KEY || 
+                         process.env.SHELBY_API_KEY || 
+                         (process.env.SHELBY_SIGNING_SECRET?.startsWith("AG-") ? process.env.SHELBY_SIGNING_SECRET : undefined) || 
+                         process.env.NEXT_PUBLIC_SHELBY_API_KEY;
 
-    if (apiKey) {
-      // Inject into multiple possible header locations to be safe
-      headerMap["x-api-key"] = apiKey;
-      headerMap["X-API-KEY"] = apiKey;
-      headerMap["Authorization"] = `Bearer ${apiKey}`;
+    if (serverApiKey) {
+      // Inject into ALL possible header variations to be absolutely sure
+      // Shelby RPC is known to look for 'x-api-key'
+      headers.set("x-api-key", serverApiKey);
+      headers.set("X-API-KEY", serverApiKey);
+      headers.set("Authorization", `Bearer ${serverApiKey}`);
       
-      console.log(`[Shelby Proxy] Injected API Key: ${apiKey.substring(0, 10)}...`);
+      // Additional variations just in case
+      headers.set("x-api-token", serverApiKey);
+      headers.set("X-API-Token", serverApiKey);
+      headers.set("X-Authorization", serverApiKey);
+      
+      console.log(`[Shelby Proxy ${requestId}] Injected Server API Key (len: ${serverApiKey.length})`);
     } else {
-      console.warn(`[Shelby Proxy] WARNING: No API key found in environment variables!`);
+      // Fallback: check if the client sent an API key and ensure it's in the right format
+      const clientApiKey = req.headers.get("x-api-key") || req.headers.get("X-API-KEY");
+      const clientAuth = req.headers.get("Authorization");
+      
+      if (clientApiKey) {
+        headers.set("x-api-key", clientApiKey);
+        console.log(`[Shelby Proxy ${requestId}] Using API Key from client headers`);
+      } else if (clientAuth) {
+        headers.set("Authorization", clientAuth);
+        console.log(`[Shelby Proxy ${requestId}] Using Authorization from client headers`);
+      } else {
+        console.warn(`[Shelby Proxy ${requestId}] WARNING: No API key found in environment or client headers!`);
+      }
     }
 
-    // Force Origin/Referer to a known allowed value
-    let expectedOrigin = process.env.SHELBY_ORIGIN;
-    if (!expectedOrigin || expectedOrigin.includes("localhost") || expectedOrigin.includes("127.0.0.1")) {
-      expectedOrigin = "https://explorer.shelby.xyz";
+    // 3. Force Origin/Referer to a known allowed value (CRITICAL for Shelby RPC)
+    const expectedOrigin = "https://explorer.shelby.xyz";
+    headers.set("Origin", expectedOrigin);
+    headers.set("Referer", expectedOrigin + "/");
+    headers.set("User-Agent", "ShelbyDrop/1.0 (Next.js Proxy)");
+    
+    // Handle CORS preflight
+    if (req.method === "OPTIONS") {
+      return new NextResponse(null, {
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Max-Age": "86400",
+        },
+      });
     }
-    
-    headerMap["Origin"] = expectedOrigin;
-    headerMap["Referer"] = expectedOrigin + "/";
-    headerMap["User-Agent"] = "ShelbyDrop/1.0 (Next.js Proxy)";
-    
-    console.log(`[Shelby Proxy] ${req.method} -> ${url}`);
+
+    console.log(`[Shelby Proxy ${requestId}] Forwarding ${req.method} to: ${url}`);
 
     // Forward the request using fetch
     let body: any = undefined;
     if (req.method !== "GET" && req.method !== "HEAD") {
       // Use arrayBuffer for reliable binary data handling
       body = await req.arrayBuffer();
-      console.log(`[Shelby Proxy] Body size: ${body.byteLength} bytes`);
+      console.log(`[Shelby Proxy ${requestId}] Body size: ${body.byteLength} bytes`);
     }
 
     const res = await fetch(url, {
       method: req.method,
-      headers: headerMap,
+      headers,
       body,
-      // @ts-ignore
+      cache: "no-store",
+      // @ts-ignore - duplex is required for streaming/binary bodies in some environments
       duplex: 'half'
     });
 
-    console.log(`[Shelby Proxy] Target Response: ${res.status} ${res.statusText}`);
+    console.log(`[Shelby Proxy ${requestId}] Target Response: ${res.status} ${res.statusText}`);
 
     if (!res.ok) {
       const errorText = await res.clone().text().catch(() => "N/A");
-      console.error(`[Shelby Proxy] Target Error Body: ${errorText}`);
+      console.error(`[Shelby Proxy ${requestId}] Target Error Body: ${errorText}`);
     }
 
     // Build response headers
@@ -118,7 +146,7 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
       headers: responseHeaders,
     });
   } catch (error) {
-    console.error("[Shelby Proxy Error]", error);
+    console.error(`[Shelby Proxy ${requestId}] Error:`, error);
     return NextResponse.json({ 
       error: "Proxy failed", 
       details: error instanceof Error ? error.message : String(error) 
