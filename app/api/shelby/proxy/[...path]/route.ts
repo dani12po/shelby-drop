@@ -6,9 +6,8 @@ export const dynamic = "force-dynamic";
 /**
  * Shelby RPC Proxy
  * 
- * This proxy is used in development to bypass Origin header restrictions
- * imposed by the Shelby RPC server. It forwards requests to the real
- * Shelby RPC nodes while overriding the Origin and Host headers.
+ * This proxy is used to bypass Origin header restrictions and inject API keys.
+ * It forwards requests to the real Shelby RPC nodes.
  */
 async function handleProxy(req: Request, { params }: { params: { path: string[] } }) {
   try {
@@ -18,89 +17,98 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
     }
 
     const network = pathParts[0]; // 'testnet' or 'shelbynet'
-    const remainingPath = pathParts.slice(1).join("/");
+    const remainingPath = pathParts.slice(1).filter(Boolean).join("/");
     
     const targetBase = network === "shelbynet" 
       ? "https://api.shelbynet.shelby.xyz/shelby" 
       : "https://api.testnet.shelby.xyz/shelby";
       
-    const url = `${targetBase}/${remainingPath}${new URL(req.url).search}`;
-
-    const headers = new Headers();
+    const baseUrl = targetBase.endsWith("/") ? targetBase : `${targetBase}/`;
     
-    // Copy ALL headers from original request to ensure we don't miss any API keys or auth tokens
-    // The Shelby SDK might use different header names (x-api-key, authorization, etc.)
+    // Append query parameters from the original request
+    const { search } = new URL(req.url);
+    const url = `${baseUrl}${remainingPath}${search}`;
+
+    // Use a plain object for headers to ensure total control and compatibility with fetch
+    const headerMap: Record<string, string> = {};
+    
+    // Copy headers from original request
     req.headers.forEach((value, key) => {
-      // Skip host and origin as we override them below
-      if (!["host", "origin", "referer", "connection", "content-length"].includes(key.toLowerCase())) {
-        headers.set(key, value);
+      const k = key.toLowerCase();
+      // Skip restricted headers that we will override
+      if (!["host", "origin", "referer", "connection", "content-length", "x-api-key", "authorization"].includes(k)) {
+        headerMap[key] = value;
       }
     });
 
-    // ALWAYS inject/override the API key from environment variables
-    // This ensures the proxy uses the correct key regardless of what the client sends.
-    const apiKey = process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY;
+    // ALWAYS inject/override the API key from environment
+    const rpcKey = process.env.SHELBY_RPC_API_KEY;
+    const signingSecret = process.env.SHELBY_SIGNING_SECRET;
+    const generalKey = process.env.SHELBY_API_KEY;
+    const publicKey = process.env.NEXT_PUBLIC_SHELBY_API_KEY;
+    
+    const apiKey = rpcKey || 
+                   (signingSecret?.startsWith("AG-") ? signingSecret : undefined) || 
+                   generalKey ||
+                   publicKey;
+
     if (apiKey) {
-      headers.set("x-api-key", apiKey);
-      console.log(`[Shelby Proxy] Injected API Key: ${apiKey.substring(0, 5)}...`);
+      // Inject into multiple possible header locations to be safe
+      headerMap["x-api-key"] = apiKey;
+      headerMap["X-API-KEY"] = apiKey;
+      headerMap["Authorization"] = `Bearer ${apiKey}`;
+      
+      console.log(`[Shelby Proxy] Injected API Key: ${apiKey.substring(0, 10)}...`);
     } else {
       console.warn(`[Shelby Proxy] WARNING: No API key found in environment variables!`);
     }
 
-    // CRITICAL: Override the Origin and Referer headers to match what the Shelby RPC expects.
-    // We use a "safe" origin that is known to be allowed by most Shelby API keys.
-    // If SHELBY_ORIGIN is set and is NOT localhost, we use it. Otherwise we use the explorer.
+    // Force Origin/Referer to a known allowed value
     let expectedOrigin = process.env.SHELBY_ORIGIN;
     if (!expectedOrigin || expectedOrigin.includes("localhost") || expectedOrigin.includes("127.0.0.1")) {
       expectedOrigin = "https://explorer.shelby.xyz";
     }
     
-    headers.set("Origin", expectedOrigin);
-    headers.set("Referer", expectedOrigin + "/");
-    
-    // Ensure we don't have any localhost references in other headers
-    headers.delete("host"); // Let fetch set it
+    headerMap["Origin"] = expectedOrigin;
+    headerMap["Referer"] = expectedOrigin + "/";
+    headerMap["User-Agent"] = "ShelbyDrop/1.0 (Next.js Proxy)";
     
     console.log(`[Shelby Proxy] ${req.method} -> ${url}`);
-    console.log(`[Shelby Proxy] Outgoing Headers:`);
-    headers.forEach((v, k) => {
-      const isSensitive = ["authorization", "x-api-key"].includes(k.toLowerCase());
-      console.log(`  ${k}: ${isSensitive ? v.substring(0, 10) + "..." : v}`);
-    });
 
-    // Read body into buffer to ensure it's sent correctly
+    // Forward the request using fetch
     let body: any = undefined;
     if (req.method !== "GET" && req.method !== "HEAD") {
+      // Use arrayBuffer for reliable binary data handling
       body = await req.arrayBuffer();
-      console.log(`[Shelby Proxy] Body length: ${body.byteLength} bytes`);
+      console.log(`[Shelby Proxy] Body size: ${body.byteLength} bytes`);
     }
 
     const res = await fetch(url, {
       method: req.method,
-      headers,
+      headers: headerMap,
       body,
-      // @ts-ignore - duplex is needed for streaming bodies in Node.js fetch
+      // @ts-ignore
       duplex: 'half'
     });
 
     console.log(`[Shelby Proxy] Target Response: ${res.status} ${res.statusText}`);
 
-    // Log error response from target
     if (!res.ok) {
-      const errorClone = res.clone();
-      const errorText = await errorClone.text().catch(() => "could not read error body");
-      console.error(`[Shelby Proxy] Target Error Body:`, errorText);
+      const errorText = await res.clone().text().catch(() => "N/A");
+      console.error(`[Shelby Proxy] Target Error Body: ${errorText}`);
     }
 
-    // Copy response headers, but handle CORS
+    // Build response headers
     const responseHeaders = new Headers();
     res.headers.forEach((value, key) => {
-      // Skip some headers that might cause issues
-      if (!["content-encoding", "transfer-encoding", "connection"].includes(key.toLowerCase())) {
+      const k = key.toLowerCase();
+      // Skip headers that might interfere with CORS or encoding
+      if (!["content-encoding", "transfer-encoding", "connection", "access-control-allow-origin"].includes(k)) {
         responseHeaders.set(key, value);
       }
     });
     
+    // Ensure CORS is allowed for the browser
     responseHeaders.set("Access-Control-Allow-Origin", "*");
     responseHeaders.set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
     responseHeaders.set("Access-Control-Allow-Headers", "*");
