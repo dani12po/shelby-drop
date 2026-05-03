@@ -43,30 +43,38 @@ async function handleProxy(req: Request, { params }: { params: { path: string[] 
       }
     }
 
-    // 2. Inject the API key from environment
+    // 2. Inject the API key from environment (Network-Aware)
+    // - testnet RPC (api.testnet.shelby.xyz) runs on Aptos Labs infra → needs aptoslabs_*** key
+    // - shelbynet RPC (api.shelbynet.shelby.xyz) runs on Shelby infra → needs AG-*** key
     let keySource = "none";
-    const possibleKeys = [
-      { name: "SHELBY_RPC_API_KEY", val: process.env.SHELBY_RPC_API_KEY },
-      { name: "SHELBY_API_KEY", val: process.env.SHELBY_API_KEY },
-      { name: "SHELBY_SIGNING_SECRET", val: process.env.SHELBY_SIGNING_SECRET },
-      { name: "NEXT_PUBLIC_SHELBY_API_KEY", val: process.env.NEXT_PUBLIC_SHELBY_API_KEY },
-    ];
-
     let serverApiKey = "";
-    for (const k of possibleKeys) {
-      if (k.val && k.val.trim().length > 0) {
-        const trimmed = k.val.trim();
-        // Prioritize AG- keys for RPC operations
-        if (trimmed.startsWith("AG-")) {
-          serverApiKey = trimmed;
-          keySource = k.name;
-          break;
-        }
-        // Fallback to first non-empty key if no AG- key found yet
-        if (!serverApiKey) {
-          serverApiKey = trimmed;
-          keySource = k.name;
-        }
+    const isTestnet = network === "testnet";
+
+    if (isTestnet) {
+      // For Testnet, prioritize aptoslabs_ key
+      if (process.env.SHELBY_API_KEY?.startsWith("aptoslabs_")) {
+        serverApiKey = process.env.SHELBY_API_KEY;
+        keySource = "SHELBY_API_KEY";
+      } else if (process.env.NEXT_PUBLIC_SHELBY_API_KEY?.startsWith("aptoslabs_")) {
+        serverApiKey = process.env.NEXT_PUBLIC_SHELBY_API_KEY;
+        keySource = "NEXT_PUBLIC_SHELBY_API_KEY";
+      } else {
+        // Fallback to any available key if no aptoslabs_ key found
+        serverApiKey = process.env.SHELBY_API_KEY || process.env.NEXT_PUBLIC_SHELBY_API_KEY || "";
+        keySource = process.env.SHELBY_API_KEY ? "SHELBY_API_KEY (fallback)" : "NEXT_PUBLIC_SHELBY_API_KEY (fallback)";
+      }
+    } else {
+      // For Shelbynet, prioritize AG- key
+      if (process.env.SHELBY_RPC_API_KEY?.startsWith("AG-")) {
+        serverApiKey = process.env.SHELBY_RPC_API_KEY;
+        keySource = "SHELBY_RPC_API_KEY";
+      } else if (process.env.SHELBY_API_KEY?.startsWith("AG-")) {
+        serverApiKey = process.env.SHELBY_API_KEY;
+        keySource = "SHELBY_API_KEY";
+      } else {
+        // Fallback
+        serverApiKey = process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY || "";
+        keySource = process.env.SHELBY_RPC_API_KEY ? "SHELBY_RPC_API_KEY (fallback)" : "SHELBY_API_KEY (fallback)";
       }
     }
     

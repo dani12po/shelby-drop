@@ -70,8 +70,31 @@ export class AptosShelbyUploader {
     // ShelbyNodeClient — use TESTNET for testnet, SHELBYNET for shelbynet
     const sdkNet = this.networkConfig.sdkNetwork === "testnet" ? Network.TESTNET : Network.SHELBYNET;
     
-    // Use SHELBY_RPC_API_KEY (AG-...) for Shelby operations if available
-    const shelbyApiKey = process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY!;
+    // API key selection is NETWORK-DEPENDENT:
+    // - testnet RPC (api.testnet.shelby.xyz) runs on Aptos Labs infra → needs aptoslabs_*** key
+    // - shelbynet RPC (api.shelbynet.shelby.xyz) runs on Shelby infra → needs AG-*** key
+    const isTestnet = this.networkConfig.sdkNetwork === "testnet";
+    const shelbyApiKey = isTestnet
+      ? (process.env.SHELBY_API_KEY || process.env.NEXT_PUBLIC_SHELBY_API_KEY || "")
+      : (process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY || "");
+
+    console.log("🔑 API KEY SELECTION:", {
+      network: this.networkConfig.sdkNetwork,
+      isTestnet,
+      keyPrefix: shelbyApiKey ? shelbyApiKey.substring(0, 12) + "..." : "MISSING",
+      expectedFormat: isTestnet ? "aptoslabs_***" : "AG-***",
+      formatOk: isTestnet
+        ? shelbyApiKey.startsWith("aptoslabs_")
+        : shelbyApiKey.startsWith("AG-"),
+    });
+
+    if (!shelbyApiKey) {
+      throw new Error(
+        isTestnet
+          ? "Missing SHELBY_API_KEY (aptoslabs_***) required for testnet RPC"
+          : "Missing SHELBY_RPC_API_KEY (AG-***) required for shelbynet RPC"
+      );
+    }
     
     this.shelbyClient = new ShelbyNodeClient({
       network: sdkNet,
@@ -106,9 +129,22 @@ export class AptosShelbyUploader {
     if (missing.length > 0) {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
-    if (!process.env.SHELBY_API_KEY?.startsWith('aptoslabs_')) {
-      throw new Error('Invalid API key format. Expected: aptoslabs_...');
+    
+    // Validate that at least one key exists
+    const hasTestnetKey = !!(process.env.SHELBY_API_KEY?.startsWith("aptoslabs_") ||
+                             process.env.NEXT_PUBLIC_SHELBY_API_KEY?.startsWith("aptoslabs_"));
+    const hasShelbynetKey = !!(process.env.SHELBY_RPC_API_KEY?.startsWith("AG-"));
+
+    if (!hasTestnetKey && !hasShelbynetKey) {
+      throw new Error(
+        "No valid API key found. Need SHELBY_API_KEY (aptoslabs_***) for testnet " +
+        "and/or SHELBY_RPC_API_KEY (AG-***) for shelbynet."
+      );
     }
+    console.log("✅ API KEYS VALIDATED:", {
+      testnet:  hasTestnetKey ? "✅ aptoslabs_ key present" : "⚠️ missing",
+      shelbynet: hasShelbynetKey ? "✅ AG- key present" : "⚠️ missing",
+    });
     console.log("✅ ALL ENVIRONMENT VARIABLES VALIDATED");
   }
 

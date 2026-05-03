@@ -62,29 +62,10 @@ export default function UploadWithWalletButton({
     setStep("preparing");
     setTxHash("");
 
-    // Fetch API key and origin from server
-    let apiKey: string | undefined;
-    let origin: string | undefined;
-    try {
-      const cfgRes = await fetch("/api/shelby/config");
-      if (cfgRes.ok) {
-        const cfg = await cfgRes.json();
-        apiKey = cfg.apiKey;
-        origin = cfg.origin;
-      }
-    } catch {
-      // fall through
-    }
-
-    const blobName = `${Date.now()}-${file.name}`;
-    const expirationMicros =
-      Date.now() * 1000 + retentionDays * 24 * 60 * 60 * 1_000_000;
-
-    setStep("switching_network");
-
     // Auto-switch wallet to Testnet before signing
     let actualNetwork: "testnet" | "shelbynet" = "testnet";
 
+    setStep("switching_network");
     try {
       if (typeof window !== "undefined" && (window as any).aptos?.changeNetwork) {
         const targetNet = { name: "Testnet", chainId: "0x2", url: "https://api.testnet.aptoslabs.com/v1" };
@@ -107,6 +88,24 @@ export default function UploadWithWalletButton({
     } catch {
       // Non-critical
     }
+
+    // Fetch API key and origin from server with network param
+    let apiKey: string | undefined;
+    let origin: string | undefined;
+    try {
+      const cfgRes = await fetch(`/api/shelby/config?network=${actualNetwork}`);
+      if (cfgRes.ok) {
+        const cfg = await cfgRes.json();
+        apiKey = cfg.apiKey;
+        origin = cfg.origin;
+      }
+    } catch {
+      // fall through
+    }
+
+    const blobName = `${Date.now()}-${file.name}`;
+    const expirationMicros =
+      Date.now() * 1000 + retentionDays * 24 * 60 * 60 * 1_000_000;
 
     setStep("generating");
 

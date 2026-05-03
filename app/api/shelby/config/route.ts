@@ -8,32 +8,36 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  // SHELBY_RPC_API_KEY is the AG-... key for ShelbyRPCClient (putBlob)
-  // We MUST prioritize the AG- key for RPC operations.
-  const rpcKey = process.env.SHELBY_RPC_API_KEY;
-  const signingSecret = process.env.SHELBY_SIGNING_SECRET;
-  const generalKey = process.env.SHELBY_API_KEY || process.env.NEXT_PUBLIC_SHELBY_API_KEY;
+  // Network param: "testnet" or "shelbynet"
+  const { searchParams } = new URL(req.url);
+  const network = searchParams.get("network") || 
+                  process.env.NEXT_PUBLIC_SHELBY_NETWORK || 
+                  "testnet";
 
-  // Only use signing secret if it looks like an AG- key
-  const apiKey = rpcKey ||
-                 (signingSecret?.startsWith("AG-") ? signingSecret : undefined) ||
-                 generalKey;
+  // KEY SELECTION — network-aware:
+  // testnet  → aptoslabs_*** (Aptos Labs infra)
+  // shelbynet → AG-*** (Shelby native infra)
+  const apiKey = network === "testnet"
+    ? (process.env.SHELBY_API_KEY || process.env.NEXT_PUBLIC_SHELBY_API_KEY)
+    : (process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY);
 
-  // Use configured origin or fall back to the current request's origin
   const host = req.headers.get("host");
   const protocol = host?.includes("localhost") ? "http" : "https";
   const fallbackOrigin = host ? `${protocol}://${host}` : "https://explorer.shelby.xyz";
   const origin = process.env.SHELBY_ORIGIN || fallbackOrigin;
 
-  console.log(`[Shelby Config] API Key prefix: ${apiKey?.substring(0, 7)}, Origin: ${origin}`);
+  console.log(`[Shelby Config] network=${network}, key prefix=${apiKey?.substring(0, 12)}..., origin=${origin}`);
 
   if (!apiKey) {
-    console.error("[Shelby Config] No API key found!");
+    const missing = network === "testnet"
+      ? "SHELBY_API_KEY (format: aptoslabs_***)"
+      : "SHELBY_RPC_API_KEY (format: AG-***)";
+    console.error(`[Shelby Config] No API key found! Missing: ${missing}`);
     return NextResponse.json(
-      { error: "No Shelby RPC API key configured on the server" },
+      { error: `No Shelby API key configured for ${network}. Need ${missing}` },
       { status: 500 }
     );
   }
 
-  return NextResponse.json({ apiKey, origin });
+  return NextResponse.json({ apiKey, origin, network });
 }
