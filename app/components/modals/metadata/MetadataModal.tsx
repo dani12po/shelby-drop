@@ -56,7 +56,7 @@ export default function MetadataModal({
         <>
           {/* BACKDROP – ABOVE EXPLORER */}
           <motion.div
-            className="fixed inset-0 z-[60] bg-black/60"
+            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -64,61 +64,35 @@ export default function MetadataModal({
           />
 
           {/* GRADIENT BORDER */}
-          <motion.div
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              x: '-50%',
-              y: '-50%',
-              zIndex: 70,
-              borderRadius: '26px',
-              padding: '2px',
-              background: `
-                linear-gradient(
-                  90deg,
-                  #7dd3fc,
-                  #a78bfa,
-                  #f472b6,
-                  #34d399,
-                  #fbbf24,
-                  #60a5fa
-                )
-              `,
-              backgroundSize: "400% 100%",
-              animation: "walletBorder 4s linear infinite",
-            }}
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-          >
-            {/* SOLID MODAL */}
-            <div
-              className="
-                w-[720px]
-                h-[360px]
-                max-w-[94vw]
-                rounded-[24px]
-                bg-[var(--bg-modal)]
-                shadow-[0_25px_90px_rgba(0,0,0,0.65)]
-                overflow-hidden
-                flex flex-col
-              "
-              onClick={(e) => e.stopPropagation()}
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              className="relative p-[2px] rounded-[26px] bg-gradient-to-r from-sky-300 via-violet-400 to-blue-400 bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite] pointer-events-auto"
+              initial={{ opacity: 0, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 20 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
             >
+              {/* SOLID MODAL */}
+              <div
+                className="
+                  w-[720px]
+                  h-[min(85vh,480px)]
+                  max-w-full
+                  rounded-[24px]
+                  bg-[var(--bg-modal)]
+                  shadow-[0_25px_90px_rgba(0,0,0,0.65)]
+                  overflow-hidden
+                  flex flex-col
+                "
+                onClick={(e) => e.stopPropagation()}
+              >
               {/* Top accent bar */}
-              <div style={{
-                height: "3px", flexShrink: 0,
-                background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-                backgroundSize: "400% 100%",
-                animation: "walletBorder 4s linear infinite",
-              }} />
+              <div className="h-[3px] shrink-0 bg-gradient-to-r from-sky-300 via-violet-400 to-blue-400 bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite]" />
 
               {/* HEADER */}
               <div
                 className="
-                  px-[15px] py-[15px]
+                  px-4 py-4
                   border-b border-white/10
                 "
               >
@@ -136,7 +110,7 @@ export default function MetadataModal({
                     </div>
                   </div>
 
-                  {/* CLOSE (STYLE AS REQUESTED) */}
+                  {/* CLOSE */}
                   <button
                     onClick={onClose}
                     className="
@@ -153,7 +127,7 @@ export default function MetadataModal({
               </div>
 
               {/* TABS */}
-              <div className="px-[15px] pt-[15px]">
+              <div className="px-4 pt-4">
                 <MetadataTabs
                   active={tab}
                   onChange={setTab}
@@ -161,7 +135,7 @@ export default function MetadataModal({
               </div>
 
               {/* CONTENT */}
-              <div className="flex-1 overflow-auto px-[15px] py-[15px]">
+              <div className="flex-1 overflow-auto px-4 py-4">
                 {tab === "info" && (
                   <MetadataInfoTab
                     file={file}
@@ -184,7 +158,8 @@ export default function MetadataModal({
                 )}
               </div>
             </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>,

@@ -10,19 +10,6 @@ type Props = {
   onClose: () => void;
 };
 
-const GRADIENT = `
-  linear-gradient(
-    90deg,
-    #7dd3fc,
-    #a78bfa,
-    #f472b6,
-    #34d399,
-    #fbbf24,
-    #60a5fa,
-    #a78bfa
-  )
-`;
-
 export default function ShareModal({ url, onClose }: Props) {
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -31,7 +18,6 @@ export default function ShareModal({ url, onClose }: Props) {
     setMounted(true);
   }, []);
 
-  // SSR-safe: don't Render anything on server
   if (!mounted) {
     return null;
   }
@@ -41,95 +27,64 @@ export default function ShareModal({ url, onClose }: Props) {
       <>
         {/* BACKDROP */}
         <motion.div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 200,
-            background: 'rgba(0,0,0,0.6)'
-          }}
+          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         />
 
-        {/* GRADIENT BORDER — sama seperti ExplorerModal */}
-        <motion.div
-          style={{
-            position: 'fixed',
-            zIndex: 210,
-            top: '50%',
-            left: '50%',
-            x: '-50%',
-            y: '-50%',
-            borderRadius: '28px',
-            padding: '2px',
-            background: 'linear-gradient(90deg, #7dd3fc, #a78bfa, #f472b6, #34d399, #fbbf24, #60a5fa, #a78bfa)',
-            backgroundSize: '400% 100%',
-            animation: 'walletBorder 4s linear infinite',
-          }}
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.97 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          onClick={(e) => e.stopPropagation()}
-        >
+        {/* GRADIENT BORDER */}
+        <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 pointer-events-none">
+          <motion.div
+            className="relative p-[2px] rounded-[28px] bg-gradient-to-r from-sky-300 via-violet-400 to-blue-400 bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite] pointer-events-auto"
+            initial={{ opacity: 0, scale: 0.97, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 20 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* MODAL BODY */}
           <div
-            style={{
-              width: '360px',
-              borderRadius: '26px',
-              background: 'var(--bg-modal)',
-              color: 'var(--text-primary)',
-              display: 'flex', flexDirection: 'column',
-              overflow: 'hidden'
-            }}
+            className="
+              w-[360px]
+              max-w-[calc(100vw-32px)]
+              rounded-[26px]
+              bg-[var(--bg-modal)]
+              text-[var(--text-primary)]
+              flex flex-col
+              overflow-hidden
+            "
           >
             {/* Top accent bar */}
-            <div style={{
-              height: "3px",
-              background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-              backgroundSize: "400% 100%",
-              animation: "walletBorder 4s linear infinite",
-            }} />
+            <div className="h-[3px] shrink-0 bg-gradient-to-r from-sky-300 via-violet-400 to-blue-400 bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite]" />
 
             {/* SAFE INNER PADDING */}
-            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+            <div className="p-5 flex flex-col">
               {/* HEADER */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '20px' }}>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>
+              <div className="flex items-center justify-between pb-5">
+                <div className="flex-1 text-center">
+                  <h2 className="text-lg font-semibold m-0">
                     Share this file
                   </h2>
                 </div>
-                <button onClick={onClose} style={{
-                  width: '32px', height: '32px', borderRadius: '8px',
-                  border: 'none', background: 'rgba(255,255,255,0.06)',
-                  color: '#94a3b8', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
+                <button 
+                  onClick={onClose} 
+                  className="w-8 h-8 rounded-lg border-none bg-white/5 text-slate-400 cursor-pointer flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
+                >
                   <X size={16} strokeWidth={2} />
                 </button>
               </div>
 
               {/* CONTENT */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="flex-1 flex flex-col gap-3">
                 {/* URL display */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  padding: '10px 14px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: '10px', marginBottom: '12px'
-                }}>
-                  <Link2 size={14} strokeWidth={2} color="#475569" style={{flexShrink: 0}} />
+                <div className="flex items-center gap-2 px-3.5 py-2.5 bg-white/5 border border-white/10 rounded-xl mb-3">
+                  <Link2 size={14} strokeWidth={2} className="text-slate-500 shrink-0" />
                   <input
-                    value={url} readOnly
-                    style={{
-                      flex: 1, background: 'none', border: 'none',
-                      color: '#94a3b8', fontSize: '0.8rem',
-                      fontFamily: 'monospace', outline: 'none',
-                      overflow: 'hidden', textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
+                    value={url} 
+                    readOnly
+                    className="flex-1 bg-transparent border-none text-slate-400 text-xs font-mono outline-none overflow-hidden text-ellipsis whitespace-nowrap"
                   />
                 </div>
 
@@ -140,20 +95,13 @@ export default function ShareModal({ url, onClose }: Props) {
                     setCopied(true)
                     setTimeout(() => setCopied(false), 2000)
                   }}
-                  style={{
-                    width: '100%', padding: '12px',
-                    borderRadius: '10px',
-                    background: copied
-                      ? 'rgba(16,185,129,0.15)'
-                      : 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-                    border: copied ? '1px solid rgba(16,185,129,0.3)' : 'none',
-                    color: copied ? '#10b981' : 'white',
-                    fontSize: '0.875rem', fontWeight: 600,
-                    cursor: 'pointer', transition: 'all 0.2s',
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', gap: '8px',
-                    marginBottom: '8px'
-                  }}
+                  className={`
+                    w-full p-3 rounded-xl font-semibold text-sm cursor-pointer transition-all flex items-center justify-center gap-2 mb-2
+                    ${copied 
+                      ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-500' 
+                      : 'bg-gradient-to-r from-violet-500 to-blue-500 text-white border-none hover:opacity-90'
+                    }
+                  `}
                 >
                   {copied
                     ? <><Check size={16} strokeWidth={2.5} /> Copied!</>
@@ -162,21 +110,17 @@ export default function ShareModal({ url, onClose }: Props) {
                 </button>
 
                 {/* Cancel */}
-                <button onClick={onClose} style={{
-                  width: '100%', padding: '10px',
-                  background: 'none', border: 'none',
-                  color: '#475569', fontSize: '0.8rem',
-                  cursor: 'pointer', transition: 'color 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
-                onMouseLeave={e => e.currentTarget.style.color = '#475569'}
+                <button 
+                  onClick={onClose} 
+                  className="w-full p-2.5 bg-transparent border-none text-slate-500 text-xs cursor-pointer transition-colors hover:text-slate-400"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </>
     </AnimatePresence>,
     document.body

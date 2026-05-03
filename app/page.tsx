@@ -3,11 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-// Theme is handled globally via AnimatedBackground in layout
-
-/* ===============================
-   COMPONENT IMPORTS
- ============================== */
 
 import WalletModal from "@/components/wallet/WalletModal";
 import ExplorerPage from "@/components/explorer/ExplorerPage";
@@ -17,16 +12,13 @@ import SearchBox from "@/components/explorer/SearchBox";
 import UploadButton from "@/components/upload/UploadButton";
 import UploadPanel from "@/components/upload/UploadPanel";
 import WalletSearchController from "@/components/explorer/WalletSearchController";
-
-/* ===============================
-   PAGE
- ============================== */
+import { useShelbyStats } from "@/hooks/useShelbyStats";
 
 export default function HomePage() {
   const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [searchWallet, setSearchWallet] = useState<string | null>(null);
   const [popupWallet, setPopupWallet] = useState<string | null>(null);
+  const stats = useShelbyStats();
   
   const {
     connected,
@@ -36,24 +28,12 @@ export default function HomePage() {
     wallets,
   } = useWallet();
 
-  // Auto-load files when wallet connects
-  useEffect(() => {
-    if (connected && account?.address) {
-      setSearchWallet(account.address.toString());
-    }
-  }, [connected, account?.address]);
-
-  /* ===============================
-     WALLET HANDLERS
-  ================================ */
-
   const handleWalletConnect = () => {
     setWalletModalOpen(true);
   };
 
   const handleWalletDisconnect = () => {
     disconnect();
-    setSearchWallet(null);
   };
 
   const handleSearch = useCallback((wallet: string) => {
@@ -63,21 +43,14 @@ export default function HomePage() {
 
   const currentWallet = account?.address.toString() || null;
 
-  /* ===============================
-     RENDER
-  ================================ */
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1, overflowX: 'hidden', transition: 'background-color 0.4s ease' }}>
-      <Header 
-        connected={connected} 
+    <div className="min-h-screen flex flex-col bg-transparent relative z-[1] overflow-x-hidden transition-[background-color] duration-500">
+      <Header
+        connected={connected}
         onConnect={handleWalletConnect}
         onDisconnect={handleWalletDisconnect}
       />
 
-      {/* ============================
-          WALLET MODAL
-      ============================ */}
       <WalletModal
         open={walletModalOpen}
         wallets={wallets.map((w) => w.name)}
@@ -90,7 +63,6 @@ export default function HomePage() {
         onClose={() => setWalletModalOpen(false)}
       />
 
-      {/* UPLOAD MODAL */}
       {uploadModalOpen && currentWallet && (
         <UploadPanel
           open={uploadModalOpen}
@@ -100,7 +72,6 @@ export default function HomePage() {
         />
       )}
 
-      {/* WALLET SEARCH POPUP */}
       {popupWallet && (
         <WalletSearchController
           wallet={popupWallet}
@@ -108,160 +79,81 @@ export default function HomePage() {
         />
       )}
 
-      <main style={{ paddingTop: '64px', position: 'relative', zIndex: 1, flex: 1 }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px 400px' }}>
+      <main className="pt-16 relative z-[1] flex-1">
+        <div className="max-w-[1280px] mx-auto px-6 py-10 md:py-20 pb-[100px] md:pb-[200px]">
           
-          {/* ============================
-              HERO SECTION
-          ============================ */}
-          <section style={{
-            display: 'flex', 
-            flexDirection: 'column',
-            alignItems: 'center', 
-            textAlign: 'center',
-            marginBottom: '60px',
-            position: 'relative',
-            zIndex: 10
-          }}>
+          {/* HERO SECTION */}
+          <section className="flex flex-col items-center text-center mb-12 md:mb-20 relative z-10">
             {/* Badge */}
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 20px',
-                borderRadius: '9999px',
-                border: '1px solid rgba(139,92,246,0.4)',
-                background: 'rgba(139,92,246,0.15)',
-                marginBottom: '32px',
-                fontSize: '14px',
-                color: 'var(--text-accent)'
-              }}
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/40 bg-purple-500/15 mb-8 text-sm text-[var(--text-accent)]">
               <span>⚡</span>
-              <span style={{ color: 'var(--text-accent)', fontWeight: 500 }}>Powered by Shelby Network</span>
+              <span className="font-medium">Powered by Shelby Network</span>
             </div>
 
             {/* Headline */}
-            <h1
-              style={{
-                fontSize: 'clamp(32px, 5vw, 56px)',
-                fontWeight: 700,
-                marginBottom: '24px',
-                lineHeight: 1.2
-              }}
-            >
-              <span style={{
-                background: 'linear-gradient(135deg, var(--heading-from), var(--text-accent), var(--heading-to))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
+            <h1 className="text-[clamp(2rem,6vw,3.5rem)] font-bold mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-[var(--heading-from)] via-[var(--text-accent)] to-[var(--heading-to)] bg-clip-text text-transparent">
                 Own Your Files.<br />Power the Chain.
               </span>
             </h1>
 
             {/* Subheadline */}
-            <p
-              style={{
-                fontSize: '18px',
-                color: 'var(--text-secondary)',
-                marginBottom: '40px',
-                maxWidth: '600px'
-              }}
-            >
+            <p className="text-base md:text-lg text-[var(--text-secondary)] mb-10 max-w-[600px]">
               Upload, browse, and share files on Shelby Network using only your wallet address.
             </p>
 
             {/* Search Box */}
-            <div
-              style={{ width: '100%', maxWidth: '680px', marginBottom: '24px' }}
-            >
+            <div className="w-full max-w-[680px] mb-6">
               <SearchBox onSearch={handleSearch} />
             </div>
 
-            {/* Upload Button - Only show when connected */}
+            {/* Upload Button */}
             <UploadButton connected={connected} onUpload={() => setUploadModalOpen(true)} />
           </section>
 
-          {/* ============================
-              STATS BAR
-          ============================ */}
-          <section style={{ marginBottom: '60px', position: 'relative', zIndex: 10 }}>
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '48px',
-                maxWidth: '680px',
-                margin: '0 auto',
-                borderRadius: '24px',
-                padding: '32px 56px',
-                flexWrap: 'wrap'
-              }}
-            >
-              {/* Stat 1 */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{
-                  fontSize: '36px',
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, var(--heading-from), var(--accent), var(--heading-to))',
-                  WebkitBackgroundClip: 'text', 
-                  WebkitTextFillColor: 'transparent',
-                  lineHeight: 1.2
-                }}>1,159,370</span>
-                <span style={{ fontSize: '13px', marginTop: '8px', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>Total Blobs</span>
+          {/* STATS BAR */}
+          <section className="mb-16 relative z-10">
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 max-w-[800px] mx-auto rounded-3xl p-8 md:p-12 bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm">
+              <div className="flex flex-col items-center min-w-[120px]">
+                <span className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-[var(--heading-from)] via-[var(--accent)] to-[var(--heading-to)] bg-clip-text text-transparent leading-tight">
+                  {stats.totalBlobs}
+                </span>
+                <span className="text-xs md:text-sm mt-2 text-[var(--text-muted)] tracking-wide uppercase font-medium opacity-70">Total Blobs</span>
               </div>
 
-              {/* Divider */}
-              <div style={{ width: '1px', height: '50px', background: 'rgba(255,255,255,0.08)' }} />
+              <div className="hidden md:block w-px h-12 bg-white/10" />
 
-              {/* Stat 2 */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{
-                  fontSize: '36px',
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, var(--text-success), #059669)',
-                  WebkitBackgroundClip: 'text', 
-                  WebkitTextFillColor: 'transparent',
-                  lineHeight: 1.2
-                }}>89.87 GB</span>
-                <span style={{ fontSize: '13px', marginTop: '8px', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>Storage Used</span>
+              <div className="flex flex-col items-center min-w-[120px]">
+                <span className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-[var(--text-success)] to-[#059669] bg-clip-text text-transparent leading-tight">
+                  {stats.totalStorage}
+                </span>
+                <span className="text-xs md:text-sm mt-2 text-[var(--text-muted)] tracking-wide uppercase font-medium opacity-70">Storage Used</span>
               </div>
 
-              {/* Divider */}
-              <div style={{ width: '1px', height: '50px', background: 'rgba(255,255,255,0.08)' }} />
+              <div className="hidden md:block w-px h-12 bg-white/10" />
 
-              {/* Stat 3 */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{
-                  fontSize: '32px',
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, var(--text-success), #059669)',
-                  WebkitBackgroundClip: 'text', 
-                  WebkitTextFillColor: 'transparent',
-                  lineHeight: 1.2
-                }}>Testnet</span>
-                <span style={{ fontSize: '13px', marginTop: '8px', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>Network</span>
+              <div className="flex flex-col items-center min-w-[120px]">
+                <span className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-[var(--text-success)] to-[#059669] bg-clip-text text-transparent leading-tight">
+                  {stats.network}
+                </span>
+                <span className="text-xs md:text-sm mt-2 text-[var(--text-muted)] tracking-wide uppercase font-medium opacity-70">Network</span>
               </div>
             </div>
           </section>
 
-          {/* ============================
-              FILE EXPLORER
-          ============================ */}
-          <section style={{ position: 'relative', zIndex: 10 }}>
+          {/* FILE EXPLORER */}
+          <section className="relative z-10">
             <AnimatePresence mode="wait">
-              {searchWallet || connected ? (
+              {connected ? (
                 <motion.div
                   key="explorer"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <ExplorerPage 
-                    connected={connected} 
-                    walletAddress={searchWallet || currentWallet || undefined}
+                  <ExplorerPage
+                    connected={connected}
+                    walletAddress={currentWallet || undefined}
                   />
                 </motion.div>
               ) : (
@@ -269,66 +161,25 @@ export default function HomePage() {
                   key="empty"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '100px 20px',
-                    textAlign: 'center',
-                    minHeight: '400px',
-                  }}
+                  className="flex flex-col items-center justify-center py-20 px-5 text-center min-h-[400px]"
                 >
-                  {/* Empty State Icon */}
-                  <div style={{
-                    width: '96px',
-                    height: '96px',
-                    borderRadius: '24px',
-                    background: 'rgba(251, 191, 36, 0.1)',
-                    border: '1px solid rgba(251, 191, 36, 0.2)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '24px'
-                  }}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="1.5" style={{ color: '#fbbf24' }}>
+                  <div className="w-24 h-24 rounded-3xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center mb-6">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="1.5">
                       <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                       <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                       <line x1="12" y1="22.08" x2="12" y2="12" />
                     </svg>
                   </div>
                   
-                  <h3 style={{
-                    fontSize: '1.2rem',
-                    fontWeight: 700,
-                    color: 'var(--text-primary)',
-                    margin: 0
-                  }}>
+                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">
                     No wallet connected
                   </h3>
-                  <p style={{
-                    color: 'var(--text-secondary)',
-                    fontSize: '14px',
-                    maxWidth: '280px',
-                    textAlign: 'center',
-                    marginBottom: '32px',
-                    lineHeight: 1.6
-                  }}>
+                  <p className="text-[var(--text-secondary)] text-sm max-w-[280px] mb-8 leading-relaxed">
                     Connect your wallet or search for a wallet address to view files
                   </p>
                   <button
                     onClick={handleWalletConnect}
-                    style={{
-                      padding: '14px 36px',
-                      borderRadius: '9999px',
-                      background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
-                      color: 'var(--text-on-accent)',
-                      border: 'none',
-                      fontSize: '15px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 20px rgba(139, 92, 246, 0.3)'
-                    }}
+                    className="px-9 py-3.5 rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-blue)] text-[var(--text-on-accent)] text-sm font-bold shadow-[0_4px_20px_rgba(139,92,246,0.3)] hover:opacity-90 transition-opacity"
                   >
                     Connect Wallet
                   </button>
@@ -340,16 +191,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* ============================
-          FOOTER
-      ============================ */}
-      <div style={{ 
-        paddingTop: '64px',
-        paddingBottom: '32px',
-        position: 'relative',
-        zIndex: 10,
-        marginTop: 'auto'
-      }}>
+      <div className="pt-16 pb-8 relative z-10 mt-auto">
         <Footer />
       </div>
     </div>

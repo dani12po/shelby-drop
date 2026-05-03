@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { Copy, Check, ChevronDown, ExternalLink, Wallet, LogOut } from "lucide-react";
+import { Copy, Check, ChevronDown, ExternalLink, Wallet, LogOut, Menu, X } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import NetworkSwitcher from "@/components/ui/NetworkSwitcher";
 import { useTheme } from "@/hooks/useTheme";
+import { useNetwork } from "@/hooks/useNetwork";
+import { getNetworkConfig } from "@/config/shelby";
 
 type Props = {
   connected?: boolean;
@@ -28,11 +30,16 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
   const pathname = usePathname();
   const { account } = useWallet();
   const { isDark } = useTheme();
+  const { network } = useNetwork();
+  const networkConfig = getNetworkConfig(network);
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   const [balance, setBalance] = useState<string | null>(null);
+  
+  const desktopDropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const currentWallet = account?.address.toString() || null;
@@ -44,12 +51,10 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
       return;
     }
 
-    setBalance(null);
-
     async function fetchBalance() {
       try {
         const res = await fetch(
-          `https://api.shelbynet.shelby.xyz/v1/accounts/${currentWallet}/resources`
+          `${networkConfig.aptosNodeUrl}/accounts/${currentWallet}/resources`
         );
         if (!res.ok) {
           setBalance('0 APT');
@@ -68,13 +73,16 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
     }
 
     fetchBalance();
-  }, [currentWallet]);
+  }, [currentWallet, networkConfig.aptosNodeUrl]);
 
-  // Close dropdown when clicking outside
+  // Click outside handlers
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+      if (desktopDropdownRef.current && !desktopDropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -88,481 +96,235 @@ export default function Header({ connected, onConnect, onDisconnect }: Props) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
-        setMobileMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   // Close menu when navigating
   useEffect(() => {
     setMobileMenuOpen(false);
+    setDropdownOpen(false);
   }, [pathname]);
 
   return (
-    <>
-      <header 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          height: '64px',
-          background: scrolled ? 'var(--bg-navbar)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(20px)' : 'none',
-          boxShadow: scrolled ? '0 4px 30px var(--glow)' : 'none',
-          borderBottom: scrolled ? '1px solid var(--border)' : 'none',
-          transition: 'all 0.3s ease'
-        }}
-      >
-        <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          padding: '0 24px',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-[var(--bg-navbar)] backdrop-blur-xl border-b border-[var(--border)] shadow-lg shadow-[var(--glow)]' 
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
+      <div className="max-w-[1280px] mx-auto px-6 h-full flex items-center justify-between">
 
-          {/* KIRI: Logo saja */}
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-            <span style={{ fontSize: '1.4rem' }}>⬡</span>
-            <span style={{
-              fontWeight: 700,
-              fontSize: '1.1rem',
-              background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>Shelby Drop</span>
-          </Link>
+        {/* LEFT: Logo */}
+        <Link href="/" className="flex items-center gap-2 no-underline group">
+          <span className="text-2xl transition-transform group-hover:rotate-12">⬡</span>
+          <span className="font-bold text-lg bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] bg-clip-text text-transparent">
+            Shelby Drop
+          </span>
+        </Link>
 
-          {/* TENGAH: Nav links — desktop only */}
-          <nav style={{ display: 'flex', gap: '32px' }} className="hidden md:flex">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  style={{
-                    fontSize: '0.875rem',
-                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    textDecoration: 'none',
-                    transition: 'color 0.2s'
-                  }}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+        {/* CENTER: Nav links — desktop only */}
+        <nav className="hidden md:flex items-center gap-8">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-sm transition-colors hover:text-[var(--text-primary)] ${
+                  isActive ? 'text-[var(--text-primary)] font-medium' : 'text-[var(--text-secondary)]'
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-          {/* KANAN: Theme Toggle + Wallet + hamburger */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* RIGHT: Actions */}
+        <div className="flex items-center gap-3">
+          
+          {/* Desktop Only Actions */}
+          <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
+            <NetworkSwitcher />
             
-            {/* Theme Toggle - Desktop */}
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
-
-            {/* Network Switcher - Desktop */}
-            <div className="hidden md:block">
-              <NetworkSwitcher />
-            </div>
-
-            {/* Desktop: WalletConnect normal */}
-            <div className="hidden md:block">
-              {connected && onConnect ? (
-                <div style={{ position: 'relative' }} ref={mobileMenuRef}>
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {/* Green dot connected indicator */}
-                    <span style={{
-                      width: '7px', height: '7px', borderRadius: '50%',
-                      background: 'var(--accent-green)', display: 'inline-block',
-                      boxShadow: '0 0 6px var(--accent-green)'
-                    }} />
-
-                    {/* Short address */}
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
-                      {currentWallet ? `${currentWallet.slice(0, 6)}...${currentWallet.slice(-4)}` : 'Connected'}
-                    </span>
-
-                    {/* Copy icon */}
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigator.clipboard.writeText(currentWallet || '');
-                        setShowCopied(true);
-                        setTimeout(() => setShowCopied(false), 2000);
-                      }}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center',
-                        padding: '2px', borderRadius: '4px',
-                        color: showCopied ? 'var(--accent-green)' : 'var(--text-secondary)',
-                        transition: 'color 0.2s',
-                        cursor: 'pointer'
-                      }}
+            {connected ? (
+              <div className="relative" ref={desktopDropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--text-accent)] transition-colors"
+                >
+                  <span className="w-2 h-2 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_var(--accent-green)]" />
+                  <span className="font-mono text-sm">
+                    {currentWallet ? `${currentWallet.slice(0, 6)}...${currentWallet.slice(-4)}` : 'Connected'}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`text-[var(--text-secondary)] transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                
+                <AnimatePresence>
+                  {dropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-[calc(100%+8px)] right-0 w-60 rounded-xl bg-[var(--bg-dropdown)] border border-[var(--border)] backdrop-blur-xl shadow-2xl overflow-hidden z-[100]"
                     >
-                      {showCopied
-                        ? <Check size={13} strokeWidth={2.5} />
-                        : <Copy size={13} strokeWidth={2} />
-                      }
-                    </span>
-
-                    {/* Chevron */}
-                    <ChevronDown
-                      size={14}
-                      strokeWidth={2}
-                      style={{
-                        color: 'var(--text-secondary)',
-                        transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease'
-                      }}
-                    />
-                  </button>
-                  
-                  <AnimatePresence>
-                    {dropdownOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        style={{
-                          position: 'absolute',
-                          top: 'calc(100% + 8px)',
-                          right: 0,
-                          width: '240px',
-                          borderRadius: '12px',
-                          background: 'var(--bg-dropdown)',
-                          border: '1px solid var(--border)',
-                          backdropFilter: 'blur(20px)',
-                          boxShadow: '0 16px 48px rgba(0,0,0,0.3)',
-                          overflow: 'hidden',
-                          zIndex: 100
-                        }}
-                      >
-                        {/* Header address */}
-                        <div style={{
-                          padding: '14px 16px',
-                          borderBottom: '1px solid var(--border)'
-                        }}>
-                          <p style={{
-                            fontSize: '0.7rem', color: 'var(--text-muted)',
-                            margin: '0 0 4px', textTransform: 'uppercase',
-                            letterSpacing: '0.08em', fontWeight: 600
-                          }}>
-                            Connected
-                          </p>
-                          <p style={{
-                            fontSize: '0.78rem', color: 'var(--text-secondary)',
-                            fontFamily: 'monospace', margin: 0,
-                            overflow: 'hidden', textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {currentWallet}
-                          </p>
+                      <div className="p-4 border-b border-[var(--border)]">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-bold">Connected</p>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(currentWallet || '');
+                              setShowCopied(true);
+                              setTimeout(() => setShowCopied(false), 2000);
+                            }}
+                            className={`p-1 rounded hover:bg-[var(--bg-card-hover)] transition-colors ${showCopied ? 'text-[var(--accent-green)]' : 'text-[var(--text-secondary)]'}`}
+                          >
+                            {showCopied ? <Check size={12} /> : <Copy size={12} />}
+                          </button>
                         </div>
+                        <p className="text-xs text-[var(--text-secondary)] font-mono truncate">
+                          {currentWallet}
+                        </p>
+                      </div>
 
-                        {/* Item 1: View on Explorer */}
+                      <div className="py-1">
                         <a
-                          href={`https://explorer.shelby.xyz/shelbynet/account/${currentWallet}`}
+                          href={`${networkConfig.shelbyExplorerBase}/account/${currentWallet}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{
-                            display: 'flex', alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '12px 16px', gap: '10px',
-                            fontSize: '0.875rem', color: 'var(--text-primary)',
-                            textDecoration: 'none',
-                            transition: 'background 0.15s',
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          className="flex items-center justify-between px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)] transition-colors"
                         >
-                          <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <ExternalLink size={15} strokeWidth={1.8} color="var(--text-secondary)" />
+                          <div className="flex items-center gap-2.5">
+                            <ExternalLink size={14} className="text-[var(--text-secondary)]" />
                             <span>View on Explorer</span>
                           </div>
-                          <ExternalLink size={11} strokeWidth={1.5} color="var(--text-muted)" />
                         </a>
 
-                        {/* Item 2: Balance */}
-                        <div style={{
-                          display: 'flex', alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '12px 16px',
-                          borderBottom: '1px solid var(--border)'
-                        }}>
-                          <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <Wallet size={15} strokeWidth={1.8} color="var(--text-secondary)" />
-                            <span style={{fontSize: '0.875rem', color: 'var(--text-primary)'}}>Balance</span>
+                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border)]">
+                          <div className="flex items-center gap-2.5">
+                            <Wallet size={14} className="text-[var(--text-secondary)]" />
+                            <span className="text-sm">Balance</span>
                           </div>
-                          <span style={{
-                            fontSize: '0.875rem', fontFamily: 'monospace',
-                            color: 'var(--accent-green)', fontWeight: 600
-                          }}>
-                            {balance ?? (
-                              <span style={{
-                                display: 'inline-block', width: '60px', height: '12px',
-                                borderRadius: '4px',
-                                background: 'var(--bg-card-hover)',
-                                animation: 'shimmer 1.5s infinite'
-                              }} />
-                            )}
-                          </span>
-                        </div>
-
-                        {/* Item 3: Disconnect */}
-                        <button
-                          onClick={() => {
-                            if (onDisconnect) onDisconnect();
-                            setDropdownOpen(false);
-                          }}
-                          style={{
-                            width: '100%', display: 'flex', alignItems: 'center',
-                            gap: '10px', padding: '12px 16px',
-                            fontSize: '0.875rem', color: 'var(--accent-red)',
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            textAlign: 'left', transition: 'background 0.15s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                          <LogOut size={15} strokeWidth={1.8} color="#f87171" />
-                          Disconnect
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <button
-                  onClick={onConnect || (() => {})}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    borderRadius: '8px',
-                    background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-                    color: 'white',
-                    border: 'none',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    cursor: 'pointer'
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
-                    <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
-                    <circle cx="18" cy="12" r="2" />
-                  </svg>
-                  Connect Wallet
-                </button>
-              )}
-            </div>
-
-            {/* Mobile: */}
-            <div className="md:hidden">
-              {/* Mobile: Theme Toggle (always visible) */}
-              <ThemeToggle />
-
-              {!currentWallet ? (
-                // Belum connect: tombol Connect Wallet
-                <button
-                  onClick={onConnect}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
-                    color: 'white',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Connect
-                </button>
-              ) : (
-                // Sudah connect: tombol dengan dropdown
-                <div style={{ position: 'relative' }} ref={mobileMenuRef}>
-                  <button
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '8px',
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="3" y1="6" x2="21" y2="6" />
-                      <line x1="3" y1="12" x2="21" y2="12" />
-                      <line x1="3" y1="18" x2="21" y2="18" />
-                    </svg>
-                  </button>
-
-                  {/* Dropdown menu */}
-                  <AnimatePresence>
-                    {mobileMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        style={{
-                          position: 'absolute',
-                          top: '48px',
-                          right: 0,
-                          width: '220px',
-                          borderRadius: '12px',
-                          background: 'var(--bg-dropdown)',
-                          border: '1px solid var(--border)',
-                          backdropFilter: 'blur(20px)',
-                          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-                          overflow: 'hidden',
-                          zIndex: 100
-                        }}
-                      >
-                        <div style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid var(--border)'
-                        }}>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Connected</div>
-                          <div style={{
-                            fontSize: '0.75rem',
-                            color: 'var(--text-secondary)',
-                            fontFamily: 'monospace',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {currentWallet}
-                          </div>
-                        </div>
-
-                        {navItems.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                            style={{
-                              display: 'block',
-                              padding: '12px 16px',
-                              fontSize: '0.875rem',
-                              color: 'var(--text-secondary)',
-                              textDecoration: 'none',
-                              borderBottom: '1px solid var(--border)'
-                            }}
-                          >
-                            {item.label}
-                          </Link>
-                        ))}
-
-                        <div style={{ height: '1px', background: 'var(--border)' }} />
-
-                        <a
-                          href={`https://explorer.shelby.xyz/shelbynet/account/${currentWallet}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => setMobileMenuOpen(false)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: '12px 16px',
-                            fontSize: '0.875rem',
-                            color: 'var(--text-primary)',
-                            textDecoration: 'none'
-                          }}
-                        >
-                          <ExternalLink size={15} strokeWidth={1.8} color="var(--text-secondary)" />
-                          View on Explorer
-                        </a>
-
-                        {/* Balance */}
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '12px 16px',
-                          borderBottom: '1px solid var(--border)'
-                        }}>
-                          <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <Wallet size={15} strokeWidth={1.8} color="var(--text-secondary)" />
-                            <span style={{fontSize: '0.875rem', color: 'var(--text-primary)'}}>Balance</span>
-                          </div>
-                          <span style={{
-                            fontSize: '0.875rem', fontFamily: 'monospace',
-                            color: 'var(--accent-green)', fontWeight: 600
-                          }}>
+                          <span className="text-sm font-mono text-[var(--accent-green)] font-semibold">
                             {balance ?? '...'}
                           </span>
                         </div>
 
-                        <div style={{ height: '1px', background: 'var(--border)' }} />
-
                         <button
                           onClick={() => {
-                            if (onDisconnect) onDisconnect();
-                            setMobileMenuOpen(false);
+                            onDisconnect?.();
+                            setDropdownOpen(false);
                           }}
-                          style={{
-                            width: '100%',
-                            padding: '12px 16px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            fontSize: '0.875rem',
-                            color: 'var(--accent-red)',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            textAlign: 'left'
-                          }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-[var(--accent-red)] hover:bg-red-500/10 transition-colors text-left"
                         >
-                          <LogOut size={15} strokeWidth={1.8} color="var(--accent-red)" />
+                          <LogOut size={14} />
                           Disconnect
                         </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
-            </div>
-
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button
+                onClick={onConnect}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-lg shadow-purple-500/20"
+              >
+                <Wallet size={16} />
+                Connect Wallet
+              </button>
+            )}
           </div>
+
+          {/* Mobile Actions */}
+          <div className="flex md:hidden items-center gap-2">
+            <ThemeToggle />
+            
+            {connected ? (
+              <div className="relative" ref={mobileMenuRef}>
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)]"
+                >
+                  {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+
+                <AnimatePresence>
+                  {mobileMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute top-12 right-0 w-[280px] rounded-xl bg-[var(--bg-dropdown)] border border-[var(--border)] backdrop-blur-xl shadow-2xl overflow-hidden z-[100]"
+                    >
+                      <div className="p-4 border-b border-[var(--border)] bg-[var(--bg-card)]/50">
+                        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-bold mb-1">Connected Wallet</p>
+                        <p className="text-xs text-[var(--text-secondary)] font-mono truncate mb-2">
+                          {currentWallet}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Wallet size={12} className="text-[var(--text-secondary)]" />
+                            <span className="text-xs font-mono text-[var(--accent-green)]">{balance ?? '...'}</span>
+                          </div>
+                          <NetworkSwitcher />
+                        </div>
+                      </div>
+
+                      <nav className="py-2 border-b border-[var(--border)]">
+                        {navItems.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`block px-4 py-3 text-sm transition-colors ${
+                              pathname === item.href ? 'text-[var(--text-primary)] bg-[var(--bg-card-hover)]' : 'text-[var(--text-secondary)]'
+                            }`}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </nav>
+
+                      <div className="py-2">
+                        <a
+                          href={`${networkConfig.shelbyExplorerBase}/account/${currentWallet}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-[var(--text-primary)]"
+                        >
+                          <ExternalLink size={16} className="text-[var(--text-secondary)]" />
+                          View on Explorer
+                        </a>
+                        <button
+                          onClick={() => {
+                            onDisconnect?.();
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[var(--accent-red)] text-left"
+                        >
+                          <LogOut size={16} />
+                          Disconnect
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button
+                onClick={onConnect}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] text-white text-xs font-bold shadow-lg shadow-purple-500/20"
+              >
+                Connect
+              </button>
+            )}
+          </div>
+
         </div>
-      </header>
-    </>
+      </div>
+    </header>
   );
 }

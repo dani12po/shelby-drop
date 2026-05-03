@@ -56,104 +56,84 @@ export default function SearchBox({ onSearch }: Props) {
   }
 
   return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: '680px', margin: '0 auto' }}>
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") submit();
-        }}
-        placeholder="Search wallet address or paste 0x..."
-        style={{
-          width: '100%',
-          height: '60px',
-          borderRadius: '30px',
-          paddingLeft: '28px',
-          paddingRight: value ? '200px' : '160px',
-          fontSize: '1rem',
-          background: 'var(--bg-card)',
-          border: `1px solid ${isFocused ? 'var(--accent)' : 'var(--border-hover)'}`,
-          color: 'var(--text-primary)',
-          outline: 'none',
-          fontFamily: 'inherit',
-          transition: 'border-color 0.2s'
-        }}
-      />
-      
-      {/* Paste button */}
-      <button
-        type="button"
-        onClick={handlePaste}
-        title="Paste dari clipboard"
-        style={{
-          position: 'absolute',
-          right: value ? '170px' : '130px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          cursor: 'pointer',
-          padding: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          transition: 'color 0.2s'
-        }}
-        onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-      >
-        <ClipboardPaste size={16} strokeWidth={1.8} />
-      </button>
-
-      {/* Clear button - only appears if there's text */}
-      {value && (
-        <button
-          type="button"
-          onClick={handleClear}
-          title="Hapus"
-          style={{
-            position: 'absolute',
-            right: '130px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            padding: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            transition: 'color 0.2s'
+    <div className="relative w-full max-w-[680px] mx-auto group">
+      <div className="relative flex items-center">
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
           }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-          onMouseLeave={e => e.currentTarget.style.color = '#475569'}
-        >
-          <X size={16} strokeWidth={2} />
-        </button>
-      )}
+          placeholder="Search wallet address..."
+          className={`
+            w-full h-[56px] md:h-[64px] rounded-full pl-6 md:pl-8
+            pr-[100px] md:pr-[180px] text-sm md:text-base
+            bg-[var(--bg-card)] border transition-all duration-300
+            ${isFocused ? 'border-[var(--accent)] ring-4 ring-[var(--accent)]/10' : 'border-[var(--border-hover)]'}
+            text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]
+          `}
+        />
+        
+        <div className="absolute right-2 flex items-center gap-1 md:gap-2">
+          {/* Action Buttons Group */}
+          <div className="hidden sm:flex items-center gap-1 mr-1">
+            <button
+              type="button"
+              onClick={handlePaste}
+              title="Paste"
+              className="p-2 rounded-full text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/5 transition-colors"
+            >
+              <ClipboardPaste size={18} />
+            </button>
 
-      <button
-        onClick={submit}
-        style={{
-          position: 'absolute',
-          right: '8px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          height: '44px',
-          padding: '0 28px',
-          borderRadius: '22px',
-          fontSize: '0.9rem',
-          fontWeight: 600,
-          background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-          color: 'white',
-          border: 'none',
-          cursor: 'pointer'
-        }}
-      >
-        Search
-      </button>
+            {value && (
+              <button
+                type="button"
+                onClick={handleClear}
+                title="Clear"
+                className="p-2 rounded-full text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/5 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={submit}
+            className="
+              h-[40px] md:h-[48px] px-5 md:px-8 rounded-full
+              text-sm md:text-base font-semibold
+              bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6]
+              text-white shadow-lg shadow-purple-500/20
+              hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98]
+              transition-all duration-200
+            "
+          >
+            <span className="hidden xs:inline">Search</span>
+            <Search className="xs:hidden" size={18} />
+          </button>
+        </div>
+      </div>
+      
+      {/* Mobile Helper Buttons */}
+      <div className="flex sm:hidden mt-3 justify-center gap-4">
+        <button
+          onClick={handlePaste}
+          className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+        >
+          <ClipboardPaste size={14} /> Paste Address
+        </button>
+        {value && (
+          <button
+            onClick={handleClear}
+            className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+          >
+            <X size={14} /> Clear
+          </button>
+        )}
+      </div>
     </div>
   );
 }

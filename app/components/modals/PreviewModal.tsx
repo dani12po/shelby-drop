@@ -50,12 +50,12 @@ function getMime(name: string): string {
 
 function FileTypeIcon({ name, size = 20 }: { name: string; size?: number }) {
   const mime = getMime(name);
-  if (mime.startsWith("image/"))  return <ImageIcon size={size} style={{ color: "#a78bfa" }} />;
-  if (mime.startsWith("video/"))  return <Video     size={size} style={{ color: "#f472b6" }} />;
-  if (mime.startsWith("audio/"))  return <Music     size={size} style={{ color: "#34d399" }} />;
-  if (mime === "application/pdf") return <FileText  size={size} style={{ color: "#f87171" }} />;
-  if (mime.startsWith("text/") || mime === "application/json") return <FileText size={size} style={{ color: "#60a5fa" }} />;
-  return <File size={size} style={{ color: "#94a3b8" }} />;
+  if (mime.startsWith("image/"))  return <ImageIcon size={size} className="text-purple-400" />;
+  if (mime.startsWith("video/"))  return <Video     size={size} className="text-pink-400" />;
+  if (mime.startsWith("audio/"))  return <Music     size={size} className="text-emerald-400" />;
+  if (mime === "application/pdf") return <FileText  size={size} className="text-red-400" />;
+  if (mime.startsWith("text/") || mime === "application/json") return <FileText size={size} className="text-blue-400" />;
+  return <File size={size} className="text-slate-400" />;
 }
 
 function formatSize(bytes: number | string): string {
@@ -69,7 +69,6 @@ function formatSize(bytes: number | string): string {
 /* ── build proxy URL — all media goes through /api/media to avoid CORS ── */
 function buildProxyUrl(wallet: string, file: FileItemData, network?: string): string {
   const filePath = [...(file.path ?? []), file.name].filter(Boolean).join("/");
-  // blobId stores "network|rawBlobName" — pass as blobref for correct URL construction
   const blobrefParam = file.blobId ? `&blobref=${encodeURIComponent(file.blobId)}` : "";
   const networkParam = (!file.blobId && network) ? `&network=${encodeURIComponent(network)}` : "";
   return `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(filePath)}${blobrefParam}${networkParam}`;
@@ -103,26 +102,23 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
   /* ── IMAGE ── */
   if (mime.startsWith("image/")) {
     return (
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "center",
-        height: "100%", padding: "16px", overflow: "auto",
-      }}>
+      <div className="flex items-center justify-center h-full p-4 overflow-auto">
         {imgErr ? (
-          <div style={{ textAlign: "center", color: "#f87171", padding: "32px" }}>
-            <AlertTriangle size={40} style={{ margin: "0 auto 12px", opacity: 0.6 }} />
-            <p style={{ fontSize: "0.875rem", marginBottom: "8px" }}>Failed to load image</p>
-            <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "16px" }}>
+          <div className="text-center text-red-400 p-8">
+            <AlertTriangle size={40} className="mx-auto mb-3 opacity-60" />
+            <p className="text-sm mb-2">Failed to load image</p>
+            <p className="text-xs text-slate-500 mb-4">
               The Shelby storage nodes may be temporarily unavailable.
             </p>
             <a href={proxyUrl} target="_blank" rel="noopener noreferrer"
-              style={{ color: "#a78bfa", fontSize: "0.8rem" }}>Open directly ↗</a>
+              className="text-purple-400 text-xs hover:underline">Open directly ↗</a>
           </div>
         ) : (
           <img
             src={proxyUrl}
             alt={name}
             onError={() => setImgErr(true)}
-            style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: "8px" }}
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
           />
         )}
       </div>
@@ -132,19 +128,16 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
   /* ── VIDEO ── */
   if (mime.startsWith("video/")) {
     return (
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "center",
-        height: "100%", background: "#000", overflow: "hidden",
-      }}>
+      <div className="flex items-center justify-center h-full bg-black overflow-hidden">
         {vidErr ? (
-          <div style={{ textAlign: "center", color: "#f87171", padding: "32px" }}>
-            <AlertTriangle size={40} style={{ margin: "0 auto 12px", opacity: 0.6 }} />
-            <p style={{ fontSize: "0.875rem", marginBottom: "8px" }}>Failed to load video</p>
-            <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "16px" }}>
+          <div className="text-center text-red-400 p-8">
+            <AlertTriangle size={40} className="mx-auto mb-3 opacity-60" />
+            <p className="text-sm mb-2">Failed to load video</p>
+            <p className="text-xs text-slate-500 mb-4">
               The Shelby storage nodes may be temporarily unavailable.
             </p>
             <a href={proxyUrl} target="_blank" rel="noopener noreferrer"
-              style={{ color: "#a78bfa", fontSize: "0.8rem" }}>Open directly ↗</a>
+              className="text-purple-400 text-xs hover:underline">Open directly ↗</a>
           </div>
         ) : (
           <video
@@ -152,7 +145,7 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
             controls
             autoPlay={false}
             onError={() => setVidErr(true)}
-            style={{ maxWidth: "100%", maxHeight: "100%", outline: "none" }}
+            className="max-w-full max-h-full outline-none"
           >
             <source src={proxyUrl} type={mime} />
             Your browser does not support this video format.
@@ -165,31 +158,17 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
   /* ── AUDIO ── */
   if (mime.startsWith("audio/")) {
     return (
-      <div style={{
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        height: "100%", gap: "24px", padding: "32px",
-        background: "radial-gradient(ellipse at center, rgba(139,92,246,0.08) 0%, transparent 70%)",
-      }}>
-        {/* Album art placeholder */}
-        <div style={{
-          width: "140px", height: "140px", borderRadius: "50%",
-          background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 0 40px rgba(139,92,246,0.3)",
-        }}>
-          <Music size={56} color="white" />
+      <div className="flex flex-col items-center justify-center h-full gap-6 p-8 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.08)_0%,transparent_70%)]">
+        <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-[0_0_40px_rgba(139,92,246,0.3)]">
+          <Music size={56} className="text-white" />
         </div>
-        <p style={{
-          color: "#94a3b8", fontSize: "0.9rem", textAlign: "center",
-          maxWidth: "400px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}>
+        <p className="text-slate-400 text-sm text-center max-w-[400px] truncate">
           {name}
         </p>
         <audio
           key={proxyUrl}
           controls
-          style={{ width: "100%", maxWidth: "520px" }}
+          className="w-full max-w-[520px]"
         >
           <source src={proxyUrl} type={mime} />
           Your browser does not support this audio format.
@@ -204,7 +183,7 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
       <iframe
         key={proxyUrl}
         src={`${proxyUrl}#toolbar=1&navpanes=1&scrollbar=1`}
-        style={{ width: "100%", height: "100%", border: "none" }}
+        className="w-full h-full border-none"
         title={name}
       />
     );
@@ -214,21 +193,21 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
   if (isText) {
     if (textErr) {
       return (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "12px", color: "#f87171" }}>
-          <AlertTriangle size={32} style={{ opacity: 0.6 }} />
-          <p style={{ fontSize: "0.875rem" }}>Failed to load file content</p>
-          <p style={{ fontSize: "0.75rem", color: "#64748b" }}>
+        <div className="flex flex-col items-center justify-center h-full gap-3 text-red-400">
+          <AlertTriangle size={32} className="opacity-60" />
+          <p className="text-sm">Failed to load file content</p>
+          <p className="text-xs text-slate-500">
             The Shelby storage nodes may be temporarily unavailable.
           </p>
           <a href={proxyUrl} target="_blank" rel="noopener noreferrer"
-            style={{ color: "#a78bfa", fontSize: "0.8rem" }}>Open directly ↗</a>
+            className="text-purple-400 text-xs hover:underline">Open directly ↗</a>
         </div>
       );
     }
     if (text === null) {
       return (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: "8px", color: "#475569" }}>
-          <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: "2px solid rgba(139,92,246,0.3)", borderTopColor: "#8b5cf6", animation: "spin 1s linear infinite" }} />
+        <div className="flex items-center justify-center h-full gap-2 text-slate-500">
+          <div className="w-5 h-5 rounded-full border-2 border-purple-500/30 border-t-purple-500 animate-spin" />
           Loading…
         </div>
       );
@@ -237,13 +216,8 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
     // Markdown: render with basic styling
     if (ext === "md") {
       return (
-        <div style={{ height: "100%", overflowY: "auto", padding: "24px 32px" }}>
-          <pre style={{
-            margin: 0, fontFamily: "inherit",
-            fontSize: "0.875rem", lineHeight: 1.8,
-            color: "var(--text-primary)", whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}>
+        <div className="h-full overflow-y-auto p-6 sm:p-8 custom-scrollbar">
+          <pre className="m-0 font-sans text-sm leading-relaxed text-[var(--text-primary)] whitespace-pre-wrap break-words">
             {text}
           </pre>
         </div>
@@ -255,13 +229,8 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
       let pretty = text;
       try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch {}
       return (
-        <div style={{ height: "100%", overflowY: "auto" }}>
-          <pre style={{
-            margin: 0, padding: "16px 20px",
-            fontSize: "0.8rem", lineHeight: 1.6,
-            color: "#94a3b8", whiteSpace: "pre-wrap",
-            wordBreak: "break-word", fontFamily: "monospace",
-          }}>
+        <div className="h-full overflow-y-auto custom-scrollbar">
+          <pre className="m-0 p-4 sm:p-5 font-mono text-xs leading-relaxed text-slate-400 whitespace-pre-wrap break-words bg-black/20">
             {pretty}
           </pre>
         </div>
@@ -270,13 +239,8 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
 
     // Plain text / code
     return (
-      <div style={{ height: "100%", overflowY: "auto" }}>
-        <pre style={{
-          margin: 0, padding: "16px 20px",
-          fontSize: "0.8rem", lineHeight: 1.6,
-          color: "#94a3b8", whiteSpace: "pre-wrap",
-          wordBreak: "break-word", fontFamily: "monospace",
-        }}>
+      <div className="h-full overflow-y-auto custom-scrollbar">
+        <pre className="m-0 p-4 sm:p-5 font-mono text-xs leading-relaxed text-slate-400 whitespace-pre-wrap break-words bg-black/20">
           {text}
         </pre>
       </div>
@@ -285,25 +249,27 @@ function PreviewContent({ proxyUrl, name }: { proxyUrl: string; name: string }) 
 
   /* ── UNSUPPORTED ── */
   return (
-    <div style={{
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      height: "100%", gap: "16px", color: "#475569",
-    }}>
-      <File size={56} style={{ opacity: 0.3 }} />
-      <p style={{ fontSize: "0.875rem" }}>Preview not available for this file type.</p>
-      <a
-        href={proxyUrl}
-        download={name}
-        style={{
-          padding: "10px 20px", borderRadius: "8px",
-          background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-          color: "white", fontSize: "0.85rem", fontWeight: 600,
-          textDecoration: "none", display: "flex", alignItems: "center", gap: "6px",
+    <div className="flex flex-col items-center justify-center h-full gap-6 text-slate-500 p-8 text-center">
+      <div className="p-6 bg-white/5 rounded-3xl">
+        <File size={56} className="opacity-30" />
+      </div>
+      <div>
+        <p className="text-slate-300 font-bold mb-2">Preview not available</p>
+        <p className="text-xs text-slate-500 max-w-xs mx-auto">
+          This file type cannot be previewed in the browser. Please download it to view the content.
+        </p>
+      </div>
+      <button
+        onClick={() => {
+          const a = document.createElement("a");
+          a.href = proxyUrl + "&download=1";
+          a.download = name;
+          a.click();
         }}
+        className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-sm font-bold shadow-lg shadow-violet-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
       >
-        <Download size={14} /> Download instead
-      </a>
+        <Download size={16} /> Download File
+      </button>
     </div>
   );
 }
@@ -363,141 +329,99 @@ export default function PreviewModal({
       {/* BACKDROP */}
       <motion.div
         key="preview-backdrop"
-        style={{
-          position: "fixed", inset: 0, zIndex: 70,
-          background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)",
-        }}
+        className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
       />
 
       {/* MODAL */}
-      <motion.div
-        key="preview-modal"
-        style={{
-          position: "fixed", top: "50%", left: "50%",
-          x: "-50%", y: "-50%", zIndex: 80,
-          borderRadius: "20px", padding: "2px",
-          background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-          backgroundSize: "400% 100%", animation: "walletBorder 4s linear infinite",
-          width: "min(960px, 96vw)",
-        }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{
-          background: "var(--bg-modal)", borderRadius: "18px",
-          display: "flex", flexDirection: "column",
-          height: "min(88vh, 720px)",
-          overflow: "hidden",
-        }}>
-
-          {/* Top accent bar */}
-          <div style={{
-            height: "3px", flexShrink: 0,
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
+        <motion.div
+          key="preview-modal"
+          className="relative w-full max-w-[1000px] rounded-[28px] p-[2px] overflow-hidden pointer-events-auto"
+          style={{
             background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
             backgroundSize: "400% 100%",
             animation: "walletBorder 4s linear infinite",
-          }} />
+          }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-[var(--bg-modal)] rounded-[26px] flex flex-col h-[min(90vh,800px)] overflow-hidden shadow-2xl">
+
+          {/* Top accent bar */}
+          <div className="h-[3px] flex-shrink-0 bg-gradient-to-r from-[#7dd3fc] via-[#a78bfa] to-[#f472b6] bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite]" />
 
           {/* ── HEADER ── */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: "12px",
-            padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
-            flexShrink: 0,
-          }}>
-            <FileTypeIcon name={currentFile.name} size={20} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: "0.875rem", fontWeight: 600, color: "var(--text-primary)",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
+          <div className="flex items-center gap-3 px-5 py-4 sm:px-8 border-b border-white/5 flex-shrink-0">
+            <div className="p-2 bg-white/5 rounded-xl">
+              <FileTypeIcon name={currentFile.name} size={20} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm sm:text-base font-bold text-[var(--text-primary)] truncate">
                 {currentFile.name}
               </div>
-              <div style={{ fontSize: "0.7rem", color: "#475569", marginTop: "2px", display: "flex", gap: "10px", alignItems: "center" }}>
-                <span>{formatSize(currentFile.size)}</span>
-                <span style={{ textTransform: "uppercase" }}>{ext}</span>
+              <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5 flex gap-3 items-center">
+                <span className="font-mono">{formatSize(currentFile.size)}</span>
+                <span className="uppercase font-bold tracking-wider opacity-60">{ext}</span>
                 {retention.state === "active" && (
-                  <span style={{ color: "#fbbf24", display: "flex", alignItems: "center", gap: "3px" }}>
-                    <Clock size={10} /> {retention.label}
+                  <span className="text-amber-400 flex items-center gap-1 font-medium">
+                    <Clock size={12} /> {retention.label}
                   </span>
                 )}
                 {retention.state === "expired" && (
-                  <span style={{ color: "#ef4444", display: "flex", alignItems: "center", gap: "3px" }}>
-                    <AlertCircle size={10} /> Expired
+                  <span className="text-red-500 flex items-center gap-1 font-medium">
+                    <AlertCircle size={12} /> Expired
                   </span>
                 )}
               </div>
             </div>
 
             {/* Actions */}
-            <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+            <div className="flex items-center gap-2 flex-shrink-0">
               {onShare && (
                 <button
                   onClick={() => onShare(currentFile)}
-                  style={{
-                    padding: "6px 12px", borderRadius: "8px",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    background: "rgba(255,255,255,0.05)",
-                    color: "#94a3b8", cursor: "pointer", fontSize: "0.8rem",
-                    display: "flex", alignItems: "center", gap: "5px",
-                  }}
+                  className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 text-xs font-bold hover:bg-white/10 hover:text-white transition-all"
                 >
-                  <Share2 size={13} /> Share
+                  <Share2 size={14} /> Share
                 </button>
               )}
               <button
                 onClick={handleDownload}
                 disabled={isExpired}
-                style={{
-                  padding: "6px 14px", borderRadius: "8px", border: "none",
-                  background: isExpired
-                    ? "rgba(255,255,255,0.05)"
-                    : "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-                  color: isExpired ? "#475569" : "white",
-                  cursor: isExpired ? "not-allowed" : "pointer",
-                  fontSize: "0.8rem", fontWeight: 600,
-                  display: "flex", alignItems: "center", gap: "5px",
-                }}
+                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-lg ${
+                  isExpired 
+                    ? "bg-white/5 text-slate-600 cursor-not-allowed" 
+                    : "bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-violet-500/20 hover:scale-[1.02] active:scale-[0.98]"
+                }`}
               >
-                <Download size={13} /> Download
+                <Download size={14} /> Download
               </button>
               <button
                 onClick={onClose}
-                style={{
-                  width: "32px", height: "32px", borderRadius: "8px",
-                  border: "none", background: "rgba(255,255,255,0.06)",
-                  color: "#94a3b8", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
+                className="w-9 h-9 rounded-xl bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
           </div>
 
           {/* ── PREVIEW AREA ── */}
-          <div style={{ flex: 1, minHeight: 0, position: "relative", overflow: "hidden" }}>
+          <div className="flex-1 min-h-0 relative overflow-hidden bg-black/10">
             <PreviewContent key={proxyUrl} proxyUrl={proxyUrl} name={currentFile.name} />
 
             {/* PREV */}
             {hasPrev && (
               <button
                 onClick={() => setCurrentFile(allFiles[fileIdx - 1])}
-                style={{
-                  position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)",
-                  width: "36px", height: "36px", borderRadius: "50%",
-                  background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.15)",
-                  color: "white", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  backdropFilter: "blur(4px)", zIndex: 10,
-                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 border border-white/10 text-white flex items-center justify-center backdrop-blur-md z-10 hover:bg-black/80 hover:scale-110 transition-all shadow-xl"
                 title="Previous (←)"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={24} />
               </button>
             )}
 
@@ -505,52 +429,40 @@ export default function PreviewModal({
             {hasNext && (
               <button
                 onClick={() => setCurrentFile(allFiles[fileIdx + 1])}
-                style={{
-                  position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
-                  width: "36px", height: "36px", borderRadius: "50%",
-                  background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.15)",
-                  color: "white", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  backdropFilter: "blur(4px)", zIndex: 10,
-                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 border border-white/10 text-white flex items-center justify-center backdrop-blur-md z-10 hover:bg-black/80 hover:scale-110 transition-all shadow-xl"
                 title="Next (→)"
               >
-                <ChevronRight size={18} />
+                <ChevronRight size={24} />
               </button>
             )}
           </div>
 
           {/* ── FOOTER: nav dots ── */}
           {allFiles.length > 1 && (
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              gap: "6px", padding: "10px 20px",
-              borderTop: "1px solid rgba(255,255,255,0.06)", flexShrink: 0,
-            }}>
-              <span style={{ fontSize: "0.7rem", color: "#475569", marginRight: "8px" }}>
+            <div className="flex items-center justify-center gap-2 px-6 py-4 border-t border-white/5 flex-shrink-0 bg-black/5">
+              <span className="text-[10px] font-bold text-slate-500 mr-4 uppercase tracking-widest">
                 {fileIdx + 1} / {allFiles.length}
               </span>
-              {allFiles.slice(Math.max(0, fileIdx - 4), fileIdx + 5).map((f) => {
-                const isActive = f.id === currentFile.id;
-                return (
-                  <button
-                    key={f.id}
-                    onClick={() => setCurrentFile(f)}
-                    style={{
-                      width: isActive ? "20px" : "6px",
-                      height: "6px", borderRadius: "3px",
-                      background: isActive ? "#8b5cf6" : "rgba(255,255,255,0.2)",
-                      border: "none", cursor: "pointer", padding: 0,
-                      transition: "all 0.2s",
-                    }}
-                  />
-                );
-              })}
+              <div className="flex items-center gap-1.5">
+                {allFiles.slice(Math.max(0, fileIdx - 4), fileIdx + 5).map((f) => {
+                  const isActive = f.id === currentFile.id;
+                  return (
+                    <button
+                      key={f.id}
+                      onClick={() => setCurrentFile(f)}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        isActive ? "w-8 bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]" : "w-1.5 bg-white/10 hover:bg-white/30"
+                      }`}
+                    />
+                  );
+                })}
+              </div>
             </div>
           )}
 
         </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </AnimatePresence>,
     document.body
   );

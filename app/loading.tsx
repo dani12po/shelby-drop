@@ -2,38 +2,13 @@
 
 export default function Loading() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'transparent',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '16px'
-      }}>
+    <div className="min-h-screen flex items-center justify-center bg-transparent">
+      <div className="flex flex-col items-center gap-4">
         {/* Spinner */}
-        <div style={{
-          width: '40px', height: '40px',
-          borderRadius: '50%',
-          border: '3px solid rgba(139,92,246,0.2)',
-          borderTopColor: '#8b5cf6',
-          animation: 'spin 0.8s linear infinite'
-        }} />
-        <p style={{
-          fontSize: '0.875rem',
-          color: '#475569'
-        }}>
+        <div className="w-10 h-10 rounded-full border-4 border-violet-500/20 border-t-violet-500 animate-spin" />
+        <p className="text-sm font-medium text-slate-500">
           Loading...
         </p>
-        <style>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
       </div>
     </div>
   )

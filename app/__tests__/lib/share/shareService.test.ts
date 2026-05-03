@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+/// <reference types="vitest/globals" />
+// app/__tests__/lib/share/shareService.test.ts
 
 // Mock localStorage
 const store: Record<string, string> = {};

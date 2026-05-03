@@ -13,45 +13,24 @@ export default function ExplorerPublicPage() {
   const { connected, disconnect } = useWallet()
 
   return (
-    <div style={{
-      minHeight: '100vh', background: 'transparent',
-      display: 'flex', flexDirection: 'column',
-      position: 'relative', zIndex: 1
-    }}>
+    <div className="min-h-screen bg-transparent flex flex-col relative z-[1]">
       <Header
         connected={connected}
         onConnect={() => setWalletModalOpen(true)}
         onDisconnect={disconnect}
       />
-      <main style={{ flex: 1, paddingTop: '64px' }}>
-        <div style={{
-          maxWidth: '800px', margin: '0 auto',
-          padding: '80px 24px 40px', textAlign: 'center'
-        }}>
+      <main className="flex-1 pt-16">
+        <div className="max-w-[800px] mx-auto px-6 py-12 md:py-20 text-center">
           {/* Badge */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            padding: '6px 14px', borderRadius: '20px', marginBottom: '24px',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            fontSize: '0.8rem', color: 'var(--text-accent)'
-          }}>
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full mb-6 bg-[var(--bg-card)] border border-[var(--border)] text-[0.8rem] text-[var(--text-accent)]">
             🔍 Public Explorer
           </div>
 
-          <h1 style={{
-            fontSize: 'clamp(1.8rem, 4vw, 3rem)',
-            fontWeight: 800, marginBottom: '16px',
-            background: 'linear-gradient(135deg, var(--heading-from), var(--heading-to))',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-          }}>
+          <h1 className="text-[clamp(1.8rem,5vw,3rem)] font-extrabold mb-4 bg-gradient-to-br from-[var(--heading-from)] to-[var(--heading-to)] bg-clip-text text-transparent">
             Explore Wallet Files
           </h1>
 
-          <p style={{
-            color: 'var(--text-secondary)', marginBottom: '40px',
-            fontSize: '1rem', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto 40px'
-          }}>
+          <p className="text-[var(--text-secondary)] text-base md:text-lg leading-relaxed max-w-[500px] mx-auto mb-10">
             Masukkan wallet address siapapun untuk melihat
             file yang tersimpan di Shelby Network
           </p>
@@ -61,9 +40,7 @@ export default function ExplorerPublicPage() {
             requestAnimationFrame(() => setSearchWallet(w))
           }} />
 
-          <p style={{
-            marginTop: '16px', fontSize: '0.75rem', color: 'var(--text-muted)'
-          }}>
+          <p className="mt-4 text-xs text-[var(--text-muted)]">
             Contoh: 0x1234...abcd
           </p>
         </div>

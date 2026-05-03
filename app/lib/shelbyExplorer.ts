@@ -9,4 +9,4 @@ export const SHELBY_INDEXER_BASE =
 
 export const SHELBY_GATEWAY_BASE =
   process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN ??
-  "https://gateway.shelby.xyz";
+  "https://api.testnet.shelby.xyz/shelby/v1/blobs";

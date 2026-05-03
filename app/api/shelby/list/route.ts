@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 
 // Exact indexer URLs from @shelby-protocol/sdk dist/chunk-7OV5ZYW6.mjs
 const SHELBY_INDEXER_URLS: Record<string, string> = {
-  testnet:   "https://api.testnet.aptoslabs.com/nocode/v1/public/cmlfqs5wt00qrs601zt5s4kfj/v1/graphql",
-  shelbynet: "https://api.shelbynet.aptoslabs.com/nocode/v1/public/cmforrguw0042s601fn71f9l2/v1/graphql",
+  testnet:   process.env.SHELBY_INDEXER_URL_TESTNET || "https://api.testnet.aptoslabs.com/nocode/v1/public/cmlfqs5wt00qrs601zt5s4kfj/v1/graphql",
+  shelbynet: process.env.SHELBY_INDEXER_URL_SHELBYNET || "https://api.shelbynet.aptoslabs.com/nocode/v1/public/cmforrguw0042s601fn71f9l2/v1/graphql",
 };
 
 // GraphQL query — no is_deleted filter (field is "0"/"1" string, not boolean)
@@ -39,6 +39,16 @@ interface BlobItem {
   expires_at?: string;
   creator: string;
   network: string;
+}
+
+interface IndexerBlob {
+  owner: string;
+  blob_name: string;
+  created_at: string;
+  expires_at: string | null;
+  size: string | number;
+  is_deleted: string | number | boolean;
+  is_written: string | number | boolean;
 }
 
 /**
@@ -99,15 +109,15 @@ async function fetchFromIndexer(
       return [];
     }
 
-    const rows: any[] = json?.data?.blobs ?? [];
+    const rows: IndexerBlob[] = json?.data?.blobs ?? [];
     console.log(`[shelby/list:${network}] got ${rows.length} blobs`);
 
     return rows
       // Filter deleted: is_deleted is "0" (not deleted) or "1" (deleted)
-      .filter((b: any) => b.is_deleted === "0" || b.is_deleted === 0 || b.is_deleted === false)
+      .filter((b: IndexerBlob) => b.is_deleted === "0" || b.is_deleted === 0 || b.is_deleted === false)
       // Only show fully written blobs
-      .filter((b: any) => b.is_written === "1" || b.is_written === 1 || b.is_written === true)
-      .map((b: any, i: number) => {
+      .filter((b: IndexerBlob) => b.is_written === "1" || b.is_written === 1 || b.is_written === true)
+      .map((b: IndexerBlob, i: number) => {
         const rawBlobName: string = b.blob_name ?? `blob_${i}`;
         const displayName = stripBlobNamePrefix(rawBlobName, wallet);
         return {
@@ -123,10 +133,11 @@ async function fetchFromIndexer(
           network,
         };
       });
-  } catch (err: any) {
+  } catch (err: unknown) {
     clearTimeout(timeout);
-    if (err.name !== "AbortError") {
-      console.warn(`[shelby/list:${network}] error:`, err.message);
+    const isAbort = err instanceof Error && err.name === "AbortError";
+    if (!isAbort) {
+      console.warn(`[shelby/list:${network}] error:`, err instanceof Error ? err.message : String(err));
     }
     return [];
   }

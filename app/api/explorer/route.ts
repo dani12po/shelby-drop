@@ -75,7 +75,7 @@ function formatSize(bytes: number): string {
 
 /* ===============================
    FETCH FROM SHELBY NETWORK
-=============================== */
+ =============================== */
 interface ShelbyBlob {
   blob_id: string;
   blob_name: string;
@@ -83,6 +83,27 @@ interface ShelbyBlob {
   creator_address: string;
   inserted_at: string;
   expiration_date?: string;
+}
+
+interface LedgerObject {
+  blob_id?: string | number;
+  object_type?: string;
+  owner_address?: string;
+  state_key?: string;
+  inserted_at?: string;
+}
+
+interface AccountResource {
+  type: string;
+  data?: {
+    blob_id?: string;
+    name?: string;
+    size?: number | string;
+    inserted_at?: string;
+  };
+  guid?: {
+    id?: string;
+  };
 }
 
 /**
@@ -132,7 +153,7 @@ async function fetchBlobsFromShelbyNetwork(
       const data = await response.json();
       const ledgerObjects = data?.data?.ledger_objects ?? [];
       
-      return ledgerObjects.map((obj: any) => ({
+      return ledgerObjects.map((obj: LedgerObject) => ({
         blob_id: obj.blob_id?.toString() ?? "",
         blob_name: `blob_${obj.blob_id ?? "unknown"}`,
         size: 0, // Size not available in indexer
@@ -160,16 +181,19 @@ async function fetchBlobsFromShelbyNetwork(
       
       // Find blob-related resources
       const blobResources = resources.filter(
-        (r: any) => 
-          r.type?.includes("Blob") || 
+        (r: AccountResource) =>
+          r.type?.includes("Blob") ||
           r.type?.includes("blob")
       );
 
       for (const blob of blobResources) {
+        const sizeVal = blob.data?.size;
+        const size = typeof sizeVal === "string" ? parseInt(sizeVal, 10) || 0 : (sizeVal ?? 0);
+        
         blobs.push({
           blob_id: blob.data?.blob_id ?? blob.guid?.id ?? "",
           blob_name: blob.data?.name ?? "unknown",
-          size: blob.data?.size ?? 0,
+          size,
           creator_address: wallet,
           inserted_at: blob.data?.inserted_at ?? new Date().toISOString(),
         });

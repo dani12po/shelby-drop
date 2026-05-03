@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
+/// <reference types="vitest/globals" />
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
 
@@ -41,7 +40,7 @@ describe("loadWalletFilesFromShelby", () => {
     });
 
     const result = await loadWalletFilesFromShelby(wallet);
-    const raw = result.rawItems[0] as any;
+    const raw = result.rawItems[0] as { mimeType?: string };
     expect(raw.mimeType).toBe("image/png");
   });
 
@@ -55,7 +54,7 @@ describe("loadWalletFilesFromShelby", () => {
     });
 
     const result = await loadWalletFilesFromShelby(wallet);
-    const raw = result.rawItems[0] as any;
+    const raw = result.rawItems[0] as { mimeType?: string };
     expect(raw.mimeType).toBe("video/mp4");
   });
 
@@ -84,7 +83,7 @@ describe("loadWalletFilesFromShelby", () => {
     });
 
     const result = await loadWalletFilesFromShelby(wallet);
-    const raw = result.rawItems[0] as any;
+    const raw = result.rawItems[0] as { path?: string[] };
     expect(raw.path).toEqual([]);
   });
 });

@@ -74,9 +74,9 @@ export const shelbyConfig = {
   aptosExplorerBase:  process.env.APTOS_EXPLORER_BASE  || "https://explorer.aptoslabs.com",
   shelbyExplorerBase: process.env.SHELBY_EXPLORER_BASE || "https://explorer.shelby.xyz/testnet",
   signingSecret:      process.env.SHELBY_SIGNING_SECRET || "",
-  endpoint:           process.env.SHELBY_ENDPOINT      || "https://gateway.shelby.xyz",
+  endpoint:           process.env.SHELBY_ENDPOINT      || "https://api.testnet.shelby.xyz/shelby",
   bucket:             process.env.SHELBY_BUCKET        || "shelby-drop",
-  origin:             process.env.SHELBY_ORIGIN        || "https://explorer.shelby.xyz",
+  origin:             process.env.SHELBY_ORIGIN        || (typeof window !== "undefined" ? window.location.origin : "https://explorer.shelby.xyz"),
 
   /** Aptos Explorer tx link — network-aware */
   getTransactionUrl: (txHash: string, network?: string) => {
@@ -96,7 +96,7 @@ export const shelbyConfig = {
   },
 
   getFileUrl: (wallet: string, filename: string) => {
-    const gateway = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://gateway.shelby.xyz";
+    const gateway = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://api.testnet.shelby.xyz/shelby/v1/blobs";
     return `${gateway}/${wallet}/${filename}`;
   },
 };

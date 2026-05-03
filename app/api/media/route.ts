@@ -15,8 +15,8 @@ export const dynamic = "force-dynamic";
 
 // RPC base URLs from @shelby-protocol/sdk NetworkToShelbyRPCBaseUrl
 const RPC_BASE: Record<string, string> = {
-  testnet:   "https://api.testnet.shelby.xyz/shelby",
-  shelbynet: "https://api.shelbynet.shelby.xyz/shelby",
+  testnet:   process.env.SHELBY_RPC_URL_TESTNET || "https://api.testnet.shelby.xyz/shelby",
+  shelbynet: process.env.SHELBY_RPC_URL_SHELBYNET || "https://api.shelbynet.shelby.xyz/shelby",
 };
 
 export async function GET(req: Request) {

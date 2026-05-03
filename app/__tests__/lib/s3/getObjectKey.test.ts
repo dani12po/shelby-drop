@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+/// <reference types="vitest/globals" />
+// app/__tests__/lib/s3/getObjectKey.test.ts
 import { getObjectKey } from "@/lib/s3/getObjectKey";
 import type { FileItemData } from "@/lib/data";
 

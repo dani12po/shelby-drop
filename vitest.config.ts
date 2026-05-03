@@ -3,9 +3,8 @@ import path from "path";
 
 export default defineConfig({
   test: {
-    environment: "jsdom",
+    environment: "node",
     globals: true,
-    setupFiles: [],
   },
   resolve: {
     alias: {

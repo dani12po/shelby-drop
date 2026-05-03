@@ -1,10 +1,10 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
-import { Download, Share2, Copy, Check, Play, FileText, Image as ImageIcon, Music, Video, File } from "lucide-react";
+import { Download, Copy, Check, Music, File } from "lucide-react";
 import Link from "next/link";
 
-const GATEWAY = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://gateway.shelby.xyz";
+const GATEWAY = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://api.testnet.shelby.xyz/shelby/v1/blobs";
 
 interface Props {
   params: Promise<{ wallet: string; file: string[] }>;
@@ -25,22 +25,12 @@ function getMime(name: string): string {
   return map[ext] || "application/octet-stream";
 }
 
-function formatSize(bytes: number) {
-  if (!bytes) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function FileIcon({ name, size = 48 }: { name: string; size?: number }) {
+function FileIcon({ name, className }: { name: string; className?: string }) {
   const mime = getMime(name);
-  const s = { width: size, height: size };
-  if (mime.startsWith("image/"))  return <ImageIcon style={s} color="#a78bfa" />;
-  if (mime.startsWith("video/"))  return <Video     style={s} color="#f472b6" />;
-  if (mime.startsWith("audio/"))  return <Music     style={s} color="#34d399" />;
-  if (mime === "application/pdf") return <FileText  style={s} color="#f87171" />;
-  if (mime.startsWith("text/"))   return <FileText  style={s} color="#60a5fa" />;
-  return <File style={s} color="#94a3b8" />;
+  if (mime.startsWith("image/"))  return <File className={`${className} text-purple-400`} />;
+  if (mime.startsWith("video/"))  return <File className={`${className} text-pink-400`} />;
+  if (mime.startsWith("audio/"))  return <Music className={`${className} text-emerald-400`} />;
+  return <File className={`${className} text-slate-400`} />;
 }
 
 export default function ShareFilePage({ params }: Props) {
@@ -51,12 +41,10 @@ export default function ShareFilePage({ params }: Props) {
 
   const fileUrl = `${GATEWAY}/${encodeURIComponent(wallet)}/${file.map(encodeURIComponent).join("/")}`;
   const downloadUrl = `/api/media?wallet=${encodeURIComponent(wallet)}&name=${encodeURIComponent(fileName)}&download=1`;
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
   const [copied, setCopied] = useState(false);
   const [textContent, setTextContent] = useState<string | null>(null);
 
-  // Fetch text content for text files
   useEffect(() => {
     if (!mime.startsWith("text/") && mime !== "application/json") return;
     fetch(fileUrl)
@@ -72,58 +60,26 @@ export default function ShareFilePage({ params }: Props) {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "var(--bg-primary)",
-      color: "var(--text-primary)",
-      display: "flex",
-      flexDirection: "column",
-    }}>
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col">
       {/* Header */}
-      <header style={{
-        padding: "16px 24px",
-        borderBottom: "1px solid var(--border)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        background: "var(--bg-navbar)",
-        backdropFilter: "blur(20px)",
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-      }}>
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "1.3rem" }}>⬡</span>
-          <span style={{
-            fontWeight: 700, fontSize: "1rem",
-            background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          }}>Shelby Drop</span>
+      <header className="sticky top-0 z-50 px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-navbar)] backdrop-blur-xl flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 no-underline group">
+          <span className="text-xl group-hover:scale-110 transition-transform">⬡</span>
+          <span className="font-bold text-lg bg-gradient-to-r from-violet-500 to-blue-500 bg-clip-text text-transparent">
+            Shelby Drop
+          </span>
         </Link>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={handleCopyLink}
-            style={{
-              display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 14px", borderRadius: "8px",
-              border: "1px solid var(--border)",
-              background: "var(--bg-card)",
-              color: "var(--text-secondary)",
-              cursor: "pointer", fontSize: "0.85rem",
-            }}
+            className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-white hover:bg-white/5 transition-all text-xs sm:text-sm font-medium"
           >
-            {copied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy Link</>}
+            {copied ? <><Check size={14} className="text-emerald-400" /> Copied!</> : <><Copy size={14} /> Copy Link</>}
           </button>
           <a
             href={downloadUrl}
             download={displayName}
-            style={{
-              display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 16px", borderRadius: "8px",
-              background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-              color: "white", textDecoration: "none",
-              fontSize: "0.85rem", fontWeight: 600,
-            }}
+            className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-violet-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             <Download size={14} /> Download
           </a>
@@ -131,107 +87,86 @@ export default function ShareFilePage({ params }: Props) {
       </header>
 
       {/* Main */}
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 24px" }}>
+      <main className="flex-1 flex flex-col items-center p-6 sm:p-10 max-w-5xl mx-auto w-full">
         {/* File info card */}
-        <div style={{
-          width: "100%", maxWidth: "800px",
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderRadius: "16px",
-          padding: "24px",
-          marginBottom: "24px",
-          display: "flex", alignItems: "center", gap: "20px",
-        }}>
-          <FileIcon name={displayName} size={48} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{
-              fontSize: "1.1rem", fontWeight: 700,
-              margin: "0 0 6px",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
+        <div className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 mb-8 flex flex-col sm:flex-row items-center gap-6 shadow-xl shadow-black/20">
+          <div className="p-4 bg-white/5 rounded-2xl">
+            <FileIcon name={displayName} className="w-12 h-12" />
+          </div>
+          <div className="flex-1 min-w-0 text-center sm:text-left">
+            <h1 className="text-lg sm:text-xl font-bold mb-2 truncate">
               {displayName}
             </h1>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontFamily: "monospace" }}>
+            <div className="text-xs font-mono text-slate-500 bg-white/5 px-3 py-1 rounded-full inline-block">
               {wallet.slice(0, 12)}…{wallet.slice(-8)}
             </div>
           </div>
-          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+          <div className="flex-shrink-0 w-full sm:w-auto">
             <a
               href={downloadUrl}
               download={displayName}
-              style={{
-                display: "flex", alignItems: "center", gap: "6px",
-                padding: "10px 20px", borderRadius: "8px",
-                background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-                color: "white", textDecoration: "none",
-                fontSize: "0.875rem", fontWeight: 600,
-              }}
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-sm font-bold shadow-lg shadow-violet-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              <Download size={15} /> Download
+              <Download size={16} /> Download File
             </a>
           </div>
         </div>
 
         {/* Preview area */}
-        <div style={{
-          width: "100%", maxWidth: "800px",
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderRadius: "16px",
-          overflow: "hidden",
-          minHeight: "400px",
-        }}>
+        <div className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl overflow-hidden min-h-[400px] shadow-2xl shadow-black/40">
           {/* Image */}
           {mime.startsWith("image/") && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", background: "rgba(0,0,0,0.2)" }}>
-              <img src={fileUrl} alt={displayName} style={{ maxWidth: "100%", maxHeight: "70vh", objectFit: "contain", borderRadius: "8px" }} />
+            <div className="flex items-center justify-center p-6 sm:p-10 bg-black/20">
+              <img 
+                src={fileUrl} 
+                alt={displayName} 
+                className="max-w-full max-h-[70vh] object-contain rounded-xl shadow-2xl" 
+              />
             </div>
           )}
 
           {/* Video */}
           {mime.startsWith("video/") && (
-            <div style={{ background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <video src={fileUrl} controls style={{ width: "100%", maxHeight: "70vh" }} />
+            <div className="bg-black flex items-center justify-center">
+              <video src={fileUrl} controls className="w-full max-h-[70vh]" />
             </div>
           )}
 
           {/* Audio */}
           {mime.startsWith("audio/") && (
-            <div style={{
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
-              padding: "60px 24px", gap: "24px",
-            }}>
-              <div style={{
-                width: "100px", height: "100px", borderRadius: "50%",
-                background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Music size={40} color="white" />
+            <div className="flex flex-col items-center justify-center py-20 px-6 gap-8">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-xl shadow-violet-500/20">
+                <Music size={40} className="text-white" />
               </div>
-              <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>{displayName}</p>
-              <audio src={fileUrl} controls style={{ width: "100%", maxWidth: "480px" }} />
+              <div className="text-center">
+                <p className="text-slate-300 font-medium mb-1">{displayName}</p>
+                <p className="text-xs text-slate-500 uppercase tracking-widest">Audio File</p>
+              </div>
+              <audio src={fileUrl} controls className="w-full max-w-md" />
             </div>
           )}
 
           {/* PDF */}
           {mime === "application/pdf" && (
-            <iframe src={`${fileUrl}#toolbar=1`} style={{ width: "100%", height: "70vh", border: "none" }} title={displayName} />
+            <iframe 
+              src={`${fileUrl}#toolbar=1`} 
+              className="w-full h-[70vh] border-none" 
+              title={displayName} 
+            />
           )}
 
           {/* Text */}
           {(mime.startsWith("text/") || mime === "application/json") && (
-            <div style={{ padding: "24px" }}>
+            <div className="p-6 sm:p-8">
               {textContent ? (
-                <pre style={{
-                  margin: 0, fontSize: "0.85rem", lineHeight: 1.6,
-                  color: "var(--text-secondary)", whiteSpace: "pre-wrap",
-                  wordBreak: "break-word", maxHeight: "70vh", overflowY: "auto",
-                }}>
+                <pre className="m-0 text-sm leading-relaxed text-slate-400 whitespace-pre-wrap break-words max-h-[70vh] overflow-y-auto custom-scrollbar font-mono bg-black/20 p-6 rounded-2xl border border-white/5">
                   {textContent}
                 </pre>
               ) : (
-                <div style={{ textAlign: "center", padding: "60px", color: "var(--text-muted)" }}>Loading…</div>
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <div className="w-8 h-8 border-2 border-violet-500/20 border-t-violet-500 rounded-full animate-spin" />
+                  <p className="text-slate-500 text-sm">Loading content...</p>
+                </div>
               )}
             </div>
           )}
@@ -239,24 +174,20 @@ export default function ShareFilePage({ params }: Props) {
           {/* Unsupported */}
           {!mime.startsWith("image/") && !mime.startsWith("video/") && !mime.startsWith("audio/") &&
            mime !== "application/pdf" && !mime.startsWith("text/") && mime !== "application/json" && (
-            <div style={{
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
-              padding: "80px 24px", gap: "16px",
-              color: "var(--text-muted)",
-            }}>
-              <File size={64} style={{ opacity: 0.3 }} />
-              <p style={{ fontSize: "0.9rem" }}>Preview not available for this file type.</p>
+            <div className="flex flex-col items-center justify-center py-24 px-6 gap-6 text-center">
+              <div className="p-6 bg-white/5 rounded-3xl">
+                <File size={64} className="text-slate-600" />
+              </div>
+              <div>
+                <p className="text-slate-300 font-bold mb-2">Preview not available</p>
+                <p className="text-sm text-slate-500 max-w-xs">
+                  This file type cannot be previewed in the browser. Please download it to view the content.
+                </p>
+              </div>
               <a
                 href={downloadUrl}
                 download={displayName}
-                style={{
-                  padding: "12px 24px", borderRadius: "8px",
-                  background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-                  color: "white", textDecoration: "none",
-                  fontSize: "0.9rem", fontWeight: 600,
-                  display: "flex", alignItems: "center", gap: "8px",
-                }}
+                className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm font-bold hover:bg-white/10 transition-all"
               >
                 <Download size={16} /> Download File
               </a>
@@ -265,11 +196,17 @@ export default function ShareFilePage({ params }: Props) {
         </div>
 
         {/* Footer note */}
-        <p style={{ marginTop: "24px", fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "center" }}>
-          Shared via{" "}
-          <Link href="/" style={{ color: "var(--accent)", textDecoration: "none" }}>Shelby Drop</Link>
-          {" "}— Decentralized file storage on Aptos blockchain
-        </p>
+        <div className="mt-12 text-center">
+          <p className="text-sm text-slate-500">
+            Shared via{" "}
+            <Link href="/" className="text-violet-400 hover:text-violet-300 font-medium no-underline transition-colors">
+              Shelby Drop
+            </Link>
+          </p>
+          <p className="text-[10px] text-slate-600 uppercase tracking-widest mt-2">
+            Decentralized file storage on Aptos blockchain
+          </p>
+        </div>
       </main>
     </div>
   );

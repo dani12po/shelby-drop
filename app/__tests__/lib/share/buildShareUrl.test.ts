@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+/// <reference types="vitest/globals" />
+// app/__tests__/lib/share/buildShareUrl.test.ts
 
 // Mock process.env before importing
 vi.stubEnv("NEXT_PUBLIC_BASE_URL", "https://shelby-drop.vercel.app");

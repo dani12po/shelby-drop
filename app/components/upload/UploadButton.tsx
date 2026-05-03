@@ -20,21 +20,7 @@ export default function UploadButton({
       whileHover={{ scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.97 }}
       onClick={onUpload}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '10px 24px',
-        borderRadius: '30px',
-        background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-        color: 'white',
-        fontSize: '0.9rem',
-        fontWeight: 600,
-        border: 'none',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        boxShadow: '0 4px 20px rgba(139,92,246,0.3)'
-      }}
+      className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 text-white text-sm font-semibold shadow-[0_4px_20px_rgba(139,92,246,0.3)] hover:opacity-90 transition-all"
     >
       <Upload size={16} strokeWidth={2} />
       Upload File

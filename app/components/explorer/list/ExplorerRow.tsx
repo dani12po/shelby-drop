@@ -39,7 +39,7 @@ function FileTypeIcon({ name }: { name: string }) {
 
 /* ===============================
    PROPS
-================================ */
+ ================================ */
 
 type Props = {
   item: ExplorerItem;
@@ -59,7 +59,7 @@ type Props = {
 
 /* ===============================
    COMPONENT
-================================ */
+ ================================ */
 
 export default function ExplorerRow({
   item,
@@ -92,38 +92,35 @@ export default function ExplorerRow({
       onContextMenu={onContextMenu}
       onDoubleClick={handleDoubleClick}
       className={`
-        grid grid-cols-[20px_minmax(0,1fr)_80px_120px]
-        items-center gap-3
-        px-[15px] py-2
-        rounded-md
+        grid grid-cols-[24px_1fr_50px_80px] sm:grid-cols-[32px_1fr_80px_120px]
+        items-center gap-2 sm:gap-4
+        px-4 py-3
         select-none
-        transition
+        transition-colors
         cursor-default
-        bg-[rgba(255,255,255,0.02)]
-        border-b border-[rgba(255,255,255,0.04)]
         ${
           selected
-            ? "bg-purple-500/15 border border-purple-400/40"
-            : "hover:bg-purple-500/08"
+            ? "bg-transparent"
+            : "bg-transparent"
         }
       `}
     >
       {/* ICON */}
-      <div>
+      <div className="flex items-center justify-center">
         {item.kind === "folder" ? (
-          <Folder size={16} className="text-yellow-400" />
+          <Folder size={18} className="text-amber-400 fill-amber-400/20" />
         ) : (
           <FileTypeIcon name={item.name} />
         )}
       </div>
 
       {/* NAME */}
-      <div className="truncate text-sm min-w-0">
+      <div className="truncate text-sm font-medium text-slate-200 min-w-0">
         {item.name}
       </div>
 
       {/* SIZE */}
-      <div className="text-right text-xs text-white/60">
+      <div className="text-right text-xs font-mono text-slate-500">
         {isFile ? formatSize(item.size) : "—"}
       </div>
 
@@ -136,7 +133,7 @@ export default function ExplorerRow({
                 e.stopPropagation();
                 onPreview?.(item);
               }}
-              className="p-1.5 rounded-md hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors"
               title="Preview"
             >
               <Eye size={14} />
@@ -147,7 +144,7 @@ export default function ExplorerRow({
                 e.stopPropagation();
                 onDownload?.(item);
               }}
-              className="p-1.5 rounded-md hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors"
               title="Download"
             >
               <Download size={14} />
@@ -158,7 +155,7 @@ export default function ExplorerRow({
                 e.stopPropagation();
                 onShare?.(item);
               }}
-              className="p-1.5 rounded-md hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+              className="hidden sm:flex p-1.5 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors"
               title="Share"
             >
               <Share2 size={14} />
@@ -169,7 +166,7 @@ export default function ExplorerRow({
                 e.stopPropagation();
                 onMeta(item);
               }}
-              className="p-1.5 rounded-md hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors"
               title="Info"
             >
               <Info size={14} />

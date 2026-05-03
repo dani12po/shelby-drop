@@ -4,11 +4,11 @@ import { Sun, Moon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 
-const TOGGLE_WIDTH  = 52
-const TOGGLE_HEIGHT = 28
-const THUMB_SIZE    = 20
-const THUMB_PADDING = 3
-const THUMB_TRAVEL  = TOGGLE_WIDTH - THUMB_SIZE - THUMB_PADDING * 2 // 24
+const TOGGLE_WIDTH  = 56
+const TOGGLE_HEIGHT = 30
+const THUMB_SIZE    = 22
+const THUMB_PADDING = 4
+const THUMB_TRAVEL  = TOGGLE_WIDTH - THUMB_SIZE - THUMB_PADDING * 2
 
 export default function ThemeToggle() {
   const { toggleTheme, isDark, themeInfo, mounted: themeMounted } = useTheme()
@@ -17,8 +17,9 @@ export default function ThemeToggle() {
 
   useEffect(() => { setMounted(true) }, [])
 
+  // Prevent hydration mismatch by rendering a placeholder of the same size
   if (!mounted || !themeMounted) {
-    return <div style={{ width: TOGGLE_WIDTH, height: TOGGLE_HEIGHT }} />
+    return <div style={{ width: TOGGLE_WIDTH, height: TOGGLE_HEIGHT, borderRadius: TOGGLE_HEIGHT / 2, background: 'rgba(255,255,255,0.05)' }} />
   }
 
   return (
@@ -31,35 +32,37 @@ export default function ThemeToggle() {
       <AnimatePresence>
         {showTooltip && themeInfo && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 8, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.9 }}
             style={{
               position: 'absolute',
-              bottom: 'calc(100% + 8px)',
+              bottom: 'calc(100% + 10px)',
               left: '50%',
               transform: 'translateX(-50%)',
               padding: '6px 12px',
-              borderRadius: '8px',
-              background: 'var(--bg-card)',
+              borderRadius: '10px',
+              background: 'var(--bg-dropdown)',
               border: '1px solid var(--border)',
-              boxShadow: '0 4px 20px var(--glow)',
+              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3), 0 0 15px var(--glow)',
               whiteSpace: 'nowrap',
               fontSize: '0.75rem',
-              fontWeight: 500,
+              fontWeight: 600,
               color: 'var(--text-primary)',
               zIndex: 100,
-              backdropFilter: 'blur(10px)',
+              backdropFilter: 'blur(12px)',
+              pointerEvents: 'none',
             }}
           >
-            {themeInfo.emoji} {themeInfo.label}
+            <span style={{ marginRight: '6px' }}>{themeInfo.emoji}</span>
+            {themeInfo.label} Mode
           </motion.div>
         )}
       </AnimatePresence>
 
       <motion.button
         onClick={toggleTheme}
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ scale: 1.05, borderColor: isDark ? 'rgba(139,92,246,0.8)' : 'rgba(99,102,241,0.6)' }}
         whileTap={{ scale: 0.95 }}
         aria-label={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
         style={{
@@ -67,36 +70,40 @@ export default function ThemeToggle() {
           width: TOGGLE_WIDTH,
           height: TOGGLE_HEIGHT,
           borderRadius: TOGGLE_HEIGHT / 2,
-          border: `1px solid ${isDark ? 'rgba(100,150,255,0.3)' : 'rgba(100,120,180,0.25)'}`,
-          background: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(200,210,240,0.35)',
+          border: `1.5px solid ${isDark ? 'rgba(139,92,246,0.5)' : 'rgba(99,102,241,0.3)'}`,
+          background: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,1)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           padding: THUMB_PADDING,
-          transition: 'all 0.4s cubic-bezier(0.4,0,0.2,1)',
-          backdropFilter: 'blur(10px)',
+          transition: 'background 0.4s, border-color 0.3s, box-shadow 0.3s',
+          backdropFilter: 'blur(12px)',
           outline: 'none',
+          boxShadow: isDark 
+            ? '0 0 15px rgba(139,92,246,0.15), inset 0 2px 4px rgba(0,0,0,0.5)' 
+            : '0 4px 12px rgba(99,102,241,0.1), inset 0 2px 4px rgba(0,0,0,0.05)',
         }}
       >
         {/* Thumb */}
         <motion.div
           layout
           animate={{ x: isDark ? 0 : THUMB_TRAVEL }}
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
           style={{
             width: THUMB_SIZE,
             height: THUMB_SIZE,
             borderRadius: '50%',
             background: isDark
-              ? 'linear-gradient(135deg, #6366f1, #3b82f6)'
-              : 'linear-gradient(135deg, #f59e0b, #f97316)',
+              ? 'linear-gradient(135deg, #8b5cf6, #6366f1)'
+              : 'linear-gradient(135deg, #fbbf24, #f59e0b)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: isDark
-              ? '0 2px 8px rgba(99,102,241,0.5)'
-              : '0 2px 8px rgba(245,158,11,0.5)',
+              ? '0 0 15px rgba(139,92,246,0.8), 0 2px 4px rgba(0,0,0,0.3)'
+              : '0 0 15px rgba(251,191,36,0.6), 0 2px 4px rgba(0,0,0,0.1)',
             flexShrink: 0,
+            zIndex: 2,
           }}
         >
           <AnimatePresence mode="wait">
@@ -108,7 +115,7 @@ export default function ThemeToggle() {
                 exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
                 transition={{ duration: 0.2 }}
               >
-                <Moon size={11} strokeWidth={2.5} color="white" />
+                <Moon size={12} strokeWidth={3} color="white" />
               </motion.div>
             ) : (
               <motion.div
@@ -118,7 +125,7 @@ export default function ThemeToggle() {
                 exit={{ opacity: 0, rotate: -90, scale: 0.5 }}
                 transition={{ duration: 0.2 }}
               >
-                <Sun size={11} strokeWidth={2.5} color="white" />
+                <Sun size={12} strokeWidth={3} color="white" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -127,16 +134,17 @@ export default function ThemeToggle() {
         {/* Hint icon on opposite side */}
         <div style={{
           position: 'absolute',
-          right: isDark ? '6px' : 'auto',
-          left: isDark ? 'auto' : '6px',
-          opacity: 0.35,
+          right: isDark ? '10px' : 'auto',
+          left: isDark ? 'auto' : '10px',
+          opacity: 1,
           transition: 'all 0.3s',
           display: 'flex',
           alignItems: 'center',
+          zIndex: 1,
         }}>
           {isDark
-            ? <Sun  size={10} strokeWidth={2} color="#818cf8" />
-            : <Moon size={10} strokeWidth={2} color="#6b7280" />
+            ? <Sun  size={14} strokeWidth={2.5} color="#fbbf24" />
+            : <Moon size={14} strokeWidth={2.5} color="#6366f1" />
           }
         </div>
       </motion.button>

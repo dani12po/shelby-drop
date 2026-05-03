@@ -1,8 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 
 type WalletModalProps = {
   open: boolean;
@@ -12,10 +13,10 @@ type WalletModalProps = {
 };
 
 const WALLET_ICONS: Record<string, JSX.Element> = {
-  Petra: <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#8b5cf6' }} />,
-  OKX: <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'white' }} />,
-  Martian: <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#10b981' }} />,
-  Backpack: <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#f97316' }} />,
+  Petra: <span className="w-3 h-3 rounded-full bg-[#8b5cf6]" />,
+  OKX: <span className="w-3 h-3 rounded-full bg-white border border-gray-200" />,
+  Martian: <span className="w-3 h-3 rounded-full bg-[#10b981]" />,
+  Backpack: <span className="w-3 h-3 rounded-full bg-[#f97316]" />,
 };
 
 const RECOMMENDED_WALLET = "Petra";
@@ -26,13 +27,11 @@ export default function WalletModal({
   onSelectWallet,
   onClose,
 }: WalletModalProps) {
-  // Petra pinned on top, others always appended below
   const orderedWallets = [
     ...wallets.filter((w) => w === RECOMMENDED_WALLET),
     ...wallets.filter((w) => w !== RECOMMENDED_WALLET),
   ];
 
-  // Portal to ensure modal renders at document root
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -42,158 +41,95 @@ export default function WalletModal({
     <AnimatePresence>
       {open && (
         <>
-          {/* BACKDROP — CLICK OUTSIDE TO CLOSE */}
+          {/* Backdrop */}
           <motion.div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 40,
-              background: 'rgba(0,0,0,0.6)',
-              backdropFilter: 'blur(4px)'
-            }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
 
-          {/* MODAL BORDER */}
-          <motion.div
-            style={{
-              position: 'fixed',
-              zIndex: 50,
-              top: '50%',
-              left: '50%',
-              x: '-50%',
-              y: '-50%',
-              borderRadius: '26px',
-              padding: '2px',
-              background: 'linear-gradient(90deg, #7dd3fc, #a78bfa, #f472b6, #34d399, #fbbf24, #60a5fa, #a78bfa)',
-              backgroundSize: '400% 100%',
-              animation: 'walletBorder 4s linear infinite',
-            }}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-          >
-            {/* SOLID MODAL */}
-            <div
+          {/* Modal Container */}
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              className="relative w-full max-w-[400px] rounded-[28px] p-[2px] pointer-events-auto"
               style={{
-                width: '420px',
-                borderRadius: '24px',
-                background: 'var(--bg-modal)',
-                boxShadow: '0 25px 80px rgba(0,0,0,0.7)',
-                overflow: 'hidden'
+                background: 'linear-gradient(90deg, #7dd3fc, #a78bfa, #f472b6, #34d399, #fbbf24, #60a5fa, #a78bfa)',
+                backgroundSize: '400% 100%',
+                animation: 'walletBorder 4s linear infinite',
               }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              onClick={e => e.stopPropagation()}
             >
+            <div className="w-full rounded-[26px] bg-[var(--bg-modal)] shadow-2xl overflow-hidden flex flex-col">
               {/* Top accent bar */}
-              <div style={{
-                height: "3px",
-                background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-                backgroundSize: "400% 100%",
-                animation: "walletBorder 4s linear infinite",
-              }} />
+              <div className="h-[3px] bg-gradient-to-r from-[#7dd3fc] via-[#a78bfa] to-[#f472b6] bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite]" />
 
-              <div style={{ padding: '28px 32px' }}>
-                {/* HEADER */}
-                <h2 style={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  textAlign: 'center',
-                  marginBottom: '18px'
-                }}>
-                  Connect Wallet
-                </h2>
+              <div className="p-6 sm:p-8">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold text-[var(--text-primary)]">
+                    Connect Wallet
+                  </h2>
+                  <button
+                    onClick={onClose}
+                    className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 transition-colors flex items-center justify-center"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
 
-                {/* WALLET LIST */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-                  {orderedWallets.map((name, idx) => {
+                {/* Wallet List */}
+                <div className="flex flex-col gap-3">
+                  {orderedWallets.map((name) => {
                     const isRecommended = name === RECOMMENDED_WALLET;
 
                     return (
-                      <div
+                      <button
                         key={name}
-                        style={{ width: '100%', position: 'relative' }}
+                        onClick={() => onSelectWallet(name)}
+                        className={`w-full h-14 rounded-2xl flex items-center gap-4 px-4 transition-all duration-200 border group ${
+                          isRecommended 
+                            ? 'bg-purple-500/10 border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50' 
+                            : 'bg-[var(--bg-card)] border-[var(--border)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--border-hover)]'
+                        }`}
                       >
-                        <button
-                          onClick={() => onSelectWallet(name)}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'var(--bg-card-hover)';
-                            e.currentTarget.style.borderColor = 'var(--border-hover)';
-                          }}
-                          onMouseLeave={(e) => {
-                            if (isRecommended) {
-                              e.currentTarget.style.background = 'rgba(139,92,246,0.15)';
-                              e.currentTarget.style.borderColor = 'rgba(139,92,246,0.4)';
-                            } else {
-                              e.currentTarget.style.background = 'var(--bg-card)';
-                              e.currentTarget.style.borderColor = 'var(--border)';
-                            }
-                          }}
-                          style={{
-                            width: '100%',
-                            height: '52px',
-                            borderRadius: '26px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '14px',
-                            padding: '0 18px',
-                            background: isRecommended ? 'rgba(139,92,246,0.15)' : 'var(--bg-card)',
-                            border: isRecommended ? '1px solid rgba(139,92,246,0.4)' : '1px solid var(--border)',
-                            color: 'var(--text-primary)',
-                            fontSize: '0.95rem',
-                            fontWeight: 500,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            outline: 'none'
-                          }}
-                        >
-                          {/* ICON */}
-                          <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: 'var(--bg-card)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            {WALLET_ICONS[name]}
-                          </div>
+                        {/* Icon Circle */}
+                        <div className="w-9 h-9 rounded-full bg-[var(--bg-modal)] border border-[var(--border)] flex items-center justify-center shadow-inner">
+                          {WALLET_ICONS[name]}
+                        </div>
 
-                          {/* NAME */}
-                          <span style={{ flex: 1, textAlign: 'left' }}>
-                            {name}
+                        {/* Name */}
+                        <span className="flex-1 text-left font-semibold text-[var(--text-primary)]">
+                          {name}
+                        </span>
+
+                        {/* Recommended Badge */}
+                        {isRecommended && (
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-2 py-1 rounded-md border border-purple-500/20">
+                            Best
                           </span>
-
-                          {/* RECOMMENDED TEXT */}
-                          {isRecommended && (
-                            <span style={{
-                              fontSize: '0.7rem',
-                              color: '#a78bfa',
-                              background: 'rgba(139,92,246,0.15)',
-                              padding: '2px 8px',
-                              borderRadius: '20px',
-                              border: '1px solid rgba(139,92,246,0.3)'
-                            }}>
-                              Recommended
-                            </span>
-                          )}
-                        </button>
-                      </div>
+                        )}
+                      </button>
                     );
                   })}
                 </div>
+
+                <p className="mt-6 text-center text-[10px] text-[var(--text-muted)] leading-relaxed">
+                  By connecting your wallet, you agree to our Terms of Service and Privacy Policy.
+                </p>
               </div>
             </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
   );
 
-  // Render via portal to avoid position context issues
   return createPortal(modalContent, document.body);
 }

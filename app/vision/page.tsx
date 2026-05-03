@@ -21,7 +21,7 @@ export default function VisionPage() {
   const handleConnect = () => setWalletModalOpen(true);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1 }}>
+    <div className="min-h-screen flex flex-col bg-transparent relative z-[1]">
       <Header connected={false} onConnect={handleConnect} onDisconnect={() => {}} />
       
       <WalletModal
@@ -34,61 +34,38 @@ export default function VisionPage() {
         onClose={() => setWalletModalOpen(false)}
       />
       
-      <main style={{ flex: 1, paddingTop: '64px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px' }}>
+      <main className="flex-1 pt-16">
+        <div className="max-w-[1280px] mx-auto px-6 py-10 md:py-16">
           
           {/* Hero Section */}
-          <section style={{ marginBottom: '80px', textAlign: 'center' }}>
+          <section className="mb-12 md:mb-20 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
             >
-              <h1 style={{
-                fontSize: 'clamp(28px, 5vw, 48px)',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                marginBottom: '24px',
-                background: 'linear-gradient(135deg, var(--heading-from), var(--heading-to))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
-                Visi & Misi
+              <h1 className="text-[clamp(32px,5vw,48px)] font-extrabold text-[var(--text-primary)] mb-6 tracking-tight">
+                Visi & Misi <span className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-blue)] bg-clip-text text-transparent">Shelby Drop</span>
               </h1>
-              <p style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
-                Membangun masa depan penyimpanan file terdesentralisasi
+              <p className="text-lg text-[var(--text-secondary)] max-w-[700px] mx-auto leading-relaxed">
+                Membangun masa depan penyimpanan data yang aman, terdesentralisasi, dan sepenuhnya dalam kendali Anda.
               </p>
             </motion.div>
           </section>
 
           {/* Vision Section */}
-          <section style={{ marginBottom: '80px', padding: '60px 0' }}>
-            <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
+          <section className="mb-12 md:mb-20 py-10 md:py-16">
+            <div className="max-w-[800px] mx-auto px-6 text-center">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
+                className="p-8 md:p-12 bg-[var(--bg-card)] border border-[var(--border)] rounded-[24px] relative overflow-hidden"
               >
-                <div style={{
-                  display: 'inline-block',
-                  padding: '8px 16px',
-                  background: 'var(--bg-card)',
-                  borderRadius: '9999px',
-                  color: 'var(--text-accent)',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  marginBottom: '16px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em'
-                }}>
+                <div className="text-[var(--text-accent)] text-[12px] font-semibold mb-4 uppercase tracking-[0.1em]">
                   Visi Kami
                 </div>
-                <h2 style={{
-                  fontSize: 'clamp(20px, 3vw, 28px)',
-                  fontWeight: 700,
-                  color: 'var(--text-primary)',
-                  lineHeight: 1.5
-                }}>
+                <h2 className="text-[clamp(20px,3vw,28px)] font-bold text-[var(--text-primary)] leading-relaxed">
                   "Menjadi platform penyimpanan file terdesentralisasi terdepan 
                   di ekosistem Aptos, memberdayakan pengguna dengan kontrol penuh 
                   atas data mereka."
@@ -98,23 +75,17 @@ export default function VisionPage() {
           </section>
 
           {/* Mission Section */}
-          <section style={{ marginBottom: '80px' }}>
+          <section className="mb-12 md:mb-20">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              style={{
-                fontSize: '28px',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                textAlign: 'center',
-                marginBottom: '48px'
-              }}
+              className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] text-center mb-10 md:mb-12"
             >
               Misi Kami
             </motion.h2>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="flex flex-col gap-6">
               {[
                 {
                   number: "01",
@@ -138,27 +109,14 @@ export default function VisionPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  style={{
-                    display: 'flex',
-                    gap: '24px',
-                    padding: '24px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '16px',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
-                  }}
+                  className="flex flex-col sm:flex-row gap-6 p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl backdrop-blur-md"
                 >
-                  <span style={{
-                    fontSize: '36px',
-                    fontWeight: 700,
-                    background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}>{mission.number}</span>
+                  <span className="text-4xl font-bold bg-gradient-to-br from-[var(--accent)] to-[var(--accent-blue)] bg-clip-text text-transparent">
+                    {mission.number}
+                  </span>
                   <div>
-                    <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>{mission.title}</h3>
-                    <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>{mission.description}</p>
+                    <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">{mission.title}</h3>
+                    <p className="text-[var(--text-secondary)] leading-relaxed">{mission.description}</p>
                   </div>
                 </motion.div>
               ))}
@@ -166,28 +124,17 @@ export default function VisionPage() {
           </section>
 
           {/* Roadmap Section */}
-          <section style={{ padding: '60px 0' }}>
+          <section className="py-16">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              style={{
-                fontSize: '28px',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                textAlign: 'center',
-                marginBottom: '48px'
-              }}
-              >
-                Roadmap 2026
-              </motion.h2>
+              className="text-[28px] font-bold text-[var(--text-primary)] text-center mb-12"
+            >
+              Roadmap 2026
+            </motion.h2>
             
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '24px',
-              padding: '0 24px'
-            }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-0 sm:px-6">
               {roadmap.map((quarter, index) => (
                 <motion.div
                   key={quarter.quarter}
@@ -195,20 +142,13 @@ export default function VisionPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  style={{
-                    padding: '24px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '16px',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
-                  }}
+                  className="p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl backdrop-blur-md"
                 >
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--accent)', marginBottom: '16px' }}>{quarter.quarter}</h3>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <h3 className="text-[18px] font-semibold text-[var(--accent)] mb-4">{quarter.quarter}</h3>
+                  <ul className="list-none p-0 m-0 flex flex-col gap-2">
                     {quarter.items.map((item) => (
-                      <li key={item} style={{ fontSize: '14px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+                      <li key={item} className="text-[14px] text-[var(--text-secondary)] flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                         {item}
                       </li>
                     ))}

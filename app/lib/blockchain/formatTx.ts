@@ -37,14 +37,14 @@ export function shortenTxHash(txHash: string): string {
  * Builds transaction explorer URL
  * Priority: Shelby Explorer -> Aptos Explorer
  */
-export function buildTxExplorerUrl(txHash: string): string {
+export function buildTxExplorerUrl(txHash: string, network: string = "testnet"): string {
   if (!txHash) return '';
   
   // Priority 1: Shelby Explorer (preferred)
-  const shelbyExplorer = `https://explorer.shelby.xyz/shelbynet/tx/${txHash}`;
+  const shelbyExplorer = `https://explorer.shelby.xyz/${network}/tx/${txHash}`;
   
   // Priority 2: Aptos Explorer (fallback)
-  const aptosExplorer = `https://explorer.aptoslabs.com/txn/${txHash}?network=devnet`;
+  const aptosExplorer = `https://explorer.aptoslabs.com/txn/${txHash}?network=${network}`;
   
   // Return Shelby Explorer by default
   return shelbyExplorer;
@@ -53,10 +53,10 @@ export function buildTxExplorerUrl(txHash: string): string {
 /**
  * Builds wallet explorer URL
  */
-export function buildWalletExplorerUrl(wallet: string): string {
+export function buildWalletExplorerUrl(wallet: string, network: string = "testnet"): string {
   if (!wallet) return '';
   
-  return `https://explorer.shelby.xyz/shelbynet/account/${wallet}`;
+  return `https://explorer.shelby.xyz/${network}/account/${wallet}`;
 }
 
 /**
@@ -115,6 +115,7 @@ export type TransactionDisplayProps = {
   wallet?: string;
   status?: 'success' | 'failed';
   error?: string;
+  network?: string;
 };
 
 /**
@@ -134,7 +135,7 @@ export function formatNotificationMessage(props: TransactionDisplayProps): {
     url: string;
   };
 } {
-  const { txHash, wallet, status, error } = props;
+  const { txHash, wallet, status, error, network = "testnet" } = props;
   
   // Base message
   let title = '';
@@ -157,7 +158,7 @@ export function formatNotificationMessage(props: TransactionDisplayProps): {
     txInfo = {
       hash: txHash,
       shortHash: shortenTxHash(txHash),
-      url: buildTxExplorerUrl(txHash)
+      url: buildTxExplorerUrl(txHash, network)
     };
   }
   
@@ -167,7 +168,7 @@ export function formatNotificationMessage(props: TransactionDisplayProps): {
     walletInfo = {
       address: wallet,
       shortAddress: shortenWallet(wallet),
-      url: buildWalletExplorerUrl(wallet)
+      url: buildWalletExplorerUrl(wallet, network)
     };
   }
   

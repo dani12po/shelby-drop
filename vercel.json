@@ -5,6 +5,10 @@
       "maxDuration": 60,
       "memory": 1024
     },
+    "app/api/upload/cli/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
     "app/api/upload/complete/route.ts": {
       "maxDuration": 10
     }

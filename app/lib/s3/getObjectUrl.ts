@@ -18,7 +18,7 @@ export function getObjectUrl(
   const { wallet, mode } = options;
   const objectKey = getObjectKey(wallet, file);
   
-  const gatewayOrigin = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://gateway.shelby.xyz";
+  const gatewayOrigin = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://api.testnet.shelby.xyz/shelby/v1/blobs";
   const baseUrl = `${gatewayOrigin}/${objectKey}`;
 
   switch (mode) {

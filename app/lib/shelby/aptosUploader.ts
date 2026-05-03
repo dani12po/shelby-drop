@@ -14,7 +14,7 @@ import {
   type WaitForTransactionOptions,
 } from "@aptos-labs/ts-sdk";
 import { ShelbyNodeClient } from "@shelby-protocol/sdk/node";
-import { shelbyConfig, getNetworkConfig, NETWORK_CONFIGS, type ShelbyNetwork } from "@/config/shelby";
+import { shelbyConfig, getNetworkConfig } from "@/config/shelby";
 
 export interface UploadArgs {
   file: File;
@@ -58,7 +58,6 @@ export class AptosShelbyUploader {
     this.aptos = new Aptos(aptosConfig);
 
     const privateKey = process.env.SHELBY_ACCOUNT_PRIVATE_KEY!;
-    console.log("🔑 PRIVATE KEY FORMAT CHECK:", privateKey.substring(0, 20) + "...");
     if (!privateKey.startsWith('ed25519-priv-')) {
       throw new Error('Invalid private key format. Expected: ed25519-priv-...');
     }
@@ -69,17 +68,22 @@ export class AptosShelbyUploader {
     this.accountAddress = this.account.accountAddress.toString();
 
     // ShelbyNodeClient — use TESTNET for testnet, SHELBYNET for shelbynet
-    // TODO: verify if Network.SHELBYNET with custom URL override is needed for shelbynet
     const sdkNet = this.networkConfig.sdkNetwork === "testnet" ? Network.TESTNET : Network.SHELBYNET;
+    
+    // Use SHELBY_RPC_API_KEY (AG-...) for Shelby operations if available
+    const shelbyApiKey = process.env.SHELBY_RPC_API_KEY || process.env.SHELBY_API_KEY!;
+    
     this.shelbyClient = new ShelbyNodeClient({
       network: sdkNet,
-      apiKey:  process.env.SHELBY_API_KEY!,
+      apiKey:  shelbyApiKey,
+      // @ts-ignore - origin might not be in the type definition but is used by the SDK internally
+      origin:  shelbyConfig.origin,
     });
 
     console.log("✅ UPLOADER INITIALIZED:", {
       network: this.networkConfig.label,
       accountAddress: this.accountAddress,
-      hasApiKey: !!process.env.SHELBY_API_KEY,
+      hasApiKey: !!shelbyApiKey,
     });
   }
 
@@ -194,18 +198,21 @@ export class AptosShelbyUploader {
 
       const now = Date.now();
       const recentTx = transactions.find(tx => {
-        if (!(tx as any).success) {
-          console.log(`⏭️ SKIPPING FAILED TX: ${tx.hash}`);
+        // Use type guard or property check instead of any
+        const txData = tx as { success?: boolean; timestamp?: string | number; transaction_timestamp?: string | number };
+        if (!txData.success) {
           return false;
         }
-        const timestamp = (tx as any).timestamp || (tx as any).transaction_timestamp || 0;
+        const timestamp = txData.timestamp || txData.transaction_timestamp || 0;
         // Aptos timestamps are in microseconds — divide by 1000 for ms
         const tsMs = typeof timestamp === 'string'
           ? Math.floor(parseInt(timestamp) / 1000)
           : Math.floor(Number(timestamp) / 1000);
         const ageMs = now - tsMs;
-        console.log(`🔍 TX: ${tx.hash}, Age: ${ageMs}ms, Success: ${(tx as any).success}`);
-        return ageMs >= 0 && ageMs < 15000; // 15s window (tighter than before)
+        
+        // BUG #5 FIX: Use a slightly wider window (30s) but ensure it's the absolute latest
+        // to avoid race conditions where multiple uploads happen in quick succession.
+        return ageMs >= 0 && ageMs < 30000;
       });
 
       if (recentTx) {

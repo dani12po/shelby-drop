@@ -76,7 +76,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans antialiased" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <body className="font-sans antialiased min-h-screen flex flex-col">
         <ThemeProvider>
           {/* Layer 1: Background — z-index 0 */}
           <AnimatedBackground />
@@ -86,18 +86,12 @@ export default function RootLayout({
           <Providers>
             <NotificationProvider>
               <ExplorerModalProvider>
-                <div style={{
-                  position: 'relative',
-                  zIndex: 10,
-                  minHeight: '100vh',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}>
+                <div className="relative z-10 min-h-screen flex flex-col">
                   {children}
                 </div>
 
                 {/* Layer 3: Notifikasi dan overlay */}
-                <div style={{ position: 'relative', zIndex: 100 }}>
+                <div className="relative z-[100]">
                   <NotificationCenterWrapper />
                 </div>
 

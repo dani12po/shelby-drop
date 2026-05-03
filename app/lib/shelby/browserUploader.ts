@@ -20,6 +20,7 @@ export interface BrowserUploadArgs {
   signAndSubmitTransaction: (transaction: unknown) => Promise<{ hash: string }>;
   network?: "testnet" | "shelbynet";
   apiKey?: string;
+  origin?: string;
 }
 
 export interface BrowserUploadResult {
@@ -41,42 +42,38 @@ export async function uploadWithBrowserWallet(
       throw new Error("Shelby API key is not configured.");
     }
 
-    const sdkNetwork =
-      args.network === "shelbynet" ? Network.SHELBYNET : Network.TESTNET;
-
     // Dynamic import to avoid SSR issues
     const {
       ShelbyBlobClient,
       ShelbyRPCClient,
       generateCommitments,
       createDefaultErasureCodingProvider,
-      SHELBY_DEPLOYER,
+      expectedTotalChunksets,
     } = await import("@shelby-protocol/sdk/browser");
 
+    // Step 1: Generate commitments (erasure coding + merkle root)
+    console.log("📦 Generating commitments for:", args.file.name);
     const fileBuffer = await args.file.arrayBuffer();
     const blobData = new Uint8Array(fileBuffer);
 
-    // Step 1: Generate erasure coding commitments (runs WASM in browser)
-    console.log("🔧 Generating commitments...");
     const erasureProvider = await createDefaultErasureCodingProvider();
+    // Correct signature: generateCommitments(provider, data, onChunk?, options?)
     const commitments = await generateCommitments(erasureProvider, blobData);
 
-    console.log("✅ Commitments generated:", {
-      merkleRoot: commitments.blob_merkle_root,
-      size: blobData.length,
-      chunksets: commitments.chunkset_commitments.length,
-    });
-
-    // Step 2: Build the Move transaction payload (no signing needed)
+    // Step 2: Build the registration payload
+    console.log("🔨 Building registration payload...");
+    
+    const numChunksets = expectedTotalChunksets(blobData.length);
     const accountAddr = AccountAddress.fromString(args.accountAddress);
+
+    // createRegisterBlobPayload is a STATIC method
     const payload = ShelbyBlobClient.createRegisterBlobPayload({
-      deployer: AccountAddress.fromString(SHELBY_DEPLOYER),
       account: accountAddr,
       blobName: args.blobName,
       blobSize: blobData.length,
       blobMerkleRoot: commitments.blob_merkle_root,
       expirationMicros: args.expirationMicros,
-      numChunksets: commitments.chunkset_commitments.length,
+      numChunksets,
       encoding: 0, // default encoding
     });
 
@@ -96,9 +93,10 @@ export async function uploadWithBrowserWallet(
     // This handles the case where the wallet is on Shelbynet but the app shows Testnet.
     console.log("⏳ Waiting for L1 confirmation...");
     const { Aptos, AptosConfig, Network: AptosNetwork } = await import("@aptos-labs/ts-sdk");
+    const { NETWORK_CONFIGS } = await import("@/config/shelby");
 
-    const SHELBYNET_URL = "https://api.shelbynet.shelby.xyz/v1";
-    const TESTNET_URL   = "https://api.testnet.aptoslabs.com/v1";
+    const SHELBYNET_URL = NETWORK_CONFIGS.shelbynet.aptosNodeUrl;
+    const TESTNET_URL   = NETWORK_CONFIGS.testnet.aptosNodeUrl;
 
     // Ordered list: try the app-selected network first, then the other
     const nodeUrls = args.network === "shelbynet"
@@ -124,14 +122,14 @@ export async function uploadWithBrowserWallet(
         confirmed = true;
         console.log(`✅ Transaction confirmed on ${confirmedNetwork} (${nodeUrl})`);
         break;
-      } catch (e) {
+      } catch {
         console.warn(`⚠️ Not found on ${nodeUrl}, trying next...`);
       }
     }
 
     if (!confirmed) {
       throw new Error(
-        `Transaction ${txHash} not found on either Shelbynet or Testnet after 60s. ` +
+        `Transaction ${txHash} not found on either network after 60s. ` +
         `Check: https://explorer.aptoslabs.com/txn/${txHash}`
       );
     }
@@ -143,9 +141,29 @@ export async function uploadWithBrowserWallet(
 
     // Step 4: Upload actual blob data to RPC storage nodes
     console.log("📤 Uploading blob data to storage nodes...");
+
+    // PROXY FIX: In development (localhost), the Shelby RPC server rejects requests with 401
+    // because the browser's Origin header (localhost) doesn't match the API key's allowed origin.
+    // We use a local proxy to override the Origin header.
+    const isLocal = typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" ||
+       window.location.hostname === "127.0.0.1" ||
+       window.location.hostname.startsWith("192.168.") ||
+       window.location.hostname.startsWith("10."));
+       
+    const proxyNetwork = confirmedNetwork === "shelbynet" ? "shelbynet" : "testnet";
+    // IMPORTANT: Must end with a slash so the SDK's URL joining works correctly
+    const proxyBaseUrl = isLocal ? `${window.location.origin}/api/shelby/proxy/${proxyNetwork}/` : undefined;
+
+    if (isLocal) {
+      console.log("🛠️ Local development detected, using Shelby Proxy:", proxyBaseUrl);
+    }
+
     const rpcClient = new ShelbyRPCClient({
       network: resolvedSdkNetwork,
       apiKey,
+      // @ts-ignore - custom baseUrl to use our proxy in development
+      rpc: proxyBaseUrl ? { baseUrl: proxyBaseUrl } : undefined,
     });
 
     await rpcClient.putBlob({

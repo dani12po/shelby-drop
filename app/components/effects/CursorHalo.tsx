@@ -16,7 +16,6 @@ export default function CursorHalo() {
   }, []);
 
   useEffect(() => {
-    // SSR-safe: only add event listeners on client
     if (!mounted) return;
 
     const move = (e: MouseEvent) => {
@@ -27,7 +26,6 @@ export default function CursorHalo() {
     return () => window.removeEventListener("mousemove", move);
   }, [mounted, x, y]);
 
-  // SSR-safe: don't render on server
   if (!mounted) {
     return null;
   }

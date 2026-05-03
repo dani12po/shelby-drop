@@ -20,6 +20,14 @@ const UPLOAD_DIR = path.join(
  * This endpoint DOES NOT upload files.
  * It only records metadata for Explorer viewer.
  */
+
+interface UploadIndexItem {
+  blob_name: string;
+  size: number | null;
+  contentType: string;
+  createdAt: string;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -77,7 +85,7 @@ export async function POST(req: Request) {
     /* ===============================
        READ EXISTING INDEX
     ================================ */
-    let index: any[] = [];
+    let index: UploadIndexItem[] = [];
 
     try {
       const existing = await fs.readFile(
@@ -94,7 +102,7 @@ export async function POST(req: Request) {
        (by blob_name)
     ================================ */
     const exists = index.some(
-      (item) => item.blob_name === blob_name
+      (item: UploadIndexItem) => item.blob_name === blob_name
     );
 
     if (!exists) {

@@ -28,7 +28,7 @@ import ShareModal from "@/components/modals/share/ShareModal";
 
 /* ── helpers ── */
 
-const GATEWAY = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://gateway.shelby.xyz";
+const GATEWAY = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://api.testnet.shelby.xyz/shelby/v1/blobs";
 
 function fileUrl(wallet: string, name: string) {
   return `${GATEWAY}/${wallet}/${encodeURIComponent(name)}`;
@@ -55,60 +55,40 @@ function isPreviewable(name: string): boolean {
 /* ── inline preview component ── */
 
 function InlinePreview({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
-  const ext = name.split(".").pop()?.toLowerCase() ?? "";
   const mime = getMimeType(name);
 
   return createPortal(
     <AnimatePresence>
       <>
         <motion.div
-          style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
+          className="fixed inset-0 z-[80] bg-black/85 backdrop-blur-md"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={onClose}
         />
-        <motion.div
-          style={{
-            position: "fixed", top: "50%", left: "50%", x: "-50%", y: "-50%",
-            zIndex: 90, borderRadius: "20px", padding: "2px",
-            background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-            backgroundSize: "400% 100%", animation: "walletBorder 4s linear infinite",
-            width: "min(860px, 95vw)",
-          }}
-          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div style={{
-            background: "var(--bg-modal)", borderRadius: "18px",
-            padding: "20px", display: "flex", flexDirection: "column",
-            maxHeight: "85vh", overflow: "hidden",
-          }}>
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none">
+          <motion.div
+            className="relative p-[2px] rounded-[20px] bg-gradient-to-r from-sky-300 via-violet-400 to-blue-400 bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite] w-full max-w-[860px] pointer-events-auto"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+          <div className="bg-[var(--bg-modal)] rounded-[18px] p-5 flex flex-col h-[min(85vh,720px)] overflow-hidden">
             {/* header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "80%" }}>
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-[80%]">
                 {name}
               </span>
-              <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+              <div className="flex gap-2 shrink-0">
                 <a
                   href={`${url}?attachment=1`}
                   download={name}
-                  style={{
-                    padding: "6px 14px", borderRadius: "8px",
-                    background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-                    color: "white", fontSize: "0.8rem", fontWeight: 600,
-                    textDecoration: "none", display: "flex", alignItems: "center", gap: "6px",
-                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-blue-500 text-white text-xs font-semibold no-underline flex items-center gap-1.5 hover:opacity-90 transition-opacity"
                 >
                   <Download size={13} /> Download
                 </a>
                 <button
                   onClick={onClose}
-                  style={{
-                    width: "32px", height: "32px", borderRadius: "8px",
-                    border: "none", background: "rgba(255,255,255,0.06)",
-                    color: "#94a3b8", cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
+                  className="w-8 h-8 rounded-lg border-none bg-white/5 text-slate-400 cursor-pointer flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -116,38 +96,33 @@ function InlinePreview({ url, name, onClose }: { url: string; name: string; onCl
             </div>
 
             {/* content */}
-            <div style={{ flex: 1, minHeight: 0, overflow: "auto", borderRadius: "10px", background: "rgba(0,0,0,0.4)", padding: "12px" }}>
+            <div className="flex-1 min-h-0 overflow-auto rounded-xl bg-black/40 p-3">
               {mime.startsWith("image/") && (
-                <img src={url} alt={name} style={{ maxWidth: "100%", maxHeight: "60vh", objectFit: "contain", display: "block", margin: "0 auto" }} />
+                <img src={url} alt={name} className="max-w-full max-h-[60vh] object-contain block mx-auto" />
               )}
               {mime.startsWith("video/") && (
-                <video src={url} controls style={{ width: "100%", maxHeight: "60vh" }} />
+                <video src={url} controls className="w-full max-h-[60vh]" />
               )}
               {mime.startsWith("audio/") && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
-                  <audio src={url} controls style={{ width: "100%" }} />
+                <div className="py-10 px-5 text-center">
+                  <audio src={url} controls className="w-full" />
                 </div>
               )}
               {mime === "application/pdf" && (
-                <iframe src={`${url}#toolbar=0`} style={{ width: "100%", height: "60vh", border: "none" }} title={name} />
+                <iframe src={`${url}#toolbar=0`} className="w-full h-[60vh] border-none" title={name} />
               )}
               {(mime.startsWith("text/") || mime === "application/json") && (
                 <TextFetcher url={url} />
               )}
               {!mime.startsWith("image/") && !mime.startsWith("video/") && !mime.startsWith("audio/") &&
                mime !== "application/pdf" && !mime.startsWith("text/") && mime !== "application/json" && (
-                <div style={{ textAlign: "center", padding: "60px 20px", color: "#64748b" }}>
-                  <File size={48} style={{ margin: "0 auto 16px", opacity: 0.4 }} />
-                  <p style={{ fontSize: "0.875rem" }}>Preview not available for this file type.</p>
+                <div className="text-center py-16 px-5 text-slate-500">
+                  <File size={48} className="mx-auto mb-4 opacity-40" />
+                  <p className="text-sm">Preview not available for this file type.</p>
                   <a
                     href={`${url}?attachment=1`}
                     download={name}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: "6px",
-                      marginTop: "16px", padding: "10px 20px", borderRadius: "8px",
-                      background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-                      color: "white", fontSize: "0.85rem", fontWeight: 600, textDecoration: "none",
-                    }}
+                    className="inline-flex items-center gap-1.5 mt-4 px-5 py-2.5 rounded-lg bg-gradient-to-r from-violet-500 to-blue-500 text-white text-sm font-semibold no-underline hover:opacity-90 transition-opacity"
                   >
                     <Download size={14} /> Download instead
                   </a>
@@ -155,7 +130,8 @@ function InlinePreview({ url, name, onClose }: { url: string; name: string; onCl
               )}
             </div>
           </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </>
     </AnimatePresence>,
     document.body
@@ -173,10 +149,10 @@ function TextFetcher({ url }: { url: string }) {
       .catch(() => setErr(true));
   }, [url]);
 
-  if (err) return <p style={{ color: "#f87171", fontSize: "0.875rem" }}>Failed to load content.</p>;
-  if (!text) return <p style={{ color: "#64748b", fontSize: "0.875rem" }}>Loading…</p>;
+  if (err) return <p className="text-red-400 text-sm">Failed to load content.</p>;
+  if (!text) return <p className="text-slate-500 text-sm">Loading…</p>;
   return (
-    <pre style={{ fontSize: "0.8rem", color: "#94a3b8", whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0 }}>
+    <pre className="text-xs text-slate-400 whitespace-pre-wrap break-words m-0">
       {text}
     </pre>
   );
@@ -255,161 +231,109 @@ export default function WalletSearchModal({ wallet, onClose, onViewFile }: Props
     <>
       {/* BACKDROP */}
       <motion.div
-        style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+        className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
       />
 
       {/* GRADIENT BORDER */}
-      <motion.div
-        style={{
-          position: "fixed", top: "50%", left: "50%", x: "-50%", y: "-50%",
-          zIndex: 60, borderRadius: "28px", padding: "2px",
-          background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-          backgroundSize: "400% 100%", animation: "walletBorder 4s linear infinite",
-        }}
-        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.25, ease: "easeOut" }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+        <motion.div
+          className="relative p-[2px] rounded-[28px] bg-gradient-to-r from-sky-300 via-violet-400 to-blue-400 bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite] pointer-events-auto"
+          initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ duration: 0.25, ease: "easeOut" }}
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* MODAL BODY */}
-        <div style={{
-          width: "min(640px, 95vw)", minHeight: "400px", maxHeight: "80vh",
-          borderRadius: "26px", background: "var(--bg-modal)",
-          color: "var(--text-primary)", display: "flex", flexDirection: "column",
-          overflow: "hidden",
-        }}>
+        <div className="w-[min(640px,calc(100vw-32px))] min-h-[400px] h-[min(80vh,640px)] rounded-[26px] bg-[var(--bg-modal)] text-[var(--text-primary)] flex flex-col overflow-hidden">
           {/* Top accent bar */}
-          <div style={{
-            height: "3px", flexShrink: 0,
-            background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-            backgroundSize: "400% 100%",
-            animation: "walletBorder 4s linear infinite",
-          }} />
+          <div className="h-[3px] shrink-0 bg-gradient-to-r from-sky-300 via-violet-400 to-blue-400 bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite]" />
 
-          <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "15px" }}>
+          <div className="flex flex-col h-full p-4">
 
             {/* HEADER */}
-            <div style={{ position: "relative", textAlign: "center", paddingTop: "8px", paddingBottom: "20px" }}>
+            <div className="relative text-center pt-2 pb-5">
               <button
                 onClick={onClose}
-                style={{
-                  position: "absolute", right: 0, top: 0,
-                  width: "32px", height: "32px", borderRadius: "8px",
-                  border: "none", background: "rgba(255,255,255,0.06)",
-                  color: "#94a3b8", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
+                className="absolute right-0 top-0 w-8 h-8 rounded-lg border-none bg-white/5 text-slate-400 cursor-pointer flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
               >
                 <X size={16} strokeWidth={2} />
               </button>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+              <h2 className="text-lg font-bold text-[var(--text-primary)] m-0">
                 Wallet Files
               </h2>
-              <p style={{ fontSize: "0.78rem", color: "#64748b", fontFamily: "monospace", marginTop: "6px", marginBottom: 0 }}>
+              <p className="text-[0.78rem] text-slate-500 font-mono mt-1.5 mb-0">
                 {wallet.slice(0, 10)}…{wallet.slice(-6)}
               </p>
               <button
                 onClick={handleCopy}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "4px",
-                  marginTop: "6px", background: "none", border: "none",
-                  color: copied ? "#10b981" : "#475569",
-                  fontSize: "0.72rem", cursor: "pointer", transition: "color 0.2s",
-                }}
+                className={`inline-flex items-center gap-1 mt-1.5 bg-transparent border-none text-[0.72rem] cursor-pointer transition-colors ${copied ? "text-emerald-500" : "text-slate-500 hover:text-slate-400"}`}
               >
                 {copied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy address</>}
               </button>
             </div>
 
             {/* FILE COUNT */}
-            <div style={{ padding: "0 8px 8px", fontSize: "0.75rem", color: "#475569" }}>
+            <div className="px-2 pb-2 text-[0.75rem] text-slate-500">
               {result?.total || 0} files found
             </div>
 
             {/* CONTENT */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "0 8px" }}>
+            <div className="flex-1 overflow-y-auto px-2">
               {isLoading && (
-                <div style={{ padding: "48px 0", textAlign: "center" }}>
+                <div className="py-12 text-center">
                   <Loader2 className="w-8 h-8 mx-auto mb-4 text-purple-400 animate-spin" />
-                  <div style={{ fontSize: "0.875rem", color: "#64748b" }}>Loading files…</div>
+                  <div className="text-sm text-slate-500">Loading files…</div>
                 </div>
               )}
 
               {isEmpty && (
-                <div style={{ padding: "64px 0", textAlign: "center" }}>
-                  <FolderOpen style={{ width: 48, height: 48, margin: "0 auto 16px", opacity: 0.2 }} />
-                  <div style={{ fontSize: "0.875rem", color: "#64748b" }}>No files found for this wallet</div>
+                <div className="py-16 text-center">
+                  <FolderOpen className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                  <div className="text-sm text-slate-500">No files found for this wallet</div>
                 </div>
               )}
 
               {hasError && (
-                <div style={{ padding: "64px 0", textAlign: "center" }}>
-                  <AlertCircle style={{ width: 48, height: 48, margin: "0 auto 16px", color: "#f87171" }} />
-                  <div style={{ fontSize: "0.875rem", color: "#f87171", marginBottom: "8px" }}>Failed to load files</div>
-                  <div style={{ fontSize: "0.75rem", color: "#475569" }}>{error}</div>
+                <div className="py-16 text-center">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
+                  <div className="text-sm text-red-400 mb-2">Failed to load files</div>
+                  <div className="text-xs text-slate-500">{error}</div>
                 </div>
               )}
 
               {hasResults && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div className="flex flex-col gap-2">
                   {result!.files.map((file, index) => (
                     <div
                       key={index}
-                      style={{
-                        padding: "12px 14px", borderRadius: "12px",
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        transition: "all 0.15s",
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
-                      }}
+                      className="p-3 rounded-xl bg-white/5 border border-white/10 transition-all hover:bg-white/10 hover:border-white/20"
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <div className="flex items-center gap-3">
                         {/* icon */}
-                        <div style={{
-                          width: "40px", height: "40px", borderRadius: "10px",
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.06)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          flexShrink: 0,
-                        }}>
+                        <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                           {getFileIcon(file.type)}
                         </div>
 
                         {/* info */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: "0.875rem", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate text-[var(--text-primary)]">
                             {file.name}
                           </div>
                           {file.size && (
-                            <div style={{ fontSize: "0.75rem", color: "#475569", marginTop: "2px" }}>
+                            <div className="text-[0.75rem] text-slate-500 mt-0.5">
                               {file.size}
                             </div>
                           )}
                         </div>
 
                         {/* actions */}
-                        <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+                        <div className="flex gap-1 shrink-0">
                           {isPreviewable(file.name) && (
                             <button
                               onClick={() => setPreviewFile(file)}
                               title="Preview"
-                              style={{
-                                width: "30px", height: "30px", borderRadius: "8px",
-                                border: "none", background: "rgba(139,92,246,0.12)",
-                                color: "#a78bfa", cursor: "pointer",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                transition: "all 0.15s",
-                              }}
-                              onMouseEnter={e => { e.currentTarget.style.background = "rgba(139,92,246,0.25)"; e.currentTarget.style.color = "white"; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = "rgba(139,92,246,0.12)"; e.currentTarget.style.color = "#a78bfa"; }}
+                              className="w-8 h-8 rounded-lg border-none bg-violet-500/10 text-violet-400 cursor-pointer flex items-center justify-center transition-all hover:bg-violet-500/25 hover:text-white"
                             >
                               <Eye size={14} />
                             </button>
@@ -417,30 +341,14 @@ export default function WalletSearchModal({ wallet, onClose, onViewFile }: Props
                           <button
                             onClick={() => handleDownload(file)}
                             title="Download"
-                            style={{
-                              width: "30px", height: "30px", borderRadius: "8px",
-                              border: "none", background: "rgba(59,130,246,0.12)",
-                              color: "#60a5fa", cursor: "pointer",
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              transition: "all 0.15s",
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(59,130,246,0.25)"; e.currentTarget.style.color = "white"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(59,130,246,0.12)"; e.currentTarget.style.color = "#60a5fa"; }}
+                            className="w-8 h-8 rounded-lg border-none bg-blue-500/10 text-blue-400 cursor-pointer flex items-center justify-center transition-all hover:bg-blue-500/25 hover:text-white"
                           >
                             <Download size={14} />
                           </button>
                           <button
                             onClick={() => handleShare(file)}
                             title="Share"
-                            style={{
-                              width: "30px", height: "30px", borderRadius: "8px",
-                              border: "none", background: "rgba(16,185,129,0.12)",
-                              color: "#34d399", cursor: "pointer",
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              transition: "all 0.15s",
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(16,185,129,0.25)"; e.currentTarget.style.color = "white"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(16,185,129,0.12)"; e.currentTarget.style.color = "#34d399"; }}
+                            className="w-8 h-8 rounded-lg border-none bg-emerald-500/10 text-emerald-400 cursor-pointer flex items-center justify-center transition-all hover:bg-emerald-500/25 hover:text-white"
                           >
                             <Share2 size={14} />
                           </button>
@@ -453,36 +361,25 @@ export default function WalletSearchModal({ wallet, onClose, onViewFile }: Props
             </div>
 
             {/* FOOTER */}
-            <div style={{ paddingTop: "16px", paddingBottom: "4px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div className="pt-4 pb-1 flex flex-col gap-2">
               <button
                 onClick={handleOpenExplorer}
-                style={{
-                  width: "100%", padding: "12px", borderRadius: "10px",
-                  border: "none", background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-                  color: "white", fontSize: "0.9rem", fontWeight: 600,
-                  cursor: "pointer", display: "flex", alignItems: "center",
-                  justifyContent: "center", gap: "8px",
-                }}
+                className="w-full p-3 rounded-xl border-none bg-gradient-to-r from-violet-500 to-blue-500 text-white text-sm font-semibold cursor-pointer flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
               >
-                <ExternalLink style={{ width: 16, height: 16 }} />
+                <ExternalLink size={16} />
                 Open Full Explorer
               </button>
               <button
                 onClick={onClose}
-                style={{
-                  width: "100%", padding: "10px", background: "none",
-                  border: "none", color: "#475569", fontSize: "0.8rem",
-                  cursor: "pointer", borderRadius: "10px", transition: "color 0.2s",
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = "#94a3b8"}
-                onMouseLeave={e => e.currentTarget.style.color = "#475569"}
+                className="w-full p-2.5 bg-transparent border-none text-slate-500 text-xs cursor-pointer rounded-xl transition-colors hover:text-slate-400"
               >
                 Close
               </button>
             </div>
           </div>
         </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
       {/* INLINE PREVIEW */}
       {previewFile && (

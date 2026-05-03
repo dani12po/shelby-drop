@@ -9,7 +9,7 @@ export function signObjectUrl(objectKey: string, options: SignOptions): string {
   // 2. Using AWS SDK or similar to generate presigned URLs
   // 3. Including proper signature headers
   
-  const gatewayOrigin = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://gateway.shelby.xyz";
+  const gatewayOrigin = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || "https://api.testnet.shelby.xyz/shelby/v1/blobs";
   const baseUrl = `${gatewayOrigin}/${objectKey}`;
   
   if (options.expiresIn) {

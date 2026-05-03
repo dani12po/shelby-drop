@@ -6,6 +6,7 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import WalletModal from "../components/wallet/WalletModal";
+import { ChevronDown, ExternalLink, MessageCircle } from "lucide-react";
 
 const faqs = [
   {
@@ -46,20 +47,22 @@ const faqs = [
   },
   {
     question: "Di mana saya bisa mendapatkan APT dan ShelbyUSD untuk testnet?",
-    answer: "APT testnet bisa didapatkan melalui Petra wallet dengan klik tombol 'Faucet' setelah switch ke network Shelbynet. ShelbyUSD testnet bisa didapatkan dengan bergabung di Discord Shelby (discord.gg/shelbyserves) dan request di channel yang tersedia.",
+    answer: "APT testnet bisa didapatkan melalui Petra wallet dengan klik tombol 'Faucet' setelah memastikan berada di network Testnet. ShelbyUSD testnet bisa didapatkan dengan bergabung di Discord Shelby (discord.gg/shelbyserves) dan request di channel yang tersedia.",
   },
 ];
 
 export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const { wallets, connect } = useWallet();
+  const { wallets, connect, connected, disconnect } = useWallet();
   const [walletModalOpen, setWalletModalOpen] = useState(false);
 
-  const handleConnect = () => setWalletModalOpen(true);
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1 }}>
-      <Header connected={false} onConnect={handleConnect} onDisconnect={() => {}} />
+    <div className="min-h-screen flex flex-col bg-transparent relative z-[1]">
+      <Header 
+        connected={connected} 
+        onConnect={() => setWalletModalOpen(true)} 
+        onDisconnect={disconnect} 
+      />
       
       <WalletModal
         open={walletModalOpen}
@@ -71,35 +74,28 @@ export default function FAQPage() {
         onClose={() => setWalletModalOpen(false)}
       />
       
-      <main style={{ flex: 1, paddingTop: '64px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px' }}>
+      <main className="flex-1 pt-16">
+        <div className="max-w-[1280px] mx-auto px-6 py-12 md:py-20">
           
           {/* Hero Section */}
-          <section style={{ marginBottom: '60px', textAlign: 'center' }}>
+          <section className="mb-16 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 style={{
-                fontSize: 'clamp(28px, 5vw, 48px)',
-                fontWeight: 700,
-                marginBottom: '24px',
-                background: 'linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
+              <h1 className="text-[clamp(2rem,6vw,3.5rem)] font-extrabold mb-6 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 bg-clip-text text-transparent">
                 Frequently Asked Questions
               </h1>
-              <p style={{ fontSize: '18px', color: 'var(--text-secondary)' }}>
-                Jawaban untuk pertanyaan yang sering diajukan
+              <p className="text-base md:text-lg text-[var(--text-secondary)] max-w-[600px] mx-auto">
+                Jawaban untuk pertanyaan yang sering diajukan tentang Shelby Drop.
               </p>
             </motion.div>
           </section>
 
           {/* FAQ Section */}
-          <section style={{ marginBottom: '60px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '800px', margin: '0 auto' }}>
+          <section className="mb-20">
+            <div className="max-w-[800px] mx-auto space-y-4">
               {faqs.map((faq, index) => (
                 <motion.div
                   key={index}
@@ -107,40 +103,19 @@ export default function FAQPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05 }}
-                  style={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '12px',
-                    marginBottom: '8px',
-                    overflow: 'hidden',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
-                  }}
+                  className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden backdrop-blur-xl"
                 >
                   <button
                     onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '20px 24px',
-                      textAlign: 'left',
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
+                    className="w-full flex items-center justify-between p-5 md:p-6 text-left transition-colors hover:bg-[var(--bg-card-hover)]"
                   >
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.95rem', flex: 1, paddingRight: '16px' }}>{faq.question}</span>
-                    <span style={{
-                      color: 'var(--text-muted)',
-                      transition: 'transform 0.2s',
-                      transform: openIndex === index ? 'rotate(180deg)' : 'rotate(0deg)'
-                    }}>
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
+                    <span className="text-[var(--text-primary)] font-bold text-sm md:text-base pr-8">
+                      {faq.question}
                     </span>
+                    <ChevronDown 
+                      size={20} 
+                      className={`text-[var(--text-muted)] transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}
+                    />
                   </button>
                   <AnimatePresence>
                     {openIndex === index && (
@@ -148,9 +123,9 @@ export default function FAQPage() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
                       >
-                        <div style={{ padding: '0 20px 18px', color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.7 }}>
+                        <div className="px-6 pb-6 text-[var(--text-secondary)] text-sm md:text-base leading-relaxed border-t border-[var(--border)] pt-4">
                           {faq.answer}
                         </div>
                       </motion.div>
@@ -162,49 +137,36 @@ export default function FAQPage() {
           </section>
 
           {/* Contact Section */}
-          <section style={{ padding: '60px 0', textAlign: 'center' }}>
+          <section className="py-16 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              style={{ maxWidth: '500px', margin: '0 auto', padding: '0 24px' }}
+              className="max-w-[600px] mx-auto p-10 rounded-3xl bg-gradient-to-b from-[var(--bg-card)] to-transparent border border-[var(--border)]"
             >
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px' }}>
+              <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-4">
                 Masih ada pertanyaan?
               </h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
+              <p className="text-[var(--text-secondary)] mb-10">
                 Jika Anda tidak menemukan jawaban yang Anda cari, jangan ragu untuk menghubungi kami.
               </p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <div className="flex flex-wrap justify-center gap-4">
                 <a
                   href="https://docs.shelby.xyz"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    padding: '12px 24px',
-                    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                    color: 'white',
-                    borderRadius: '8px',
-                    fontWeight: 500,
-                    textDecoration: 'none'
-                  }}
+                  className="flex items-center gap-2 px-8 py-3.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
                 >
+                  <ExternalLink size={18} />
                   Dokumentasi
                 </a>
                 <a
                   href="https://x.com/Iq_dani26"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    padding: '12px 24px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
-                    borderRadius: '8px',
-                    fontWeight: 500,
-                    textDecoration: 'none'
-                  }}
+                  className="flex items-center gap-2 px-8 py-3.5 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl font-bold hover:border-[var(--text-accent)] transition-all"
                 >
+                  <MessageCircle size={18} />
                   Hubungi Kami
                 </a>
               </div>

@@ -153,6 +153,6 @@ function getFileType(filename: string): string {
  * BUG #4 FIX: Use S3 Gateway, not the blob API endpoint
  */
 export function getShelbyFileUrl(wallet: string, filename: string): string {
-  const gateway = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || 'https://gateway.shelby.xyz';
+  const gateway = process.env.NEXT_PUBLIC_S3_GATEWAY_ORIGIN || 'https://api.testnet.shelby.xyz/shelby/v1/blobs';
   return `${gateway}/${wallet}/${filename}`;
 }

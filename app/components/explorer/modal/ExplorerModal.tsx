@@ -180,116 +180,89 @@ export default function ExplorerModal({
           />
 
           {/* Modal */}
-          <motion.div
-            style={{
-              position: "fixed", top: "50%", left: "50%",
-              x: "-50%", y: "-50%", zIndex: 60,
-              borderRadius: "28px", padding: "2px",
-              background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-              backgroundSize: "400% 100%", animation: "walletBorder 4s linear infinite",
-            }}
-            initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{
-              width: "1000px", maxWidth: "95vw",
-              height: "75vh", maxHeight: "780px", minHeight: "500px",
-              borderRadius: "26px", background: "var(--bg-modal)",
-              color: "white",
-              display: "flex", flexDirection: "column", overflow: "hidden",
-            }}>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              className="relative w-full max-w-[1000px] rounded-[28px] p-[2px] pointer-events-auto"
+              style={{
+                background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
+                backgroundSize: "400% 100%", animation: "walletBorder 4s linear infinite",
+              }}
+              initial={{ opacity: 0, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-full h-[85vh] md:h-[75vh] max-h-[780px] min-h-[400px] md:min-h-[500px] rounded-[26px] bg-[var(--bg-modal)] text-white flex flex-col overflow-hidden">
 
               {/* Top accent bar */}
-              <div style={{
-                height: "3px", flexShrink: 0,
-                background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-                backgroundSize: "400% 100%",
-                animation: "walletBorder 4s linear infinite",
-              }} />
+              <div className="h-[3px] flex-shrink-0 bg-gradient-to-r from-[#7dd3fc] via-[#a78bfa] to-[#f472b6] bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite]" />
 
-              <div style={{ padding: "24px", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-              {/* Header */}
-              <div style={{ flexShrink: 0, marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ flex: 1 }} />
-                <div style={{ textAlign: "center" }}>
-                  <h2 style={{ fontSize: "1.2rem", fontWeight: 700, margin: 0 }}>Shelby Explorer</h2>
-                  <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.5)" }}>Files &amp; Folders</div>
+              <div className="p-4 sm:p-6 flex flex-col flex-1 min-h-0">
+                {/* Header */}
+                <div className="flex-shrink-0 mb-4 flex items-center justify-between">
+                  <div className="flex-1" />
+                  <div className="text-center">
+                    <h2 className="text-lg sm:text-xl font-bold m-0">Shelby Explorer</h2>
+                    <div className="text-xs text-white/50">Files & Folders</div>
+                  </div>
+                  <div className="flex-1 flex justify-end">
+                    <button
+                      onClick={onClose}
+                      className="w-8 h-8 rounded-lg bg-white/5 text-slate-400 hover:bg-white/10 transition-colors flex items-center justify-center"
+                    >
+                      <X size={16} strokeWidth={2} />
+                    </button>
+                  </div>
                 </div>
-                <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    onClick={onClose}
-                    style={{
-                      width: "32px", height: "32px", borderRadius: "8px", border: "none",
-                      background: "rgba(255,255,255,0.06)", color: "#94a3b8", cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}
-                  >
-                    <X size={16} strokeWidth={2} />
-                  </button>
+
+
+                {/* Action bar */}
+                <div className="flex gap-1.5 sm:gap-2 mb-3 flex-wrap flex-shrink-0">
+                  <ActionButton icon={<Eye size={16} />}      label="View"     disabled={!primarySelectedFile} onClick={() => { const f = resolveFileByItem(); if (f) setPreviewFile(f); }} />
+                  <ActionButton icon={<Info size={16} />}     label="Metadata" disabled={!primarySelectedFile} onClick={() => handleMeta()} />
+                  <ActionButton icon={<Download size={16} />} label="Download" disabled={!selectedFiles.length} onClick={handleDownload} />
+                  <ActionButton icon={<Share2 size={16} />}   label="Share"    disabled={!primarySelectedFile} onClick={handleShare} />
+                  <ActionButton icon={<X size={16} />}        label="Clear"    disabled={!selectedIds.size}    onClick={() => setSelectedIds(new Set())} />
                 </div>
-              </div>
 
-              {/* Shelbynet warning banner */}
-              {network === "shelbynet" && (
-                <div style={{
-                  padding: "8px 14px", marginBottom: "12px",
-                  borderRadius: "8px", flexShrink: 0,
-                  background: "rgba(251,191,36,0.08)",
-                  border: "1px solid rgba(251,191,36,0.25)",
-                  fontSize: "0.75rem", color: "#fbbf24",
-                  display: "flex", alignItems: "center", gap: "8px",
-                }}>
-                  ⚠️ Shelbynet adalah devnet yang lebih lama. Untuk Early Access resmi gunakan <strong>Testnet</strong>.
+                {/* Breadcrumb */}
+                <div className="flex-shrink-0 mb-3">
+                  <ExplorerBreadcrumb path={path} onNavigate={setPath} />
                 </div>
-              )}
 
-              {/* Action bar */}
-              <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap", flexShrink: 0 }}>
-                <ActionButton icon={<Eye size={16} />}      label="View"     disabled={!primarySelectedFile} onClick={() => { const f = resolveFileByItem(); if (f) setPreviewFile(f); }} />
-                <ActionButton icon={<Info size={16} />}     label="Metadata" disabled={!primarySelectedFile} onClick={() => handleMeta()} />
-                <ActionButton icon={<Download size={16} />} label="Download" disabled={!selectedFiles.length} onClick={handleDownload} />
-                <ActionButton icon={<Share2 size={16} />}   label="Share"    disabled={!primarySelectedFile} onClick={handleShare} />
-                <ActionButton icon={<X size={16} />}        label="Clear"    disabled={!selectedIds.size}    onClick={() => setSelectedIds(new Set())} />
-              </div>
-
-              {/* Breadcrumb */}
-              <div style={{ flexShrink: 0, marginBottom: "12px" }}>
-                <ExplorerBreadcrumb path={path} onNavigate={setPath} />
-              </div>
-
-              {/* File list */}
-              <div style={{ flex: 1, minHeight: 0, borderRadius: "12px", background: "rgba(0,0,0,0.3)", overflow: "hidden" }}>
-                <div style={{ height: "100%", overflowY: "auto", padding: "12px" }}>
-                  {loading && (
-                    <div className="flex h-full items-center justify-center text-white/50 text-sm">Loading…</div>
-                  )}
-                  {!loading && error && (
-                    <div className="flex h-full items-center justify-center text-white/40 text-sm">Error loading files</div>
-                  )}
-                  {!loading && !error && items.length === 0 && (
-                    <div className="flex h-full items-center justify-center text-white/40 text-sm">No files found</div>
-                  )}
-                  {!loading && !error && items.length > 0 && (
-                    <ExplorerList
-                      items={items}
-                      selectedIds={selectedIds}
-                      onItemClick={handleItemClick}
-                      onContextMenu={handleContextMenu}
-                      onOpenFolder={(folder) => setPath((p) => [...p, folder.name])}
-                      onMeta={handleMeta}
-                      onDownload={handleDownloadItem}
-                      onShare={handleShareItem}
-                      onPreview={(item) => { const f = resolveFileByItem(item); if (f) setPreviewFile(f); }}
-                      itemRefs={itemRefs}
-                    />
-                  )}
+                {/* File list */}
+                <div className="flex-1 min-h-0 rounded-xl bg-black/30 overflow-hidden">
+                  <div className="h-full overflow-y-auto p-2 sm:p-3">
+                    {loading && (
+                      <div className="flex h-full items-center justify-center text-white/50 text-sm">Loading…</div>
+                    )}
+                    {!loading && error && (
+                      <div className="flex h-full items-center justify-center text-white/40 text-sm">Error loading files</div>
+                    )}
+                    {!loading && !error && items.length === 0 && (
+                      <div className="flex h-full items-center justify-center text-white/40 text-sm">No files found</div>
+                    )}
+                    {!loading && !error && items.length > 0 && (
+                      <ExplorerList
+                        items={items}
+                        selectedIds={selectedIds}
+                        onItemClick={handleItemClick}
+                        onContextMenu={handleContextMenu}
+                        onOpenFolder={(folder) => setPath((p) => [...p, folder.name])}
+                        onMeta={handleMeta}
+                        onDownload={handleDownloadItem}
+                        onShare={handleShareItem}
+                        onPreview={(item) => { const f = resolveFileByItem(item); if (f) setPreviewFile(f); }}
+                        itemRefs={itemRefs}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
 
               </div>{/* end padding div */}
             </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
           {/* Context menus */}
           {itemMenu && contextMenuCtx && (
@@ -339,15 +312,12 @@ function ActionButton({ icon, label, onClick, disabled }: {
       disabled={disabled}
       onClick={onClick}
       title={label}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg border text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap"
       style={{
-        display: "flex", alignItems: "center", gap: "6px",
-        padding: "8px 14px", borderRadius: "8px",
-        border: `1px solid ${disabled ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.15)"}`,
+        borderColor: disabled ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.15)",
         background: disabled ? "transparent" : "rgba(255,255,255,0.06)",
         color: disabled ? "#334155" : "#cbd5e1",
-        fontSize: "0.8rem", fontWeight: 500,
         cursor: disabled ? "not-allowed" : "pointer",
-        transition: "all 0.15s", whiteSpace: "nowrap",
       }}
       onMouseEnter={(e) => {
         if (!disabled) {

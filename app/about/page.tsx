@@ -6,7 +6,7 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import WalletModal from "../components/wallet/WalletModal";
-import { Shield, Infinity, Zap, Lock } from 'lucide-react';
+import { Shield, Infinity, Zap, Lock, ExternalLink, Github, Twitter, Linkedin } from 'lucide-react';
 
 type Feature = {
   icon: React.ReactNode
@@ -16,36 +16,38 @@ type Feature = {
 
 const features: Feature[] = [
   {
-    icon: <Lock size={28} strokeWidth={1.8} color="#8b5cf6" />,
+    icon: <Lock size={28} strokeWidth={1.8} className="text-purple-500" />,
     title: "Terdesentralisasi",
     description: "File disimpan di jaringan blockchain Aptos, bukan server terpusat. Data Anda sepenuhnya milik Anda.",
   },
   {
-    icon: <Infinity size={28} strokeWidth={1.8} color="#3b82f6" />,
+    icon: <Infinity size={28} strokeWidth={1.8} className="text-blue-500" />,
     title: "Permanen",
     description: "File akan tetap tersimpan selama Anda menentukan retention period. Tanpa takut data hilang.",
   },
   {
-    icon: <Zap size={28} strokeWidth={1.8} color="#06b6d4" />,
+    icon: <Zap size={28} strokeWidth={1.8} className="text-cyan-500" />,
     title: "Cepat",
     description: "Dibangun di atas infrastruktur Shelby Network yang modern dan responsif.",
   },
   {
-    icon: <Shield size={28} strokeWidth={1.8} color="#10b981" />,
+    icon: <Shield size={28} strokeWidth={1.8} className="text-emerald-500" />,
     title: "Aman",
     description: "Setiap file dienkripsi dan diverifikasi secara on-chain. Bukti kepemilikan transparan.",
   },
 ];
 
 export default function AboutPage() {
-  const { wallets, connect } = useWallet();
+  const { wallets, connect, connected, disconnect } = useWallet();
   const [walletModalOpen, setWalletModalOpen] = useState(false);
 
-  const handleConnect = () => setWalletModalOpen(true);
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', zIndex: 1 }}>
-      <Header connected={false} onConnect={handleConnect} onDisconnect={() => {}} />
+    <div className="min-h-screen flex flex-col bg-transparent relative z-[1]">
+      <Header 
+        connected={connected} 
+        onConnect={() => setWalletModalOpen(true)} 
+        onDisconnect={disconnect} 
+      />
       
       <WalletModal
         open={walletModalOpen}
@@ -57,34 +59,21 @@ export default function AboutPage() {
         onClose={() => setWalletModalOpen(false)}
       />
       
-      <main style={{ flex: 1, paddingTop: '64px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px' }}>
+      <main className="flex-1 pt-16">
+        <div className="max-w-[1280px] mx-auto px-6 py-12 md:py-20">
           
           {/* Hero Section */}
-          <section style={{ marginBottom: '80px' }}>
+          <section className="mb-16 md:mb-24">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              style={{ textAlign: 'center' }}
+              className="text-center"
             >
-              <h1 style={{
-                fontSize: 'clamp(32px, 5vw, 48px)',
-                fontWeight: 700,
-                marginBottom: '24px',
-                background: 'linear-gradient(135deg, var(--heading-from), var(--heading-to))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
+              <h1 className="text-[clamp(2rem,6vw,3.5rem)] font-extrabold mb-6 bg-gradient-to-br from-[var(--heading-from)] to-[var(--heading-to)] bg-clip-text text-transparent">
                 Tentang Shelby Drop
               </h1>
-              <p style={{
-                fontSize: '18px',
-                color: 'var(--text-secondary)',
-                maxWidth: '600px',
-                margin: '0 auto',
-                lineHeight: 1.6
-              }}>
+              <p className="text-base md:text-lg text-[var(--text-secondary)] max-w-[700px] mx-auto leading-relaxed">
                 Platform penyimpanan file terdesentralisasi di blockchain Aptos 
                 melalui Shelby Network. Upload, simpan, dan share file dengan 
                 keamanan blockchain.
@@ -93,27 +82,17 @@ export default function AboutPage() {
           </section>
 
           {/* Features Section */}
-          <section style={{ marginBottom: '80px' }}>
+          <section className="mb-16 md:mb-24">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              style={{
-                fontSize: '28px',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                textAlign: 'center',
-                marginBottom: '48px'
-              }}
+              className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] text-center mb-12"
             >
               Keunggulan Shelby Drop
             </motion.h2>
             
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '24px'
-            }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature, index) => (
                 <motion.div
                   key={feature.title}
@@ -121,46 +100,26 @@ export default function AboutPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  style={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '16px',
-                    padding: '24px',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    transition: 'all 0.3s'
-                  }}
+                  className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 backdrop-blur-xl hover:border-[var(--text-accent)] transition-all duration-300 group"
                 >
-                  <div style={{
-                    width: '56px', height: '56px',
-                    borderRadius: '14px',
-                    background: 'rgba(139,92,246,0.1)',
-                    border: '1px solid rgba(139,92,246,0.2)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: '16px'
-                  }}>
+                  <div className="w-14 h-14 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                     {feature.icon}
                   </div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>{feature.title}</h3>
-                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{feature.description}</p>
+                  <h3 className="text-lg font-bold text-[var(--text-primary)] mb-3">{feature.title}</h3>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{feature.description}</p>
                 </motion.div>
               ))}
             </div>
           </section>
 
           {/* About Section */}
-          <section style={{ marginBottom: '80px', borderRadius: '16px' }}>
-            <div style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 24px' }}>
+          <section className="mb-16 md:mb-24 bg-[var(--bg-card)]/30 border border-[var(--border)] rounded-3xl overflow-hidden">
+            <div className="max-w-[800px] mx-auto px-6 py-12 md:py-16">
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                style={{
-                  fontSize: '24px',
-                  fontWeight: 700,
-                  color: 'var(--text-primary)',
-                  marginBottom: '24px'
-                }}
+                className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-8"
               >
                 Latar Belakang
               </motion.h2>
@@ -169,7 +128,7 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                style={{ color: 'var(--text-secondary)', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '16px' }}
+                className="space-y-6 text-[var(--text-secondary)] text-base md:text-lg leading-relaxed"
               >
                 <p>
                   Shelby Drop adalah aplikasi Web3 yang memungkinkan Anda menyimpan 
@@ -192,113 +151,65 @@ export default function AboutPage() {
           </section>
 
           {/* Links Section */}
-          <section style={{ textAlign: 'center' }}>
+          <section className="text-center mb-16 md:mb-24">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              style={{
-                fontSize: '24px',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                marginBottom: '32px'
-              }}
+              className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-10"
             >
               Link Tambahan
             </motion.h2>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div className="flex flex-wrap justify-center gap-4">
               <a
                 href="https://shelby.xyz"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  padding: '12px 24px',
-                  background: 'linear-gradient(135deg, var(--accent-blue), var(--accent))',
-                  color: 'var(--text-on-accent)',
-                  borderRadius: '8px',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  transition: 'opacity 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-purple-500/20"
               >
-                Shelby.xyz
+                Shelby.xyz <ExternalLink size={16} />
               </a>
               <a
                 href="https://docs.shelby.xyz"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  padding: '12px 24px',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-primary)',
-                  borderRadius: '8px',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  transition: 'opacity 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                className="flex items-center gap-2 px-6 py-3 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl font-semibold hover:border-[var(--text-accent)] transition-all"
               >
-                Dokumentasi
+                Dokumentasi <ExternalLink size={16} />
               </a>
               <a
                 href="https://explorer.shelby.xyz/shelbynet"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  padding: '12px 24px',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-primary)',
-                  borderRadius: '8px',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  transition: 'opacity 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                className="flex items-center gap-2 px-6 py-3 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl font-semibold hover:border-[var(--text-accent)] transition-all"
               >
-                Shelby Explorer
+                Shelby Explorer <ExternalLink size={16} />
               </a>
             </div>
           </section>
 
           {/* Creator Section */}
-          <section style={{ padding: '60px 24px', textAlign: 'center' }}>
-            <div style={{
-              maxWidth: '500px', margin: '0 auto',
-              padding: '32px',
-            }}>
-              <div style={{
-                width: '64px', height: '64px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--accent), var(--accent-blue))',
-                margin: '0 auto 16px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.8rem'
-              }}>👨‍💻</div>
-              <h3 style={{ color: 'var(--text-primary)', fontWeight: 700, marginBottom: '8px' }}>
+          <section className="py-12 md:py-16 text-center">
+            <div className="max-w-[600px] mx-auto p-8 rounded-3xl bg-gradient-to-b from-[var(--bg-card)] to-transparent border border-[var(--border)]">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 mx-auto mb-6 flex items-center justify-center text-3xl shadow-xl shadow-purple-500/20">
+                👨‍💻
+              </div>
+              <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">
                 Dibuat oleh Imam Qolandani
               </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '20px' }}>
+              <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed mb-8">
                 Web3 developer yang passionate tentang decentralized technology
                 dan ekosistem Aptos blockchain.
               </p>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <a href="https://x.com/Iq_dani26" target="_blank"
-                  style={{ color: 'var(--text-link)', fontSize: '0.85rem', textDecoration: 'none' }}>
-                  Twitter/X
+              <div className="flex items-center justify-center gap-6">
+                <a href="https://x.com/Iq_dani26" target="_blank" className="text-[var(--text-secondary)] hover:text-blue-400 transition-colors">
+                  <Twitter size={20} />
                 </a>
-                <a href="https://github.com/dani12po" target="_blank"
-                  style={{ color: 'var(--text-link)', fontSize: '0.85rem', textDecoration: 'none' }}>
-                  GitHub
+                <a href="https://github.com/dani12po" target="_blank" className="text-[var(--text-secondary)] hover:text-white transition-colors">
+                  <Github size={20} />
                 </a>
-                <a href="https://www.linkedin.com/in/imam-qolandani-070373149/" target="_blank"
-                  style={{ color: 'var(--text-link)', fontSize: '0.85rem', textDecoration: 'none' }}>
-                  LinkedIn
+                <a href="https://www.linkedin.com/in/imam-qolandani-070373149/" target="_blank" className="text-[var(--text-secondary)] hover:text-blue-600 transition-colors">
+                  <Linkedin size={20} />
                 </a>
               </div>
             </div>

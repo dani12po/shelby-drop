@@ -56,9 +56,12 @@ export async function GET(req: Request) {
   /* ===============================
      ENVIRONMENT CHECK
   ================================ */
-  if (!SIGNING_SECRET_RAW) {
+  if (!SIGNING_SECRET_RAW || SIGNING_SECRET_RAW.length < 64) {
     return NextResponse.json(
-      { error: "Server configuration error: SHELBY_SIGNING_SECRET is missing" },
+      {
+        error: "Server configuration error: SHELBY_SIGNING_SECRET is missing or too weak. " +
+               "It must be at least 64 characters (hex)."
+      },
       { status: 500 }
     );
   }

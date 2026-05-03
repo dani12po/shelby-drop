@@ -18,7 +18,19 @@ const UPLOAD_DIR = path.join(
  *   wallet: string,
  *   blob_name: string
  * }
+ * {
+ *   wallet: string,
+ *   blob_name: string
+ * }
  */
+
+interface UploadIndexItem {
+  blob_name: string;
+  size: number | null;
+  contentType: string;
+  createdAt: string;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -79,7 +91,7 @@ export async function POST(req: Request) {
       "index.json"
     );
 
-    let index: any[] = [];
+    let index: UploadIndexItem[] = [];
 
     try {
       const existing = await fs.readFile(
@@ -92,7 +104,7 @@ export async function POST(req: Request) {
     }
 
     const nextIndex = index.filter(
-      (item) => item.blob_name !== blob_name
+      (item: UploadIndexItem) => item.blob_name !== blob_name
     );
 
     await fs.writeFile(

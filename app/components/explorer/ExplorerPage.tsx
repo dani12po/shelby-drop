@@ -45,10 +45,8 @@ export default function ExplorerPage({
   /* ===============================
      CORE STATE
   ================================ */
-  // Use walletAddress prop if provided, otherwise use internal state
   const [wallet, setWallet] = useState<string | null>(walletAddress || null);
 
-  // Update wallet when prop changes
   useEffect(() => {
     if (walletAddress) {
       setWallet(walletAddress);
@@ -58,14 +56,12 @@ export default function ExplorerPage({
   /* ===============================
      PREVIEW MODAL
   ================================ */
-  const [previewFile, setPreviewFile] =
-    useState<FileItemData | null>(null);
+  const [previewFile, setPreviewFile] = useState<FileItemData | null>(null);
 
   /* ===============================
      UPLOAD
   ================================ */
-  const [uploadOpen, setUploadOpen] =
-    useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [currentPath] = useState<string[]>([]);
 
   /* ===============================
@@ -73,7 +69,6 @@ export default function ExplorerPage({
   ================================ */
   useEffect(() => {
     if (hasActiveShare && shareMapping) {
-      // Auto-open Explorer with shared file
       setWallet(shareMapping.wallet);
       openExplorer({ 
         wallet: shareMapping.wallet,
@@ -86,59 +81,30 @@ export default function ExplorerPage({
   /* ===============================
      WALLET SEARCH CONTROLLER
   ================================ */
-  const [searchWallet, setSearchWallet] =
-    useState<string | null>(null);
+  const [searchWallet, setSearchWallet] = useState<string | null>(null);
 
   /* ===============================
      RENDER
   ================================ */
   return (
     <>
-      {/* ===============================
-         SEARCH PAGE (DEFAULT)
-      ================================ */}
       <AnimatePresence mode="wait">
         {!wallet && (
           <motion.div
             key="search"
             {...searchMotion}
-            transition={{
-              duration: 0.35,
-              ease: "easeOut",
-            }}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '50vh',
-              textAlign: 'center',
-              padding: '40px 20px'
-            }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6 py-12"
           >
             {/* BADGE */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                borderRadius: '9999px',
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                marginBottom: '24px'
-              }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 mb-8"
             >
               <Zap className="w-4 h-4 text-purple-400" />
-              <span style={{
-                fontSize: '13px',
-                fontWeight: 500,
-                color: 'var(--accent)',
-                letterSpacing: '0.02em'
-              }}>
+              <span className="text-xs font-bold text-[var(--accent)] tracking-wide uppercase">
                 Powered by Aptos
               </span>
             </motion.div>
@@ -148,20 +114,9 @@ export default function ExplorerPage({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              style={{
-                fontSize: 'clamp(32px, 6vw, 52px)',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                marginBottom: '16px',
-                lineHeight: 1.1,
-                letterSpacing: '-0.02em'
-              }}
+              className="text-[clamp(2.5rem,8vw,4rem)] font-black text-[var(--text-primary)] mb-6 leading-tight tracking-tight"
             >
-              <span style={{
-                background: 'linear-gradient(135deg, #a78bfa 0%, #60a5fa 50%, #34d399 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>
+              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
                 Shelby Drop
               </span>
             </motion.h1>
@@ -171,17 +126,10 @@ export default function ExplorerPage({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              style={{
-                fontSize: '16px',
-                color: 'var(--text-secondary)',
-                maxWidth: '480px',
-                marginBottom: '40px',
-                lineHeight: 1.6
-              }}
+              className="text-base md:text-lg text-[var(--text-secondary)] max-w-[520px] mb-10 leading-relaxed"
             >
               Download, upload, and share files using only your wallet.
-              <br />
-              <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+              <span className="block mt-2 text-sm text-[var(--text-muted)]">
                 No email required. No accounts. Just you and the blockchain.
               </span>
             </motion.p>
@@ -191,62 +139,32 @@ export default function ExplorerPage({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              style={{
-                display: 'flex',
-                gap: '32px',
-                marginBottom: '40px',
-                flexWrap: 'wrap',
-                justifyContent: 'center'
-              }}
+              className="flex flex-wrap items-center justify-center gap-8 md:gap-16 mb-12"
             >
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: '6px',
-                  color: 'var(--accent-blue)',
-                  fontSize: '24px',
-                  fontWeight: 700
-                }}>
-                  <FileKey className="w-5 h-5" />
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 text-[var(--accent-blue)] text-2xl md:text-3xl font-black">
+                  <FileKey className="w-5 h-5 md:w-6 md:h-6" />
                   100K+
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                <div className="text-[10px] md:text-xs text-[var(--text-muted)] uppercase tracking-widest font-bold mt-1">
                   Files Stored
                 </div>
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: '6px',
-                  color: 'var(--accent-green)',
-                  fontSize: '24px',
-                  fontWeight: 700
-                }}>
-                  <Layers className="w-5 h-5" />
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 text-[var(--accent-green)] text-2xl md:text-3xl font-black">
+                  <Layers className="w-5 h-5 md:w-6 md:h-6" />
                   50K+
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                <div className="text-[10px] md:text-xs text-[var(--text-muted)] uppercase tracking-widest font-bold mt-1">
                   Wallets
                 </div>
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: '6px',
-                  color: 'var(--accent)',
-                  fontSize: '24px',
-                  fontWeight: 700
-                }}>
-                  <Globe className="w-5 h-5" />
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 text-[var(--accent)] text-2xl md:text-3xl font-black">
+                  <Globe className="w-5 h-5 md:w-6 md:h-6" />
                   Global
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                <div className="text-[10px] md:text-xs text-[var(--text-muted)] uppercase tracking-widest font-bold mt-1">
                   Decentralized
                 </div>
               </div>
@@ -257,11 +175,10 @@ export default function ExplorerPage({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              style={{ width: '100%', maxWidth: '600px', marginBottom: '32px' }}
+              className="w-full max-w-[640px] mb-10"
             >
               <SearchBox
                 onSearch={(wallet) => {
-                  // hard reset controller
                   setSearchWallet(null);
                   requestAnimationFrame(() => {
                     setSearchWallet(wallet);
@@ -275,14 +192,11 @@ export default function ExplorerPage({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
-              style={{ display: 'flex', gap: '16px' }}
             >
               {connected && (
                 <UploadButton
                   connected={connected}
-                  onUpload={() =>
-                    setUploadOpen(true)
-                  }
+                  onUpload={() => setUploadOpen(true)}
                 />
               )}
             </motion.div>
@@ -293,23 +207,17 @@ export default function ExplorerPage({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                style={{
-                  marginTop: '48px',
-                  display: 'flex',
-                  gap: '24px',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center'
-                }}
+                className="mt-12 flex flex-wrap items-center justify-center gap-6 md:gap-10"
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                  <Shield className="w-4 h-4 text-green-400" />
+                <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs md:text-sm font-medium">
+                  <Shield className="w-4 h-4 text-emerald-400" />
                   <span>End-to-end encrypted</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs md:text-sm font-medium">
                   <Zap className="w-4 h-4 text-yellow-400" />
                   <span>Instant uploads</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs md:text-sm font-medium">
                   <Globe className="w-4 h-4 text-blue-400" />
                   <span>Worldwide CDN</span>
                 </div>
@@ -319,9 +227,6 @@ export default function ExplorerPage({
         )}
       </AnimatePresence>
 
-      {/* ===============================
-         UPLOAD PANEL
-      ================================ */}
       <UploadPanel
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
@@ -329,29 +234,19 @@ export default function ExplorerPage({
         path={currentPath}
       />
 
-      {/* ===============================
-         PREVIEW MODAL
-      ================================ */}
       {previewFile && wallet && (
         <PreviewModal
           file={previewFile}
           wallet={wallet}
           open={!!previewFile}
-          onClose={() =>
-            setPreviewFile(null)
-          }
+          onClose={() => setPreviewFile(null)}
         />
       )}
 
-      {/* ===============================
-         WALLET SEARCH CONTROLLER
-      ================================ */}
       {searchWallet && (
         <WalletSearchController
           wallet={searchWallet}
-          onClose={() =>
-            setSearchWallet(null)
-          }
+          onClose={() => setSearchWallet(null)}
         />
       )}
     </>

@@ -1,14 +1,14 @@
 "use client";
 
 import { useNetwork } from "@/hooks/useNetwork";
-import { NETWORK_CONFIGS, type ShelbyNetwork } from "@/config/shelby";
+import { NETWORK_CONFIGS } from "@/config/shelby";
 import { useState } from "react";
 
 export default function NetworkSwitcher() {
-  const { network, setNetwork } = useNetwork();
+  const { network } = useNetwork();
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const isTestnet = network === "testnet";
+  const config = NETWORK_CONFIGS[network];
 
   return (
     <div
@@ -34,69 +34,40 @@ export default function NetworkSwitcher() {
           backdropFilter: "blur(10px)",
           pointerEvents: "none",
         }}>
-          {isTestnet
-            ? "Early Access testnet (recommended)"
-            : "⚠️ Shelbynet is the older devnet"}
+          Early Access testnet (recommended)
         </div>
       )}
 
-      {/* Switcher pill */}
+      {/* Switcher pill (now just a display pill) */}
       <div style={{
         display: "flex",
         alignItems: "center",
         gap: "6px",
-        padding: "5px 10px",
+        padding: "5px 12px",
         borderRadius: "9999px",
-        border: `1px solid ${isTestnet ? "rgba(52,211,153,0.3)" : "rgba(251,191,36,0.3)"}`,
-        background: isTestnet ? "rgba(52,211,153,0.08)" : "rgba(251,191,36,0.08)",
-        cursor: "pointer",
+        border: "1px solid rgba(52,211,153,0.3)",
+        background: "rgba(52,211,153,0.08)",
         transition: "all 0.2s",
       }}>
         {/* Status dot */}
         <span style={{
           width: "6px", height: "6px", borderRadius: "50%",
-          background: isTestnet ? "#34d399" : "#fbbf24",
+          background: "#34d399",
           flexShrink: 0,
-          boxShadow: isTestnet
-            ? "0 0 6px rgba(52,211,153,0.6)"
-            : "0 0 6px rgba(251,191,36,0.6)",
+          boxShadow: "0 0 6px rgba(52,211,153,0.6)",
         }} />
 
-        {/* Select */}
-        <select
-          value={network}
-          onChange={(e) => setNetwork(e.target.value as ShelbyNetwork)}
+        {/* Label */}
+        <span
           style={{
-            background: "transparent",
-            border: "none",
-            outline: "none",
             fontSize: "0.72rem",
             fontWeight: 600,
-            color: isTestnet ? "#34d399" : "#fbbf24",
-            cursor: "pointer",
+            color: "#34d399",
             padding: 0,
-            appearance: "none",
-            WebkitAppearance: "none",
           }}
         >
-          {Object.entries(NETWORK_CONFIGS).map(([key, cfg]) => (
-            <option
-              key={key}
-              value={key}
-              style={{ background: "var(--bg-dropdown)", color: "var(--text-primary)" }}
-            >
-              {cfg.label}
-            </option>
-          ))}
-        </select>
-
-        {/* Chevron */}
-        <svg
-          width="10" height="10" viewBox="0 0 10 10" fill="none"
-          style={{ flexShrink: 0, opacity: 0.6 }}
-        >
-          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
+          {config.label}
+        </span>
       </div>
     </div>
   );

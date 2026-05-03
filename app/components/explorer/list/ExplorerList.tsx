@@ -8,14 +8,14 @@ import type { ExplorerItem } from "@/types/explorer";
 
 /* ===============================
    SORT TYPES
-================================ */
+ ================================ */
 
 type SortKey = "name" | "size";
 type SortDir = "asc" | "desc";
 
 /* ===============================
    PROPS
-================================ */
+ ================================ */
 
 type Props = {
   items: ExplorerItem[];
@@ -46,7 +46,7 @@ type Props = {
 
 /* ===============================
    COMPONENT
-================================ */
+ ================================ */
 
 export default function ExplorerList({
   items,
@@ -130,7 +130,7 @@ export default function ExplorerList({
     if (!col) {
       return (
         <div
-          className={`text-[#475569] ${
+          className={`text-slate-500 ${
             align === "right"
               ? "text-right"
               : ""
@@ -156,7 +156,7 @@ export default function ExplorerList({
           ${
             active
               ? "text-white"
-              : "text-[#475569] hover:text-white"
+              : "text-slate-500 hover:text-white"
           }
         `}
       >
@@ -179,12 +179,12 @@ export default function ExplorerList({
       {/* HEADER */}
       <div
         className="
-          grid grid-cols-[20px_minmax(0,1fr)_80px_120px]
-          px-[15px] py-2
-          text-[11px] font-medium
-          bg-[rgba(255,255,255,0.03)]
-          border-b border-[rgba(255,255,255,0.06)]
-          text-[#475569]
+          grid grid-cols-[24px_1fr_50px_80px] sm:grid-cols-[32px_1fr_80px_120px]
+          px-4 py-3
+          text-[10px] sm:text-[11px] font-bold uppercase tracking-wider
+          bg-white/[0.02]
+          border-b border-white/[0.05]
+          text-slate-500
         "
       >
         <div />
@@ -201,7 +201,7 @@ export default function ExplorerList({
       </div>
 
       {/* BODY */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {sortedItems.map((item, index) => {
           const selected =
             selectedIds.has(item.id);
@@ -216,13 +216,12 @@ export default function ExplorerList({
               }}
               className={`
                 relative
-                transition
-                bg-[rgba(255,255,255,0.02)]
-                border-b border-[rgba(255,255,255,0.04)]
+                transition-all
+                border-b border-white/[0.03]
                 ${
                   selected
-                    ? "bg-purple-500/15 ring-1 ring-purple-400/40"
-                    : "hover:bg-purple-500/08"
+                    ? "bg-purple-500/10 ring-1 ring-inset ring-purple-400/30"
+                    : "hover:bg-white/[0.03]"
                 }
               `}
             >

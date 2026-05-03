@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+/// <reference types="vitest/globals" />
+// app/__tests__/lib/uploadService.test.ts
 
 // Mock fetch globally
 const mockFetch = vi.fn();

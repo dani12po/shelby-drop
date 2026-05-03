@@ -36,182 +36,144 @@ export default function UploadPanel({ open, onClose, onUploaded }: UploadPanelPr
         <>
           {/* Backdrop */}
           <motion.div
-            style={{
-              position: "fixed", inset: 0, zIndex: 50,
-              background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)",
-            }}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
             onClick={onClose}
           />
 
           {/* Modal */}
-          <motion.div
-            style={{
-              position: "fixed", top: "50%", left: "50%",
-              x: "-50%", y: "-50%", zIndex: 60,
-              borderRadius: "28px", padding: "2px",
-              background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
-              backgroundSize: "400% 100%", animation: "walletBorder 4s linear infinite",
-              width: "480px", maxWidth: "95vw",
-            }}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{
-              background: "var(--bg-modal)", borderRadius: "26px",
-              color: "white", overflow: "hidden",
-            }}>
-
-              {/* Top accent bar */}
-              <div style={{
-                height: "3px",
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              className="relative w-full max-w-[480px] rounded-[28px] p-[2px] pointer-events-auto"
+              style={{
                 background: "linear-gradient(90deg,#7dd3fc,#a78bfa,#f472b6,#34d399,#fbbf24,#60a5fa,#a78bfa)",
                 backgroundSize: "400% 100%",
                 animation: "walletBorder 4s linear infinite",
-              }} />
+              }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onClick={e => e.stopPropagation()}
+            >
+            <div className="bg-[var(--bg-modal)] rounded-[26px] text-white overflow-hidden">
 
-              <div style={{ padding: "28px 32px" }}>
-              {/* Header */}
-              <div style={{
-                display: "flex", alignItems: "center",
-                justifyContent: "space-between", marginBottom: "24px",
-              }}>
-                <div>
-                  <h2 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
-                    Upload File
-                  </h2>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontFamily: "monospace", margin: "4px 0 0" }}>
-                    {wallet ? `${wallet.slice(0, 6)}...${wallet.slice(-4)}` : "Wallet not connected"}
-                  </p>
-                </div>
-                <button
-                  onClick={onClose}
-                  style={{
-                    width: "32px", height: "32px", borderRadius: "8px", border: "none",
-                    background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)",
-                    cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <X size={16} strokeWidth={2} />
-                </button>
-              </div>
+              {/* Top accent bar */}
+              <div className="h-[3px] bg-gradient-to-r from-[#7dd3fc] via-[#a78bfa] to-[#f472b6] bg-[length:400%_100%] animate-[walletBorder_4s_linear_infinite]" />
 
-              {/* Drop zone */}
-              <label style={{ display: "block", cursor: "pointer", marginBottom: "20px" }}>
-                <input
-                  type="file"
-                  style={{ display: "none" }}
-                  onChange={e => setFile(e.target.files?.[0] || null)}
-                />
-                <div style={{
-                  border: file ? "2px solid rgba(139,92,246,0.5)" : "2px dashed rgba(255,255,255,0.1)",
-                  borderRadius: "16px", padding: "32px 24px", textAlign: "center",
-                  background: file ? "rgba(139,92,246,0.06)" : "rgba(255,255,255,0.02)",
-                  transition: "all 0.2s",
-                }}>
-                  {file ? (
-                    <div>
-                      <FileText size={32} strokeWidth={1.5} color="#8b5cf6" style={{ margin: "0 auto 12px" }} />
-                      <p style={{ fontSize: "0.9rem", fontWeight: 500, color: "var(--text-primary)", margin: "0 0 4px" }}>
-                        {file.name}
-                      </p>
-                      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <Upload size={32} strokeWidth={1.5} color="var(--text-muted)" style={{ margin: "0 auto 12px" }} />
-                      <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", margin: "0 0 4px", fontWeight: 500 }}>
-                        Drop file here or click to browse
-                      </p>
-                      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>
-                        All file types supported — no size limit
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </label>
-
-              {/* Retention period */}
-              <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "14px 16px",
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: "12px", marginBottom: "20px",
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <Clock size={16} strokeWidth={1.8} color="var(--text-secondary)" />
+              <div className="p-6 sm:p-8">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <p style={{ fontSize: "0.875rem", color: "var(--text-primary)", fontWeight: 500, margin: 0 }}>
-                      Retention Period
-                    </p>
-                    <p style={{ fontSize: "0.7rem", color: "#475569", margin: "2px 0 0" }}>
-                      How long to store the file
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] m-0">
+                      Upload File
+                    </h2>
+                    <p className="text-[10px] sm:text-xs text-[var(--text-muted)] font-mono mt-1">
+                      {wallet ? `${wallet.slice(0, 6)}...${wallet.slice(-4)}` : "Wallet not connected"}
                     </p>
                   </div>
+                  <button
+                    onClick={onClose}
+                    className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:bg-white/10 transition-colors flex items-center justify-center"
+                  >
+                    <X size={16} strokeWidth={2} />
+                  </button>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+
+                {/* Drop zone */}
+                <label className="block cursor-pointer mb-5">
                   <input
-                    type="number" min={1} max={365} value={days}
-                    onChange={e => setDays(+e.target.value)}
-                    style={{
-                      width: "70px", background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px",
-                      padding: "6px 10px", color: "white", fontSize: "0.9rem",
-                      textAlign: "center", outline: "none",
-                    }}
+                    type="file"
+                    className="hidden"
+                    onChange={e => setFile(e.target.files?.[0] || null)}
                   />
-                  <span style={{ fontSize: "0.8rem", color: "#64748b" }}>days</span>
+                  <div className={`border-2 rounded-2xl p-8 text-center transition-all duration-200 ${
+                    file 
+                      ? "border-purple-500/50 bg-purple-500/5" 
+                      : "border-dashed border-white/10 bg-white/5 hover:border-white/20"
+                  }`}>
+                    {file ? (
+                      <div>
+                        <FileText size={32} strokeWidth={1.5} className="text-purple-500 mx-auto mb-3" />
+                        <p className="text-sm font-medium text-[var(--text-primary)] mb-1 truncate max-w-full px-4">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-[var(--text-muted)]">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload size={32} strokeWidth={1.5} className="text-[var(--text-muted)] mx-auto mb-3" />
+                        <p className="text-sm text-[var(--text-secondary)] font-medium mb-1">
+                          Drop file here or click to browse
+                        </p>
+                        <p className="text-xs text-[var(--text-muted)]">
+                          All file types supported — no size limit
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </label>
+
+                {/* Retention period */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl mb-6">
+                  <div className="flex items-center gap-3">
+                    <Clock size={16} strokeWidth={1.8} className="text-[var(--text-secondary)]" />
+                    <div>
+                      <p className="text-sm text-[var(--text-primary)] font-medium m-0">
+                        Retention Period
+                      </p>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                        How long to store the file
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <input
+                      type="number" min={1} max={365} value={days}
+                      onChange={e => setDays(+e.target.value)}
+                      className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-sm text-center outline-none focus:border-purple-500/50 transition-colors"
+                    />
+                    <span className="text-xs text-[var(--text-muted)]">days</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Wallet upload — the ONLY upload method */}
-              {file && account ? (
-                <UploadWithWalletButton
-                  file={file}
-                  retentionDays={days}
-                  onSuccess={(metadata) => {
-                    if (onUploaded) onUploaded(metadata);
-                    onClose();
-                    setFile(null);
-                    setDays(7);
-                  }}
-                  onError={(err) => notify("error", err)}
-                />
-              ) : (
+                {/* Wallet upload — the ONLY upload method */}
+                {file && account ? (
+                  <UploadWithWalletButton
+                    file={file}
+                    retentionDays={days}
+                    onSuccess={(metadata) => {
+                      if (onUploaded) onUploaded(metadata);
+                      onClose();
+                      setFile(null);
+                      setDays(7);
+                    }}
+                    onError={(err) => notify("error", err)}
+                  />
+                ) : (
+                  <button
+                    disabled
+                    className="w-full py-3.5 rounded-xl bg-white/5 text-[var(--text-muted)] text-sm font-semibold cursor-not-allowed mb-3"
+                  >
+                    {!account ? "Connect wallet to upload" : "Select a file to upload"}
+                  </button>
+                )}
+
                 <button
-                  disabled
-                  style={{
-                    width: "100%", padding: "14px", borderRadius: "12px", border: "none",
-                    background: "rgba(255,255,255,0.06)", color: "#475569",
-                    fontSize: "0.9rem", fontWeight: 600, cursor: "not-allowed",
-                    marginBottom: "12px",
-                  }}
+                  onClick={onClose}
+                  className="w-full py-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
                 >
-                  {!account ? "Connect wallet to upload" : "Select a file to upload"}
+                  Cancel
                 </button>
-              )}
-
-              <button
-                onClick={onClose}
-                style={{
-                  width: "100%", padding: "10px", background: "none", border: "none",
-                  color: "#475569", fontSize: "0.8rem", cursor: "pointer", transition: "color 0.2s",
-                  marginTop: "8px",
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = "#94a3b8"}
-                onMouseLeave={e => e.currentTarget.style.color = "#475569"}
-              >
-                Cancel
-              </button>
 
               </div>{/* end padding div */}
             </div>{/* end bg-modal div */}
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>,

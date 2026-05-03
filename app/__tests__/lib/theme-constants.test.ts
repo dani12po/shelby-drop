@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+/// <reference types="vitest/globals" />
 import {
   THEMES, DEFAULT_THEME, VALID_THEME_KEYS,
   isValidTheme, getTheme,

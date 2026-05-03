@@ -28,7 +28,7 @@ function shortenHash(hash: string) {
 }
 
 function buildTxUrl(txHash: string, network?: string) {
-  // Shelbynet txs must use ?network=shelbynet, testnet uses ?network=testnet
+  // Default to testnet as per production requirements
   const net = network === "shelbynet" ? "shelbynet" : "testnet";
   return `https://explorer.aptoslabs.com/txn/${txHash}?network=${net}`;
 }

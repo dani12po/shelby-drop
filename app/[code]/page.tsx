@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface SharePageProps {
   params: Promise<{ code: string }>;
@@ -56,42 +57,26 @@ export default function SharePage({ params }: SharePageProps) {
 
   if (status === "notfound") {
     return (
-      <div style={{
-        minHeight: "100vh", display: "flex", alignItems: "center",
-        justifyContent: "center", background: "var(--bg-primary)", color: "var(--text-primary)",
-        flexDirection: "column", gap: "16px", textAlign: "center", padding: "24px",
-      }}>
-        <div style={{ fontSize: "3rem" }}>🔗</div>
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>Link not found or expired</h2>
-        <p style={{ color: "var(--text-secondary)", margin: 0 }}>
-          This share link may have expired or doesn&apos;t exist.
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--bg-primary)] text-[var(--text-primary)] text-center p-6 gap-4">
+        <div className="text-5xl mb-2">🔗</div>
+        <h2 className="text-xl font-bold">Link not found or expired</h2>
+        <p className="text-[var(--text-secondary)] max-w-md">
+          This share link may have expired or doesn't exist.
         </p>
-        <a
+        <Link
           href="/"
-          style={{
-            padding: "10px 24px", borderRadius: "8px",
-            background: "linear-gradient(135deg,#8b5cf6,#3b82f6)",
-            color: "white", textDecoration: "none", fontWeight: 600, fontSize: "0.9rem",
-          }}
+          className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-bold text-sm shadow-lg shadow-violet-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
           Go Home
-        </a>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: "100vh", display: "flex", alignItems: "center",
-      justifyContent: "center", background: "var(--bg-primary)", color: "var(--text-primary)",
-      flexDirection: "column", gap: "16px",
-    }}>
-      <div style={{
-        width: "36px", height: "36px", borderRadius: "50%",
-        border: "3px solid rgba(139,92,246,0.3)", borderTopColor: "#8b5cf6",
-        animation: "spin 1s linear infinite",
-      }} />
-      <p style={{ color: "var(--text-secondary)", margin: 0 }}>Opening shared file…</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--bg-primary)] text-[var(--text-primary)] gap-4">
+      <div className="w-10 h-10 rounded-full border-4 border-violet-500/30 border-t-violet-500 animate-spin" />
+      <p className="text-[var(--text-secondary)] font-medium">Opening shared file…</p>
     </div>
   );
 }

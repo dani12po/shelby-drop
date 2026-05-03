@@ -8,8 +8,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SHELBY_INDEXER_URLS: Record<string, string> = {
-  testnet:  "https://api.testnet.aptoslabs.com/nocode/v1/public/cmlfqs5wt00qrs601zt5s4kfj/v1/graphql",
-  shelbynet: "https://api.shelbynet.aptoslabs.com/nocode/v1/public/cmforrguw0042s601fn71f9l2/v1/graphql",
+  testnet:   process.env.SHELBY_INDEXER_URL_TESTNET || "https://api.testnet.aptoslabs.com/nocode/v1/public/cmlfqs5wt00qrs601zt5s4kfj/v1/graphql",
+  shelbynet: process.env.SHELBY_INDEXER_URL_SHELBYNET || "https://api.shelbynet.aptoslabs.com/nocode/v1/public/cmforrguw0042s601fn71f9l2/v1/graphql",
 };
 
 export async function GET(req: Request) {
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   `;
 
   // Try 1: with is_deleted filter
-  let res1: any = null;
+  let res1: unknown = null;
   let err1: string | null = null;
   try {
     const r = await fetch(indexerUrl, {
@@ -53,10 +53,10 @@ export async function GET(req: Request) {
       }),
     });
     res1 = await r.json();
-  } catch (e: any) { err1 = e.message; }
+  } catch (e: unknown) { err1 = e instanceof Error ? e.message : String(e); }
 
   // Try 2: without is_deleted filter
-  let res2: any = null;
+  let res2: unknown = null;
   let err2: string | null = null;
   try {
     const r = await fetch(indexerUrl, {
@@ -75,10 +75,10 @@ export async function GET(req: Request) {
       }),
     });
     res2 = await r.json();
-  } catch (e: any) { err2 = e.message; }
+  } catch (e: unknown) { err2 = e instanceof Error ? e.message : String(e); }
 
   // Try 3: no filter at all (first 5 blobs)
-  let res3: any = null;
+  let res3: unknown = null;
   let err3: string | null = null;
   try {
     const r = await fetch(indexerUrl, {
@@ -93,7 +93,7 @@ export async function GET(req: Request) {
       }),
     });
     res3 = await r.json();
-  } catch (e: any) { err3 = e.message; }
+  } catch (e: unknown) { err3 = e instanceof Error ? e.message : String(e); }
 
   return NextResponse.json({
     wallet,

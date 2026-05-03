@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+/// <reference types="vitest/globals" />
 // Test the timestamp fix logic (the core bug we fixed)
 describe("Aptos timestamp conversion", () => {
   // Aptos returns timestamps in MICROSECONDS
